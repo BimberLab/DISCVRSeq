@@ -1,0 +1,38 @@
+language: java
+sudo: required
+dist: trusty
+git:
+  depth: 9999999
+  lfs_skip_smudge: true
+jdk:
+- openjdk8
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.m2
+    - $HOME/gcloud/
+    - $HOME/site-library
+
+install:
+- ./gradlew assemble;
+- ./gradlew installDist;
+- ./gradlew shadowJar;
+
+before_deploy:
+  - echo ${TRAVIS_TAG}
+  - mv build/installShadow/DISCVRSeq/lib/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
+
+deploy:
+  provider: releases
+  api_key: ${GH_TOKEN}
+  file:
+    - DISCVRSeq-${TRAVIS_TAG}.jar
+  skip_cleanup: true
+  on:
+    tags: true
