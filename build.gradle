@@ -1,0 +1,98 @@
+// Dependencies for the buildscript (not the program)
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter() // for shadow plugin
+    }
+}
+
+plugins {
+    id "java"
+    id "application"
+    id "com.github.johnrengelman.shadow" version "1.2.3"    //used to build the shadow and sparkJars
+}
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+//if (project.hasProperty('projVersion')) {
+//    project.version = project.projVersion
+//} else {
+//    project.version = '1.0-SNAPSHOT'
+//}
+
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+    }
+}
+
+mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
+
+// versions for the dependencies to resolve conflicts
+final gatkVersion = '4.beta.2'
+final htsjdkVersion = '2.10.1'
+final testNGVersion = '6.11'
+
+configurations.all {
+    resolutionStrategy {
+        // force the htsjdk version so we don't get a different one transitively or GATK
+        force 'com.github.samtools:htsjdk:' + htsjdkVersion
+        // later versions explode Hadoop
+        // TODO: this is the same in GATK, but we should check if they solve this issue in the future
+        force 'com.google.protobuf:protobuf-java:3.0.0-beta-1'
+        // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
+        force 'org.testng:testng:' + testNGVersion
+    }
+}
+
+dependencies {
+    // use the same GATK dependency for compile and documentation
+    final gatkDependency = 'org.broadinstitute:gatk:' + gatkVersion
+    compile (gatkDependency) {
+        exclude module: 'jgrapht' // this is not required
+    }
+    compile group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
+
+    // compilation for testing
+    testCompile 'org.testng:testng:' + testNGVersion
+}
+
+tasks.withType(Jar) {
+    manifest {
+        attributes 'Implementation-Title': rootProject.name,
+                'Main-Class': mainClassName
+    }
+}
+
+tasks.withType(ShadowJar) {
+    from(project.sourceSets.main.output)
+    baseName = project.name
+    mergeServiceFiles()
+    relocate 'com.google.common', 'org.broadinstitute.hellbender.relocated.com.google.common'
+    zip64 true
+    exclude 'log4j.properties' // from adam jar as it clashes with hellbender's log4j2.xml
+    exclude '**/*.SF' // these are Manifest signature files and
+    exclude '**/*.RSA' // keys which may accidentally be imported from other signed projects and then fail at runtime
+
+    // Suggested by the akka devs to make sure that we do not get the spark configuration error.
+    // http://doc.akka.io/docs/akka/snapshot/general/configuration.html#When_using_JarJar__OneJar__Assembly_or_any_jar-bundler
+    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+        resource = 'reference.conf'
+    }
+}
+
+shadowJar {
+    configurations = [project.configurations.runtime]
+    classifier = ''
+    mergeServiceFiles('reference.conf')
+}
+
+task localJar{ dependsOn shadowJar }
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+}
