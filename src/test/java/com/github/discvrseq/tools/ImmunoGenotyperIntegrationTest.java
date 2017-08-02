@@ -52,9 +52,14 @@
 package com.github.discvrseq.tools;
 
 import com.github.discvrseq.Main;
+import org.apache.commons.io.FileSystemUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
+import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
+import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -63,8 +68,6 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
-    private final String testBaseDir = "src/test/resources/";
-
     @Override
     @BeforeClass
     public void initGenomeLocParser() throws FileNotFoundException {
@@ -83,26 +86,33 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
     }
 
     @Test
-    public void testBasicOperation() {
+    public void testBasicOperation() throws Exception {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
+        File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
-        args.add(fixFilePath(new File(testBaseDir + "Rhesus_KIR_and_MHC_1.0.fasta")));
+        args.add(fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
 
         args.add("-I");
-        args.add(fixFilePath(new File(testBaseDir + "ImmunoGenotyper.qsort.bam")));
+        args.add(fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
 
         args.add("--referenceToLineageFile");
-        args.add(fixFilePath(new File(testBaseDir + "lineageMap.txt")));
+        args.add(fixFilePath(new File(testBaseDir, "lineageMap.txt")));
+
+        String fn = "ImmunoGenotyperOutput.txt";
 
         args.add("-O");
-        File outFile = getSafeNonExistentFile("immunoGenotypes.txt");
-        args.add(fixFilePath(outFile));
+
+        File outFile = getSafeNonExistentFile(fn);
+        String outFilePath = fixFilePath(outFile);
+
+        args.add(outFilePath);
 
         runCommandLine(args.getArgsArray());
 
-        //TODO: inspect output
-        //Utils.calcMD5(getBytesFromFile(file));
+        File expected = getTestFile(fn);
+        File actual = IOUtils.getPath(outFilePath).toFile();
+        IntegrationTestSpec.assertEqualTextFiles(actual, expected);
     }
 
     @Override
