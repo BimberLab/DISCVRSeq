@@ -53,6 +53,7 @@ package com.github.discvrseq.tools;
 
 import com.github.discvrseq.Main;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
+import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -70,28 +71,38 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
 
     }
 
+    // this was added to so windows filepaths dont fail conversion to URIs in IOUtils
+    // there must be a cleaner solution
+    private String fixFilePath(File file){
+        file = IOUtils.absolute(file);
+        String ret = file.toURI().toString();
+        ret = ret.replaceAll("file://", "");
+        ret = ret.replaceAll("//", "/");
+
+        return ret;
+    }
+
     @Test
     public void testBasicOperation() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        //hack:
-        String base = new File("").getAbsolutePath();
-        base = base.replaceAll("\\\\", "/");
-        base = base.replaceAll("C:", "");
-
         args.add("-R");
-        args.add(base + "/" + testBaseDir + "96_Rhesus_KIR_and_MHC_1.0.fasta");
+        args.add(fixFilePath(new File(testBaseDir + "Rhesus_KIR_and_MHC_1.0.fasta")));
 
         args.add("-I");
-        args.add(base + "/" + testBaseDir+ "22642_RL8_Tetramer_Clone16.qsort.bam");
+        args.add(fixFilePath(new File(testBaseDir + "ImmunoGenotyper.qsort.bam")));
 
         args.add("--referenceToLineageFile");
-        args.add(base + "/" + testBaseDir+ "96_lineageMap.txt");
+        args.add(fixFilePath(new File(testBaseDir + "lineageMap.txt")));
 
         args.add("-O");
-        args.add("immunoGenotypes.txt");
+        File outFile = getSafeNonExistentFile("immunoGenotypes.txt");
+        args.add(fixFilePath(outFile));
 
         runCommandLine(args.getArgsArray());
+
+        //TODO: inspect output
+        //Utils.calcMD5(getBytesFromFile(file));
     }
 
     @Override

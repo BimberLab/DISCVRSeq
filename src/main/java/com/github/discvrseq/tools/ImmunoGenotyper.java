@@ -43,8 +43,8 @@ public class ImmunoGenotyper extends ReadWalker {
     @Argument(fullName = "minPctForRef", shortName = "minPctForRef", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.", optional = true, maxValue = 1.0, minValue = 0.0)
     Double minPctForRef = 0.01;
 
-    @Argument(fullName = "minReadCountForRef", shortName = "minReadCountForRef", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.", optional = true, maxValue = 1.0, minValue = 0.0)
-    Double minReadCountForRef = 0.01;
+    @Argument(fullName = "minReadCountForRef", shortName = "minReadCountForRef", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.", optional = true, minValue = 0)
+    Integer minReadCountForRef = 5;
 
     @Argument(fullName = "minPctForLineageFiltering", shortName = "minPctForLineageFiltering", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, references will be grouped by lineage/allotype (based on the supplied file).  Within each group any hit sets below this threshold will be ignored.  Of the remaining, if any alleles are present across all groups, only those hits will be retained.", optional = true, maxValue = 1.0, minValue = 0.0)
     Double minPctForLineageFiltering = 0.01;
