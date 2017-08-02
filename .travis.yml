@@ -26,7 +26,7 @@ install:
 
 before_deploy:
   - echo ${TRAVIS_TAG}
-  - mv build/installShadow/DISCVRSeq/lib/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
+  - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
 
 deploy:
   provider: releases
