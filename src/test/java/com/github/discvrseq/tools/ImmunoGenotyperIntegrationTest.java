@@ -65,7 +65,12 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.List;
+
+import static com.github.discvrseq.tools.ImmunoGenotyper.GENOTYPE_EXTENSION;
+import static com.github.discvrseq.tools.ImmunoGenotyper.MISMATCH_EXTENSION;
+import static com.github.discvrseq.tools.ImmunoGenotyper.SUMMARY_EXTENSION;
 
 public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
     @Override
@@ -87,8 +92,61 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
 
     @Test
     public void testBasicOperation() throws Exception {
-        ArgumentsBuilder args = new ArgumentsBuilder();
+        ArgumentsBuilder args = getBaseArgs();
+        args.add("--requireValidPair");
 
+        doTest(args, "ImmunoGenotyperOutput");
+    }
+
+    @Test
+    public void testWithMismatches() throws Exception {
+        ArgumentsBuilder args = getBaseArgs();
+        args.add("--mismatchesTolerated");
+        args.add(10);
+        args.add("-mmq");
+        args.add(0);
+        args.add("--minReadCountForRef");
+        args.add(1);
+        args.add("--minPctForExport");
+        args.add(0.005);
+        args.add("--minReadCountForExport");
+        args.add("1");
+
+        doTest(args, "ImmunoGenotyperOutputMM");
+    }
+
+    @Test
+    public void testWithoutRequireValidPair() throws Exception {
+        ArgumentsBuilder args = getBaseArgs();
+        args.add("-mmq");
+        args.add(0);
+        args.add("--minPctForRef");
+        args.add(0.001);
+
+        args.add("--minPctForExport");
+        args.add(0.001);
+
+        doTest(args, "ImmunoGenotyperOutputNVP");
+    }
+
+    private void doTest(ArgumentsBuilder args, String fn) throws Exception{
+        args.add("-O");
+
+        File outFile = getSafeNonExistentFile(fn);
+        String outFilePrefix = fixFilePath(outFile);
+        args.add(outFilePrefix);
+
+        runCommandLine(args.getArgsArray());
+
+        for (String extention : Arrays.asList(GENOTYPE_EXTENSION, SUMMARY_EXTENSION, MISMATCH_EXTENSION)){
+            File expected = getTestFile(fn + extention);
+            File actual = IOUtils.getPath(outFilePrefix + extention).toFile();
+            IntegrationTestSpec.assertEqualTextFiles(actual, expected);
+        }
+    }
+
+    private ArgumentsBuilder getBaseArgs() {
+        ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
         args.add(fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
@@ -99,22 +157,8 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
         args.add("--referenceToLineageFile");
         args.add(fixFilePath(new File(testBaseDir, "lineageMap.txt")));
 
-        String fn = "ImmunoGenotyperOutput.txt";
-
-        args.add("-O");
-
-        File outFile = getSafeNonExistentFile(fn);
-        String outFilePath = fixFilePath(outFile);
-
-        args.add(outFilePath);
-
-        runCommandLine(args.getArgsArray());
-
-        File expected = getTestFile(fn);
-        File actual = IOUtils.getPath(outFilePath).toFile();
-        IntegrationTestSpec.assertEqualTextFiles(actual, expected);
+        return args;
     }
-
     @Override
     public Object runCommandLine(final List<String> args) {
         return new Main().instanceMain(makeCommandLineArgs(args));

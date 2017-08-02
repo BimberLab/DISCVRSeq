@@ -1,0 +1,57 @@
+Read pairs with hits: 10272 (0.880)
+Read pairs without hits: 1397 (0.120)
+Failed due to MAPQ: 0 (0.000)
+Failed due to length: 53 (0.005)
+Failed due to no valid pair: 0 (0.000)
+Filtering by reference:
+Discarded due to read count: Mamu-KIR3DL07*010 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-DPB1*01 / 4 / 3.894080996884735E-4
+Discarded due to read count: Mamu-B*051:01 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*045:06 / 1 / 9.735202492211838E-5
+Discarded due to percent: Mamu-F*01:02 / 6 / 5.841121495327102E-4
+Discarded due to percent: Mamu-B*029:02 / 5 / 4.867601246105919E-4
+Discarded due to percent: Mamu-F*01:01 / 9 / 8.761682242990654E-4
+Discarded due to percent: Mamu-F*01:06 / 9 / 8.761682242990654E-4
+Discarded due to read count: Mamu-KIR3DL06*001 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-KIR3DL06*002 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:12:01 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-DPB1*12 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*077:02 / 1 / 9.735202492211838E-5
+Discarded due to percent: Mamu-B*004:01 / 10 / 9.735202492211838E-4
+Discarded due to percent: Mamu-B*030:03:02 / 8 / 7.78816199376947E-4
+Discarded due to read count: Mamu-I*01:06:03 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*030:03:01 / 3 / 2.920560747663551E-4
+Discarded due to read count: Mamu-B*030:03:03 / 4 / 3.894080996884735E-4
+Discarded due to read count: Mamu-DPB1*03 / 3 / 2.920560747663551E-4
+Discarded due to read count: Mamu-DPB1*02 / 4 / 3.894080996884735E-4
+Discarded due to read count: Mamu-B*066:01 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-DPB1*06 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-B*047:02 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:01:02 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-DPB1*23 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-E*01:19 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:14 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:11 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*011:01 / 4 / 3.894080996884735E-4
+Discarded due to percent: Mamu-B*030:04 / 6 / 5.841121495327102E-4
+Discarded due to read count: Mamu-DPB1*19:01:02 / 3 / 2.920560747663551E-4
+Discarded due to percent: Mamu-B*030:05 / 8 / 7.78816199376947E-4
+Discarded due to read count: Mamu-DPB1*19:01:01 / 1 / 9.735202492211838E-5
+Discarded due to percent: Mamu-B*030:02 / 9 / 8.761682242990654E-4
+Discarded due to read count: Mamu-DPB1*13 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*015:05 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*036:01:02 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*030:06 / 4 / 3.894080996884735E-4
+Discarded due to percent: Mamu-DPB1*18 / 7 / 6.814641744548286E-4
+Discarded due to read count: Mamu-DPB1*17 / 3 / 2.920560747663551E-4
+Discarded due to read count: Mamu-B*071:01 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:05 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-E*01:07 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*149:02 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-E*01:03 / 1 / 9.735202492211838E-5
+Discarded due to read count: Mamu-B*002:01 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-B*060:04 / 2 / 1.9470404984423675E-4
+Discarded due to read count: Mamu-B*085:02 / 1 / 9.735202492211838E-5
+Groups before/after filtering by reference: 89/23
+Groups before/after filtering by lineage/allotype: 23/23
+Groups skipped due to low read count or percent: 9

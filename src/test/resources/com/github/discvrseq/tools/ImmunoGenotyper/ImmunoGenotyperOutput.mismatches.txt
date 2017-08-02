@@ -1,0 +1,11 @@
+RefName	TotalReads	ReasonForFailure
+Mamu-KIR3DL07*002	40	NoValidPair
+Mamu-B*011:01	2	NoValidPair
+Mamu-E*01:05	2	NoValidPair
+Mamu-A3*13:03	24	NoValidPair
+Mamu-B*030:01	32	NoValidPair
+Mamu-DPB1*10	22	NoValidPair
+Mamu-KIR2DL04*00101	4	NoValidPair
+Mamu-B*002:01	1	NoValidPair
+Mamu-KIR3DS01*00101	1754	NoValidPair
+Mamu-B*074:02-V1	11	NoValidPair

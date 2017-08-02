@@ -29,16 +29,18 @@ import java.util.*;
 @CommandLineProgramProperties(oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.", summary = ImmunoGenotyper.SUMMARY, programGroup = DiscvrSeqProgramGroup.class)
 public class ImmunoGenotyper extends ReadWalker {
     protected static final String SUMMARY = "";
+    public static final String GENOTYPE_EXTENSION = ".genotypes.txt";
+    public static final String MISMATCH_EXTENSION = ".mismatches.txt";
+    public static final String SUMMARY_EXTENSION = ".summary.txt";
 
-    @Argument(doc="File to which genotypes should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
-    public String out = null;
+    @Argument(doc="Prefix for output files", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
+    public String outPrefix = null;
 
     @Argument(fullName = "minMappingQuality", shortName = "mmq", doc = "Minimum mapping quality of reads to count towards depth.", optional = false)
     Integer minMappingQuality = 20;
 
     @Argument(fullName = "requireValidPair", shortName = "rvp", doc = "If true, only reads with a valid pair to the same reference will be considered", optional = true)
     boolean requireValidPair = false;
-
 
     @Argument(fullName = "minPctForRef", shortName = "minPctForRef", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.", optional = true, maxValue = 1.0, minValue = 0.0)
     Double minPctForRef = 0.01;
@@ -57,6 +59,12 @@ public class ImmunoGenotyper extends ReadWalker {
 
     @Argument(fullName = "minReadCountForExport", shortName = "minReadCountForExport", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.", optional = true, minValue = 0)
     Integer minReadCountForExport = 5;
+
+    @Argument(fullName = "mismatchesTolerated", shortName = "mm", doc = "The maximum number of mismatches tolerated for alignment.  If a given read has multiple alignments, those with the fewest mismatches will be kept (irrespective of length).", optional = true, minValue = 0)
+    Integer mismatchesTolerated = 0;
+
+    @Argument(fullName = "minAlignmentLength", shortName = "minAlignmentLength", doc = "Alignments shorted than this value will be discarded.", optional = true, minValue = 0)
+    Integer minAlignmentLength = 40;
 
     private ReferenceMatchTracker refTracker;
     private Map<String, String> nameToLineageMap;
@@ -126,45 +134,52 @@ public class ImmunoGenotyper extends ReadWalker {
             throw new IllegalArgumentException("Read lacks NM tag: " + read.getName());
         }
 
-        if (read.getAttributeAsInteger("NM") > 0){
-            activeRead.addMismatchAlignment();
-            return;
-        }
-
-        activeRead.addAlignment(read);
+        activeRead.addAlignment(read, read.getAttributeAsInteger("NM"));
 
         return;
     }
 
     @Override
     public Object onTraversalSuccess() {
-        //outputWriter = new PrintWriter(OUTPUT);
+        //finalize the last group
         if (activeRead != null){
             refTracker.addRead(activeRead);
         }
 
-        //perform filtering of hits
-        filterByReference(refTracker);
-        filterByLineage(refTracker);
-
-        //write out tables
-        Path outputFile = IOUtils.getPath(out);
         NumberFormat numberFormat = NumberFormat.getNumberInstance();
         numberFormat.setMinimumFractionDigits(3);
 
+        //perform filtering of hits
+        List<String> messages = new ArrayList<>();
+        double total = (double)refTracker.readPairsNoHits + refTracker.readPairsWithHits;
+        messages.add("Read pairs with hits: " + refTracker.readPairsWithHits + " (" + numberFormat.format(refTracker.readPairsWithHits / total) + ")");
+        messages.add("Read pairs without hits: " + refTracker.readPairsNoHits + " (" + numberFormat.format(refTracker.readPairsNoHits / total) + ")");
+        messages.add("Failed due to MAPQ: " + refTracker.totalReadsFailedForMapq + " (" + numberFormat.format(refTracker.totalReadsFailedForMapq / total) + ")");
+        messages.add("Failed due to length: " + refTracker.totalReadsFailedForLength + " (" + numberFormat.format(refTracker.totalReadsFailedForLength / total) + ")");
+        messages.add("Failed due to no valid pair: " + refTracker.totalReadsFailedForValidPair + " (" + numberFormat.format(refTracker.totalReadsFailedForValidPair / total) + ")");
+
+        filterByReference(refTracker, messages);
+        filterByLineage(refTracker, messages);
+
+        //write out tables
+        Path outputFile = IOUtils.getPath(outPrefix + GENOTYPE_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(outputFile.toFile()));
         try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(outputFile.toFile()))){
             outWriter.println(StringUtils.join(Arrays.asList("RefNames", "Lineage/Allotypes", "TotalReads", "PercentOfTotal", "PercentOfTotalIncludingUnmapped"), "\t"));
 
-            for (HitSet hs : refTracker.hitMap.values()) {
+            int groupsSkipped = 0;
+            for (String key : refTracker.hitMap.keySet()) {
+                HitSet hs = refTracker.hitMap.get(key);
                 Double pct = hs.readNames.size() / (double) refTracker.readPairsWithHits;
                 Double pct2 = hs.readNames.size() / (double)(refTracker.readPairsWithHits + refTracker.readPairsNoHits);
 
                 if (hs.readNames.size() < minReadCountForExport){
+                    groupsSkipped++;
                     continue;
                 }
 
                 if (pct < minPctForExport){
+                    groupsSkipped++;
                     continue;
                 }
 
@@ -176,33 +191,72 @@ public class ImmunoGenotyper extends ReadWalker {
                         numberFormat.format(pct2)
                 ), "\t"));
             }
+
+            messages.add("Groups skipped due to low read count or percent: " + groupsSkipped);
+        }
+
+        Path summaryFile = IOUtils.getPath(outPrefix + SUMMARY_EXTENSION);
+        IOUtil.assertFilesAreWritable(Arrays.asList(summaryFile.toFile()));
+        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(summaryFile.toFile()))){
+            messages.forEach(message -> outWriter.println(message));
+        }
+
+        Path mismatchFile = IOUtils.getPath(outPrefix + MISMATCH_EXTENSION);
+        IOUtil.assertFilesAreWritable(Arrays.asList(mismatchFile.toFile()));
+        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(mismatchFile.toFile()))){
+            outWriter.println(StringUtils.join(Arrays.asList("RefName", "TotalReads", "ReasonForFailure"), "\t"));
+            for (String refName : refTracker.mismatchMap.keySet()){
+                AlignmentMismatch am = refTracker.mismatchMap.get(refName);
+                outWriter.println(StringUtils.join(Arrays.asList(
+                    refName,
+                    String.valueOf(am.totalReads),
+                    StringUtils.join(am.reasonsForFailure, ",")
+                ), "\t"));
+            }
         }
 
         return super.onTraversalSuccess();
     }
 
+    private class AlignmentMismatch {
+        String refName;
+        int totalReads = 0;
+        Set<String> reasonsForFailure = new HashSet<>();
+
+        AlignmentMismatch(String refName){
+            this.refName = refName;
+        }
+
+        private void addRead(String reason){
+            totalReads++;
+            reasonsForFailure.add(reason);
+        }
+    }
+
     private class ReferenceMatchTracker {
         private Map<String, HitSet> hitMap = new HashMap<>();
+        private Map<String, AlignmentMismatch> mismatchMap = new HashMap<>();
         private int readPairsWithHits = 0;
         private int readPairsNoHits = 0;
         private int totalReadsFailedForMapq = 0;
         private int totalReadsFailedForValidPair = 0;
+        private int totalReadsFailedForLength = 0;
 
         public ReferenceMatchTracker(){
 
         }
 
         public void addRead(ReadAlignmentsTracker tracker){
-            Set<String> hits = tracker.getHits(requireValidPair);
-            if (!hits.isEmpty()){
+            ReadHit hit = tracker.getHits(requireValidPair);
+            if (!hit.hits.isEmpty()){
                 readPairsWithHits++;
 
-                String key = HitSet.getKey(hits);
+                String key = HitSet.getKey(hit.hits);
                 if (!hitMap.containsKey(key)){
-                    hitMap.put(key, new HitSet(hits));
+                    hitMap.put(key, new HitSet(hit.hits));
                 }
 
-                hitMap.get(key).addRead(tracker);
+                hitMap.get(key).addRead(tracker, hit.hasForward, hit.hasReverse);
             }
             else {
                 readPairsNoHits++;
@@ -210,32 +264,70 @@ public class ImmunoGenotyper extends ReadWalker {
                 if (tracker.lowMapqAlignments > 0){
                     totalReadsFailedForMapq++;
                 }
+                if (tracker.shortAlignments.size() > 0){
+                    totalReadsFailedForLength++;
+                }
 
                 if (requireValidPair && (!tracker.forwardPerfectHits.isEmpty() || !tracker.reversePerfectHits.isEmpty())){
                     totalReadsFailedForValidPair++;
+
+                    ReadHit hitNoValidPair = tracker.getHits(false);
+                    if (!hitNoValidPair.hits.isEmpty()){
+                        for (String refName : hitNoValidPair.hits){
+                            if (!mismatchMap.containsKey(refName)){
+                                mismatchMap.put(refName, new AlignmentMismatch(refName));
+                            }
+
+                            mismatchMap.get(refName).addRead("NoValidPair");
+                        }
+
+                        return;
+                    }
                 }
+
+                //TODO: should we track other mismatches?
             }
         }
+    }
+
+    private class ReadHit {
+        Set<String> hits = new HashSet<>();
+        boolean hasForward;
+        boolean hasReverse;
     }
 
     private class ReadAlignmentsTracker {
         private String activeReadName;
 
-        private Set<String> forwardPerfectHits = new HashSet<>();
-        private Set<String> reversePerfectHits = new HashSet<>();
+        private Map<Integer, Set<String>> forwardPerfectHits = new HashMap<>();
+        private Map<Integer, Set<String>> reversePerfectHits = new HashMap<>();
         private int lowMapqAlignments = 0;
-        private int mismatchAlignments = 0;
+        private Set<String> mismatchAlignments = new HashSet<>();
+        private Set<String> shortAlignments = new HashSet<>();
 
         public ReadAlignmentsTracker(String activeReadName){
             this.activeReadName = activeReadName;
         }
 
-        public void addAlignment(GATKRead record) {
-            if (!record.isPaired() || record.isFirstOfPair()){
-                forwardPerfectHits.add(record.getContig());
+        public void addAlignment(GATKRead record, int nm) {
+            if (record.getLength() < minAlignmentLength){
+                shortAlignments.add(record.getContig());
             }
-            else if (record.isSecondOfPair()){
-                reversePerfectHits.add(record.getContig());
+            else if (nm > mismatchesTolerated){
+                mismatchAlignments.add(record.getContig());
+            }
+            else {
+                if (!forwardPerfectHits.containsKey(nm)){
+                    forwardPerfectHits.put(nm, new HashSet<>());
+                    reversePerfectHits.put(nm, new HashSet<>());
+                }
+
+                if (!record.isPaired() || record.isFirstOfPair()){
+                    forwardPerfectHits.get(nm).add(record.getContig());
+                }
+                else if (record.isSecondOfPair()) {
+                    reversePerfectHits.get(nm).add(record.getContig());
+                }
             }
         }
 
@@ -243,22 +335,33 @@ public class ImmunoGenotyper extends ReadWalker {
             lowMapqAlignments++;
         }
 
-        public void addMismatchAlignment() {
-            mismatchAlignments++;
-        }
-
-        public Set<String> getHits(boolean requireValidPair)
+        public ReadHit getHits(boolean requireValidPair)
         {
-            Set<String> ret = new HashSet<>();
-            ret.addAll(forwardPerfectHits);
+            if (forwardPerfectHits.isEmpty()){
+                return new ReadHit();
+            }
+
+            Integer lowestForward = new TreeSet<>(forwardPerfectHits.keySet()).iterator().next();
+            Integer lowestReverse = new TreeSet<>(reversePerfectHits.keySet()).iterator().next();
+            Set<String> hits = new HashSet<>();
+            hits.addAll(forwardPerfectHits.get(lowestForward));
             if (requireValidPair){
-                ret.retainAll(reversePerfectHits);
+                hits.retainAll(reversePerfectHits.get(lowestReverse));
+                ReadHit ret = new ReadHit();
+                ret.hits.addAll(hits);
+                ret.hasForward = true;
+                ret.hasReverse = true;
+                return ret;
+
             }
             else {
-                ret.addAll(reversePerfectHits);
+                hits.addAll(reversePerfectHits.get(lowestReverse));
+                ReadHit ret = new ReadHit();
+                ret.hits.addAll(hits);
+                ret.hasForward = !forwardPerfectHits.get(lowestForward).isEmpty();
+                ret.hasReverse = !reversePerfectHits.get(lowestReverse).isEmpty();
+                return ret;
             }
-
-            return ret;
         }
     }
 
@@ -285,8 +388,16 @@ public class ImmunoGenotyper extends ReadWalker {
             return getKey(refNames);
         }
 
-        public void addRead(ReadAlignmentsTracker tracker){
+        public void addRead(ReadAlignmentsTracker tracker, boolean isForward, boolean isReverse){
             this.readNames.add(tracker.activeReadName);
+
+            if (isForward){
+                forward++;
+            }
+
+            if (isReverse){
+                reverse++;
+            }
         }
 
         public static String getKey(Collection<String> refNames) {
@@ -306,7 +417,8 @@ public class ImmunoGenotyper extends ReadWalker {
         }
     }
 
-    private void filterByReference(ReferenceMatchTracker refTracker){
+    private void filterByReference(ReferenceMatchTracker refTracker, List<String> messages){
+        messages.add("Filtering by reference:");
         int readsHelpedByAlleleFilters = 0;
 
         //build total by ref
@@ -329,15 +441,11 @@ public class ImmunoGenotyper extends ReadWalker {
             double pct = ((double) totalByReference.get(refName) / totalReads);
 
             if (minReadCountForRef != null && totalForRef < minReadCountForRef) {
-                //_skippedReferencesByRead++;
-                //getLogger().debug("Reference discarded due to read count: " + refName + " / " + distinctStageTwoReads + " / " + totalForRef + " / " + pct + "%");
-                //msg = "**skipped due to read count";
+                messages.add("Discarded due to read count: " + refName + " / " + totalForRef + " / " + pct);
                 disallowedReferences.add(refName);
             }
             else if (minPctForRef != null && pct < minPctForRef) {
-                //_skippedReferencesByPct++;
-                //getLogger().debug("Reference discarded due to percent: " + refName + " / " + distinctStageTwoReads + " / " + totalForRef + " / " + pct + "%");
-                //msg = "**skipped due to percent";
+                messages.add("Discarded due to percent: " + refName + " / " + totalForRef + " / " + pct);
                 disallowedReferences.add(refName);
             }
         }
@@ -350,6 +458,7 @@ public class ImmunoGenotyper extends ReadWalker {
             refNames.removeAll(disallowedReferences);
             if (refNames.isEmpty()) {
                 //refTracker.unaligned.addAll(hs.readNames);
+                //messages.add("Set condensed: " + StringUtils.join(hs.refNames, ",") + " -> None");
             }
             else {
                 if (refNames.size() != hs.refNames.size()) {
@@ -361,13 +470,16 @@ public class ImmunoGenotyper extends ReadWalker {
                 HitSet hs2 = newHitMap.containsKey(newKey) ? newHitMap.get(newKey) : new HitSet(refNames);
                 hs2.append(hs);
                 newHitMap.put(newKey, hs2);
+
             }
         }
+
+        messages.add("Groups before/after filtering by reference: " + refTracker.hitMap.size() + "/" + newHitMap.size());
 
         refTracker.hitMap = newHitMap;
     }
 
-    private void filterByLineage(ReferenceMatchTracker refTracker){
+    private void filterByLineage(ReferenceMatchTracker refTracker, List<String> messages){
         if (nameToLineageMap.isEmpty()){
             logger.info("no reference to lineage/allotype file provided, cannot perform filtering");
             return;
@@ -479,6 +591,8 @@ public class ImmunoGenotyper extends ReadWalker {
                 }
             }
         }
+
+        messages.add("Groups before/after filtering by lineage/allotype: " + refTracker.hitMap.size() + "/" + newHitSetMap.size());
 
         refTracker.hitMap = newHitSetMap;
     }

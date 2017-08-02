@@ -1,6 +1,0 @@
-RefNames	Lineage/Allotypes	TotalReads	PercentOfTotal	PercentOfTotalIncludingUnmapped
-Mamu-KIR3DL07*002	KIR3DL07g	206	0.080	0.018
-Mamu-B*030:01	Mamu-B*030g	87	0.034	0.007
-Mamu-A3*13:03	Mamu-A3*13g	34	0.013	0.003
-Mamu-DPB1*10	Mamu-DPB1*10	72	0.028	0.006
-Mamu-KIR3DS01*00101	KIR3DS01g	2138	0.826	0.183

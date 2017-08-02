@@ -1,0 +1,78 @@
+Read pairs with hits: 11668 (1.000)
+Read pairs without hits: 1 (0.000)
+Failed due to MAPQ: 0 (0.000)
+Failed due to length: 0 (0.000)
+Failed due to no valid pair: 0 (0.000)
+Filtering by reference:
+Discarded due to percent: Mamu-A2*05:04:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-KIR3DL07*010 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-DPB1*01 / 4 / 3.4281796366129587E-4
+Discarded due to percent: Mamu-B*074:02 / 19 / 0.0016283853273911552
+Discarded due to percent: Mamu-B*051:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*045:06 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*074:01 / 21 / 0.0017997943092218033
+Discarded due to percent: Mamu-F*01:02 / 7 / 5.999314364072677E-4
+Discarded due to percent: Mamu-F*01:03 / 23 / 0.001971203291052451
+Discarded due to percent: Mamu-B*013:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*029:02 / 5 / 4.285224545766198E-4
+Discarded due to percent: Mamu-F*01:01 / 9 / 7.713404182379157E-4
+Discarded due to percent: Mamu-F*01:06 / 9 / 7.713404182379157E-4
+Discarded due to percent: Mamu-B*017:04 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-F*01:04 / 15 / 0.0012855673637298594
+Discarded due to percent: Mamu-B*069:01_exon2-3 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-F*01:05 / 15 / 0.0012855673637298594
+Discarded due to percent: Mamu-KIR3DL06*001 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-KIR3DL06*002 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-E*01:12:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-DPB1*12 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-DPB1*10 / 113 / 0.009684607473431608
+Discarded due to percent: Mamu-B*077:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*004:01 / 14 / 0.0011998628728145354
+Discarded due to percent: Mamu-I*01:06:03 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*030:03:02 / 8 / 6.856359273225917E-4
+Discarded due to percent: Mamu-B*030:03:01 / 3 / 2.571134727459719E-4
+Discarded due to percent: Mamu-AG*03:01:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*030:03:03 / 4 / 3.4281796366129587E-4
+Discarded due to percent: Mamu-DPB1*04 / 12 / 0.0010284538909838875
+Discarded due to percent: Mamu-AG*01:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-DPB1*03 / 3 / 2.571134727459719E-4
+Discarded due to percent: Mamu-DPB1*02 / 4 / 3.4281796366129587E-4
+Discarded due to percent: Mamu-B*066:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*074:02-V1 / 40 / 0.0034281796366129585
+Discarded due to percent: Mamu-DPB1*06 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-B*047:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-E*01:01:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-DPB1*23 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-E*01:17 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-E*01:19 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-E*01:14 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-E*01:11 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*011:01 / 18 / 0.0015426808364758314
+Discarded due to percent: Mamu-B*030:04 / 7 / 5.999314364072677E-4
+Discarded due to percent: Mamu-DPB1*19:01:02 / 3 / 2.571134727459719E-4
+Discarded due to percent: Mamu-B*030:05 / 8 / 6.856359273225917E-4
+Discarded due to percent: Mamu-DPB1*19:01:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*030:02 / 11 / 9.427494000685636E-4
+Discarded due to percent: Mamu-DPB1*13 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*015:05 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*036:01:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*030:06 / 4 / 3.4281796366129587E-4
+Discarded due to percent: Mamu-DPB1*18 / 9 / 7.713404182379157E-4
+Discarded due to percent: Mamu-DPB1*17 / 3 / 2.571134727459719E-4
+Discarded due to percent: Mamu-B*071:01 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*048:03 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-B*048:02 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-E*01:05 / 28 / 0.0023997257456290708
+Discarded due to percent: Mamu-E*01:07 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*149:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-AG*02:01:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-E*01:03 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*002:01 / 5 / 4.285224545766198E-4
+Discarded due to percent: Mamu-B*060:04 / 2 / 1.7140898183064793E-4
+Discarded due to percent: Mamu-B*085:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*037:02 / 1 / 8.570449091532397E-5
+Discarded due to percent: Mamu-B*005:01 / 7 / 5.999314364072677E-4
+Discarded due to percent: Mamu-AG*03:02 / 1 / 8.570449091532397E-5
+Groups before/after filtering by reference: 102/9
+Groups before/after filtering by lineage/allotype: 9/9
+Groups skipped due to low read count or percent: 3

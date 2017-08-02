@@ -1,0 +1,12 @@
+Read pairs with hits: 700 (0.060)
+Read pairs without hits: 10969 (0.940)
+Failed due to MAPQ: 9666 (0.828)
+Failed due to length: 9 (0.001)
+Failed due to no valid pair: 1887 (0.162)
+Filtering by reference:
+Discarded due to read count: Mamu-B*011:01 / 1 / 0.0014285714285714286
+Discarded due to read count: Mamu-F*01:03 / 4 / 0.005714285714285714
+Discarded due to read count: Mamu-B*002:01 / 1 / 0.0014285714285714286
+Groups before/after filtering by reference: 10/7
+Groups before/after filtering by lineage/allotype: 7/7
+Groups skipped due to low read count or percent: 0
