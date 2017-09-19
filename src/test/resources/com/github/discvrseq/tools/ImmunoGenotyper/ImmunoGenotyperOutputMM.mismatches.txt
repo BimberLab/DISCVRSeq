@@ -1,1 +1,2 @@
 RefName	TotalReads	ReasonForFailure
+Mamu-B*030:01	1	Mismatches

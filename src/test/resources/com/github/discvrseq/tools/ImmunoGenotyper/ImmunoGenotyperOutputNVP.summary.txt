@@ -1,8 +1,9 @@
 Read pairs with hits: 10272 (0.880)
 Read pairs without hits: 1397 (0.120)
 Failed due to MAPQ: 0 (0.000)
-Failed due to length: 53 (0.005)
+Failed due to length: 730 (0.063)
 Failed due to no valid pair: 0 (0.000)
+Failed due to mismatches: 1397 (0.120)
 Filtering by reference:
 Discarded due to read count: Mamu-KIR3DL07*010 / 2 / 1.9470404984423675E-4
 Discarded due to read count: Mamu-DPB1*01 / 4 / 3.894080996884735E-4
@@ -54,4 +55,14 @@ Discarded due to read count: Mamu-B*060:04 / 2 / 1.9470404984423675E-4
 Discarded due to read count: Mamu-B*085:02 / 1 / 9.735202492211838E-5
 Groups before/after filtering by reference: 89/23
 Groups before/after filtering by lineage/allotype: 23/23
+Exporting final groups:
+Discarded due to percent: Mamu-KIR2DL04*00101||Mamu-KIR3DS01*00101 / 6 / 0.001
+Discarded due to count: Mamu-DPB1*04||Mamu-DPB1*10 / 3 / 0.000
+Discarded due to count: Mamu-A3*13:03||Mamu-B*030:01 / 1 / 0.000
+Discarded due to count: Mamu-F*01:03||Mamu-F*01:04 / 1 / 0.000
+Discarded due to count: Mamu-B*074:02||Mamu-B*074:02-V1 / 1 / 0.000
+Discarded due to count: Mamu-F*01:03||Mamu-F*01:05 / 1 / 0.000
+Discarded due to count: Mamu-B*074:01||Mamu-B*074:02 / 1 / 0.000
+Discarded due to percent: Mamu-DPB1*04 / 8 / 0.001
+Discarded due to count: Mamu-B*074:01||Mamu-B*074:02-V1 / 1 / 0.000
 Groups skipped due to low read count or percent: 9

@@ -49,14 +49,11 @@
 * 8.7 Governing Law. This Agreement shall be construed, governed, interpreted and applied in accordance with the internal laws of the Commonwealth of Massachusetts, U.S.A., without regard to conflict of laws principles.
 */
 
-package com.github.discvrseq.tools;
+package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
-import org.apache.commons.io.FileSystemUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
+import com.github.discvrseq.TestUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
-import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
 import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
@@ -68,26 +65,15 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.github.discvrseq.tools.ImmunoGenotyper.GENOTYPE_EXTENSION;
-import static com.github.discvrseq.tools.ImmunoGenotyper.MISMATCH_EXTENSION;
-import static com.github.discvrseq.tools.ImmunoGenotyper.SUMMARY_EXTENSION;
+import static com.github.discvrseq.walkers.ImmunoGenotyper.GENOTYPE_EXTENSION;
+import static com.github.discvrseq.walkers.ImmunoGenotyper.MISMATCH_EXTENSION;
+import static com.github.discvrseq.walkers.ImmunoGenotyper.SUMMARY_EXTENSION;
 
 public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
     @Override
     @BeforeClass
     public void initGenomeLocParser() throws FileNotFoundException {
 
-    }
-
-    // this was added to so windows filepaths dont fail conversion to URIs in IOUtils
-    // there must be a cleaner solution
-    private String fixFilePath(File file){
-        file = IOUtils.absolute(file);
-        String ret = file.toURI().toString();
-        ret = ret.replaceAll("file://", "");
-        ret = ret.replaceAll("//", "/");
-
-        return ret;
     }
 
     @Test
@@ -133,7 +119,7 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
         args.add("-O");
 
         File outFile = getSafeNonExistentFile(fn);
-        String outFilePrefix = fixFilePath(outFile);
+        String outFilePrefix = TestUtils.fixFilePath(outFile);
         args.add(outFilePrefix);
 
         runCommandLine(args.getArgsArray());
@@ -149,16 +135,17 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
-        args.add(fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
+        args.add(TestUtils.fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
 
         args.add("-I");
-        args.add(fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
+        args.add(TestUtils.fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
 
         args.add("--referenceToLineageFile");
-        args.add(fixFilePath(new File(testBaseDir, "lineageMap.txt")));
+        args.add(TestUtils.fixFilePath(new File(testBaseDir, "lineageMap.txt")));
 
         return args;
     }
+
     @Override
     public Object runCommandLine(final List<String> args) {
         return new Main().instanceMain(makeCommandLineArgs(args));

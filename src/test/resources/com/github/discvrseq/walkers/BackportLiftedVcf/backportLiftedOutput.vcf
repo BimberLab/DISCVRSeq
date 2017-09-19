@@ -1,0 +1,12 @@
+##fileformat=VCFv4.2
+##ALT=<ID=NON_REF,Description="Represents any possible alternative allele at this location">
+##INFO=<ID=LiftedContig,Number=1,Type=String,Description="The name of the contig/chromosome after liftover.">
+##INFO=<ID=LiftedStart,Number=1,Type=Integer,Description="The start position of the variant on the lifted contig">
+##INFO=<ID=LiftedStop,Number=1,Type=Integer,Description="The end position of the variant on the lifted contig">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	475	.	C	A	10046.63	PASS	LiftedContig=1;LiftedStart=325812;LiftedStop=325812
+1	890	.	C	T	32.36	PASS	LiftedContig=1;LiftedStart=325823;LiftedStop=325823
+2	36	.	G	A	45047.36	PASS	LiftedContig=1;LiftedStart=325811;LiftedStop=325811
+2	3637	.	G	C	249.87	PASS	LiftedContig=1;LiftedStart=138318;LiftedStop=138318

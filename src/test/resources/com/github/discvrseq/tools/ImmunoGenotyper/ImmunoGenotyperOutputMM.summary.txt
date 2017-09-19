@@ -3,6 +3,7 @@ Read pairs without hits: 1 (0.000)
 Failed due to MAPQ: 0 (0.000)
 Failed due to length: 0 (0.000)
 Failed due to no valid pair: 0 (0.000)
+Failed due to mismatches: 1 (0.000)
 Filtering by reference:
 Discarded due to percent: Mamu-A2*05:04:01 / 1 / 8.570449091532397E-5
 Discarded due to percent: Mamu-KIR3DL07*010 / 2 / 1.7140898183064793E-4
@@ -75,4 +76,8 @@ Discarded due to percent: Mamu-B*005:01 / 7 / 5.999314364072677E-4
 Discarded due to percent: Mamu-AG*03:02 / 1 / 8.570449091532397E-5
 Groups before/after filtering by reference: 102/9
 Groups before/after filtering by lineage/allotype: 9/9
+Exporting final groups:
+Discarded due to percent: Mamu-KIR2DL04*00101||Mamu-KIR3DS01*00101 / 6 / 0.001
+Discarded due to percent: Mamu-A3*13:03||Mamu-B*030:01 / 1 / 0.000
+Discarded due to percent: Mamu-KIR3DL07*002||Mamu-KIR3DS01*00101 / 28 / 0.002
 Groups skipped due to low read count or percent: 3

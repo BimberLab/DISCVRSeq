@@ -15,6 +15,7 @@ testSortingFile.txt
 gsalib.tar.gz
 *.swp
 gradlew.bat
+gradlew
 tmp/
 src/main/java/local/
 
@@ -24,3 +25,5 @@ servicekey.json
 
 #Test Generated File
 I_SHOULD_HAVE_BEEN_DELETED
+
+out/*

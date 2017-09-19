@@ -1,5 +1,6 @@
-package com.github.discvrseq.tools;
+package com.github.discvrseq.walkers;
 
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang.StringUtils;
@@ -9,8 +10,9 @@ import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadWalker;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.filters.AlignmentAgreesWithHeaderReadFilter;
 import org.broadinstitute.hellbender.engine.filters.ReadFilter;
-import org.broadinstitute.hellbender.engine.filters.WellformedReadFilter;
+import org.broadinstitute.hellbender.engine.filters.ReadFilterLibrary;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.read.GATKRead;
@@ -37,7 +39,7 @@ public class ImmunoGenotyper extends ReadWalker {
     public String outPrefix = null;
 
     @Argument(fullName = "minMappingQuality", shortName = "mmq", doc = "Minimum mapping quality of reads to count towards depth.", optional = false)
-    Integer minMappingQuality = 20;
+    Integer minMappingQuality = 0;
 
     @Argument(fullName = "requireValidPair", shortName = "rvp", doc = "If true, only reads with a valid pair to the same reference will be considered", optional = true)
     boolean requireValidPair = false;
@@ -55,7 +57,7 @@ public class ImmunoGenotyper extends ReadWalker {
     File referenceToLineageFile;
 
     @Argument(fullName = "minPctForExport", shortName = "minPctForExport", doc = "If provided, any genotype representing fewer than this fraction of mapped reads will be discarded.", optional = true, maxValue = 1.0, minValue = 0.0)
-    Double minPctForExport = 0.01;
+    Double minPctForExport = 0.00;
 
     @Argument(fullName = "minReadCountForExport", shortName = "minReadCountForExport", doc = "This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.", optional = true, minValue = 0)
     Integer minReadCountForExport = 5;
@@ -106,15 +108,55 @@ public class ImmunoGenotyper extends ReadWalker {
         }
     }
 
+    private class Filter extends ReadFilter
+    {
+        private ReadFilter filter = null;
+
+        public Filter() {
+        }
+
+        @Override
+        public void setHeader(SAMFileHeader header) {
+            super.setHeader(header);
+            createFilter();
+        }
+
+        public Filter(final SAMFileHeader header) {
+            setHeader(header);
+        }
+
+        private void createFilter() {
+            final AlignmentAgreesWithHeaderReadFilter alignmentAgreesWithHeader = new AlignmentAgreesWithHeaderReadFilter(samHeader);
+
+            filter = ReadFilterLibrary.VALID_ALIGNMENT_START
+                    .and(ReadFilterLibrary.VALID_ALIGNMENT_END);
+                    //.and(alignmentAgreesWithHeader)
+                    //.and(ReadFilterLibrary.HAS_READ_GROUP)
+                    //.and(ReadFilterLibrary.HAS_MATCHING_BASES_AND_QUALS)
+                    //.and(ReadFilterLibrary.READLENGTH_EQUALS_CIGARLENGTH)
+                    //.and(ReadFilterLibrary.SEQ_IS_STORED)
+                    //.and(ReadFilterLibrary.CIGAR_CONTAINS_NO_N_OPERATOR);
+        }
+
+        @Override
+        public boolean test(GATKRead read) {
+            return filter.test(read);
+        }
+    }
+
     @Override
     public List<ReadFilter> getDefaultReadFilters() {
-        return Collections.singletonList(new WellformedReadFilter());
+        return Collections.singletonList(new Filter());
     }
 
     private ReadAlignmentsTracker activeRead = null;
 
     @Override
     public void apply(GATKRead read, ReferenceContext referenceContext, FeatureContext featureContext) {
+        if (read.isUnmapped()){
+            return;
+        }
+
         if (activeRead == null){
             activeRead = new ReadAlignmentsTracker(read.getName());
         }
@@ -135,8 +177,6 @@ public class ImmunoGenotyper extends ReadWalker {
         }
 
         activeRead.addAlignment(read, read.getAttributeAsInteger("NM"));
-
-        return;
     }
 
     @Override
@@ -157,6 +197,7 @@ public class ImmunoGenotyper extends ReadWalker {
         messages.add("Failed due to MAPQ: " + refTracker.totalReadsFailedForMapq + " (" + numberFormat.format(refTracker.totalReadsFailedForMapq / total) + ")");
         messages.add("Failed due to length: " + refTracker.totalReadsFailedForLength + " (" + numberFormat.format(refTracker.totalReadsFailedForLength / total) + ")");
         messages.add("Failed due to no valid pair: " + refTracker.totalReadsFailedForValidPair + " (" + numberFormat.format(refTracker.totalReadsFailedForValidPair / total) + ")");
+        messages.add("Failed due to mismatches: " + refTracker.totalAlignmentsFailedForMismatch + " (" + numberFormat.format(refTracker.totalAlignmentsFailedForMismatch / total) + ")");
 
         filterByReference(refTracker, messages);
         filterByLineage(refTracker, messages);
@@ -167,6 +208,8 @@ public class ImmunoGenotyper extends ReadWalker {
         try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(outputFile.toFile()))){
             outWriter.println(StringUtils.join(Arrays.asList("RefNames", "Lineage/Allotypes", "TotalReads", "PercentOfTotal", "PercentOfTotalIncludingUnmapped"), "\t"));
 
+            messages.add("Exporting final groups:");
+
             int groupsSkipped = 0;
             for (String key : refTracker.hitMap.keySet()) {
                 HitSet hs = refTracker.hitMap.get(key);
@@ -174,11 +217,13 @@ public class ImmunoGenotyper extends ReadWalker {
                 Double pct2 = hs.readNames.size() / (double)(refTracker.readPairsWithHits + refTracker.readPairsNoHits);
 
                 if (hs.readNames.size() < minReadCountForExport){
+                    messages.add("Discarded due to count: " + key + " / " + hs.readNames.size() + " / " + numberFormat.format(pct));
                     groupsSkipped++;
                     continue;
                 }
 
                 if (pct < minPctForExport){
+                    messages.add("Discarded due to percent: " + key + " / " + hs.readNames.size() + " / " + numberFormat.format(pct));
                     groupsSkipped++;
                     continue;
                 }
@@ -241,6 +286,7 @@ public class ImmunoGenotyper extends ReadWalker {
         private int totalReadsFailedForMapq = 0;
         private int totalReadsFailedForValidPair = 0;
         private int totalReadsFailedForLength = 0;
+        private int totalAlignmentsFailedForMismatch = 0;
 
         public ReferenceMatchTracker(){
 
@@ -264,8 +310,20 @@ public class ImmunoGenotyper extends ReadWalker {
                 if (tracker.lowMapqAlignments > 0){
                     totalReadsFailedForMapq++;
                 }
+
                 if (tracker.shortAlignments.size() > 0){
                     totalReadsFailedForLength++;
+                }
+
+                if (tracker.mismatchAlignments.size() > 0){
+                    totalAlignmentsFailedForMismatch++;
+                    for (String refName : tracker.mismatchAlignments){
+                        if (!mismatchMap.containsKey(refName)){
+                            mismatchMap.put(refName, new AlignmentMismatch(refName));
+                        }
+
+                        mismatchMap.get(refName).addRead("Mismatches");
+                    }
                 }
 
                 if (requireValidPair && (!tracker.forwardPerfectHits.isEmpty() || !tracker.reversePerfectHits.isEmpty())){
@@ -280,12 +338,8 @@ public class ImmunoGenotyper extends ReadWalker {
 
                             mismatchMap.get(refName).addRead("NoValidPair");
                         }
-
-                        return;
                     }
                 }
-
-                //TODO: should we track other mismatches?
             }
         }
     }
