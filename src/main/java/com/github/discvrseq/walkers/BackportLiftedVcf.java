@@ -24,8 +24,8 @@ import java.io.File;
 import java.util.*;
 
 @CommandLineProgramProperties(
-        summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CHR and ORGINAL_POS annotations left by Picard.",
-        oneLineSummary = "Summary2",
+        summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CHR and ORGINAL_POS annotations left by Picard.  Note: this also requires the original VCF to be annotated with the original alleles (prior to liftover), using the OriginalAlleleAnnotator tool.",
+        oneLineSummary = "Backport lifted VCF to the original coordinates",
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class BackportLiftedVcf extends VariantWalker {

@@ -28,9 +28,12 @@ import java.util.*;
 /**
  * Created by bimber on 7/31/2017.
  */
-@CommandLineProgramProperties(oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.", summary = ImmunoGenotyper.SUMMARY, programGroup = DiscvrSeqProgramGroup.class)
+@CommandLineProgramProperties(
+        oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.",
+        summary = ImmunoGenotyper.SUMMARY,
+        programGroup = DiscvrSeqProgramGroup.class)
 public class ImmunoGenotyper extends ReadWalker {
-    protected static final String SUMMARY = "";
+    protected static final String SUMMARY = "Genotyping tool for complex loci";
     public static final String GENOTYPE_EXTENSION = ".genotypes.txt";
     public static final String MISMATCH_EXTENSION = ".mismatches.txt";
     public static final String SUMMARY_EXTENSION = ".summary.txt";

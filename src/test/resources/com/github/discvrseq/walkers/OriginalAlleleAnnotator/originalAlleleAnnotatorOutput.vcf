@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=OA,Number=R,Type=String,Description="This contains a list of the original alleles at this site.  It is primarily intended to store information prior to liftover.">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1
+1	61	.	GT	G	724.43	PASS	OA=GT,G	GT	0/1
+1	72	.	T	A	100	PASS	OA=T,A	GT	0/1
