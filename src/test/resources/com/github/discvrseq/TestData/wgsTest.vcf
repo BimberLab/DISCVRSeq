@@ -1,0 +1,23 @@
+##fileformat=VCFv4.2
+##INFO=<ID=MAC,Number=1,Type=Integer,Description="Matching ALT allele count">
+##INFO=<ID=RN,Number=1,Type=Integer,Description="Random number">
+##INFO=<ID=PURPOSE,Number=1,Type=String,Description="Purpose of test case">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	2	.	G	A	2328.69	PASS	MAC=1;RN=12;PURPOSE=diff_pos_same_ref_same_alt
+1	4	.	G	T	2328.69	PASS	MAC=1;RN=12;PURPOSE=same_pos_diff_ref_same_alt
+1	11	.	G	A	12328.69	PASS	MAC=0;RN=12;PURPOSE=same_pos_same_ref_diff_alt
+1	12	.	C	CG	12328.69	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_same_alt
+1	221	.	G	A,T	2328.69	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2
+1	232	.	G	T,*	1008.03	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2
+1	244	.	A	AT,CCC	7.8	PASS	MAC=2;RN=12;PURPOSE=same_pos_same_ref_same_alt1_same_alt2
+1	3111	.	TA	AT,G,T	9683.63	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_diff_alt3
+1	3211	.	C	A,G,T	9683.63	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_diff_alt3
+1	3323	.	G	A,C,T	6630.5	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_diff_alt3
+1	3332	.	C	CG,G,TTT	37495.79	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_same_alt3
+1	3441	.	ATT	A,C,G	110541.03	PASS	MAC=2;RN=12;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_diff_alt3
+1	3452	.	GT	CG,GGG,TATA	38369.71	PASS	MAC=2;RN=12;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_same_alt3
+1	3522	.	C	A,GC,TTTAAAA	38369.71	PASS	MAC=2;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_same_alt3
+1	3633	.	C	CTAT,GA,TACGTAC	38369.71	PASS	MAC=3;RN=12;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_same_alt3
+1	3725	.	G	A,GC,TTTAAAA	38369.71	PASS	MAC=0;RN=12;PURPOSE=overlapping_position
