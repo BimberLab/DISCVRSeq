@@ -79,7 +79,6 @@ public class ClinvarAnnotator extends VariantWalker {
 
             if (!variant.getReference().equals(vc.getReference())) {
                 //throw new IllegalStateException("different references");
-                //transferNoAnnotations(vc ,variant.getReference(), vcb);
                 logger.info("Reference not equal(chr:startPos:endPos Ref[ALTs]) to ClinVar's:\t" + variant.getContig() + ":" + variant.getStart() + ":" + variant.getEnd() + "\t" + variant.getReference() + variant.getAlternateAlleles() + "\t" + vc.getContig() + ":" + vc.getStart() + ":" + vc.getEnd() + "\t" + vc.getReference() + vc.getAlternateAlleles());
                 continue;
 
