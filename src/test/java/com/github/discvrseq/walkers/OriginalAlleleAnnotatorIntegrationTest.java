@@ -24,20 +24,6 @@ public class OriginalAlleleAnnotatorIntegrationTest extends BaseIntegrationTest 
         IntegrationTestSpec.assertEqualTextFiles(new File(TestUtils.fixFilePath(outFile)), expected);
     }
 
-    @Test
-    public void doOriginalAlleleTest() throws Exception{
-        ArgumentsBuilder args = getBaseArgs();
-
-        args.add("-O");
-        File outFile = getSafeNonExistentFile("originalAlleleAnnotatorOutput.vcf");
-        args.add(TestUtils.fixFilePath(outFile));
-
-        runCommandLine(args.getArgsArray());
-
-        File expected = new File(testBaseDir, "walkers/OriginalAlleleAnnotator/originalAlleleAnnotatorOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(TestUtils.fixFilePath(outFile)), expected);
-    }
-
     private File getInputVcf(){
         return new File(testBaseDir, "TestData/basicVcf.vcf");
     }

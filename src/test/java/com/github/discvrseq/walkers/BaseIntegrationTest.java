@@ -1,6 +1,10 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
+import htsjdk.tribble.Tribble;
+import htsjdk.tribble.index.Index;
+import htsjdk.tribble.index.IndexFactory;
+import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.FileUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
 import org.testng.annotations.BeforeClass;
@@ -44,5 +48,20 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
         downloadFile("https://raw.githubusercontent.com/broadinstitute/gatk/master/src/test/resources/hg19micro.dict", new File(tmpDir, "hg19micro.dict"));
 
         return fasta;
+    }
+
+    protected void ensureVcfIndex(File input){
+        File expected = new File(input.getParent(), input.getName() + Tribble.STANDARD_INDEX_EXTENSION);
+        if (expected.exists()){
+            return;
+        }
+
+        Index index = IndexFactory.createDynamicIndex(input, new VCFCodec());
+        try {
+            index.writeBasedOnFeatureFile(input);
+        }
+        catch (IOException e){
+            throw new RuntimeException(e);
+        }
     }
 }
