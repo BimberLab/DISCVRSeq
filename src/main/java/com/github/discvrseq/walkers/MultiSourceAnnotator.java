@@ -251,9 +251,10 @@ public class MultiSourceAnnotator extends VariantWalker {
             return false;
         }
 
-        if (!source.getAlleles().equals(annotation.getAlleles())){
-            logger.warn("alleles do not match: " + source.getContig() + "/" + source.getStart());
-        }
+        //TODO: consider allele-specific annotations
+        //if (!source.getAlleles().equals(annotation.getAlleles())){
+        //    logger.warn("alleles do not match: " + source.getContig() + "/" + source.getStart());
+        //}
 
         return true;
     }
