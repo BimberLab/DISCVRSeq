@@ -31,9 +31,10 @@ repositories {
 
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
-// versions for the dependencies to resolve conflicts
-final gatkVersion = '4.beta.2'
-final htsjdkVersion = '2.10.1'
+//see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
+//final gatkVersion = '4.beta.2'
+final gatkVersion = '4.beta.5-53-g0598843-20170929.153234-1'
+final htsjdkVersion = '2.12.0'
 final testNGVersion = '6.11'
 
 configurations.all {
