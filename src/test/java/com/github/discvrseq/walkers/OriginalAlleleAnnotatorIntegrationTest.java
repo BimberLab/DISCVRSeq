@@ -1,6 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.TestUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
 import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
 import org.testng.annotations.Test;
@@ -16,12 +15,12 @@ public class OriginalAlleleAnnotatorIntegrationTest extends BaseIntegrationTest 
 
         args.add("-O");
         File outFile = getSafeNonExistentFile("originalAlleleAnnotatorOutput.vcf");
-        args.add(TestUtils.fixFilePath(outFile));
+        args.add(fixFilePath(outFile));
 
         runCommandLine(args.getArgsArray());
 
         File expected = new File(testBaseDir, "walkers/OriginalAlleleAnnotator/originalAlleleAnnotatorOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(TestUtils.fixFilePath(outFile)), expected);
+        IntegrationTestSpec.assertEqualTextFiles(new File(fixFilePath(outFile)), expected);
     }
 
     private File getInputVcf(){
@@ -34,10 +33,10 @@ public class OriginalAlleleAnnotatorIntegrationTest extends BaseIntegrationTest 
         File fasta = downloadHg19Micro();
 
         args.add("-R");
-        args.add(TestUtils.fixFilePath(fasta));
+        args.add(fixFilePath(fasta));
 
         args.add("-V");
-        args.add(TestUtils.fixFilePath(getInputVcf()));
+        args.add(fixFilePath(getInputVcf()));
 
         return args;
     }

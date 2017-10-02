@@ -265,4 +265,9 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
         }
     }
+
+    @Override
+    public void closeTool(){
+        writer.close();
+    }
 }

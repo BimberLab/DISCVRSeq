@@ -7,6 +7,7 @@ import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.FileUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
+import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.testng.annotations.BeforeClass;
 
 import java.io.File;
@@ -63,5 +64,18 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
         catch (IOException e){
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * This was added to so windows filepaths dont fail conversion to URIs in IOUtils
+     * There must be a cleaner solution
+     */
+    public static String fixFilePath(File file){
+        file = IOUtils.absolute(file);
+        String ret = file.toURI().toString();
+        ret = ret.replaceAll("file://", "");
+        ret = ret.replaceAll("//", "/");
+
+        return ret;
     }
 }

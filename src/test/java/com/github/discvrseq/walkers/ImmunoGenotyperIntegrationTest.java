@@ -51,31 +51,17 @@
 
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.Main;
-import com.github.discvrseq.TestUtils;
-import org.broadinstitute.hellbender.CommandLineProgramTest;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
 import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
-import java.util.List;
 
-import static com.github.discvrseq.walkers.ImmunoGenotyper.GENOTYPE_EXTENSION;
-import static com.github.discvrseq.walkers.ImmunoGenotyper.MISMATCH_EXTENSION;
-import static com.github.discvrseq.walkers.ImmunoGenotyper.SUMMARY_EXTENSION;
+import static com.github.discvrseq.walkers.ImmunoGenotyper.*;
 
-public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
-    @Override
-    @BeforeClass
-    public void initGenomeLocParser() throws FileNotFoundException {
-
-    }
-
+public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
     @Test
     public void testBasicOperation() throws Exception {
         ArgumentsBuilder args = getBaseArgs();
@@ -119,7 +105,7 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
         args.add("-O");
 
         File outFile = getSafeNonExistentFile(fn);
-        String outFilePrefix = TestUtils.fixFilePath(outFile);
+        String outFilePrefix = fixFilePath(outFile);
         args.add(outFilePrefix);
 
         runCommandLine(args.getArgsArray());
@@ -135,19 +121,14 @@ public class ImmunoGenotyperIntegrationTest extends  CommandLineProgramTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
-        args.add(TestUtils.fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
+        args.add(fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
 
         args.add("-I");
-        args.add(TestUtils.fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
+        args.add(fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
 
         args.add("--referenceToLineageFile");
-        args.add(TestUtils.fixFilePath(new File(testBaseDir, "lineageMap.txt")));
+        args.add(fixFilePath(new File(testBaseDir, "lineageMap.txt")));
 
         return args;
-    }
-
-    @Override
-    public Object runCommandLine(final List<String> args) {
-        return new Main().instanceMain(makeCommandLineArgs(args));
     }
 }
