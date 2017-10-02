@@ -52,12 +52,15 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
+import com.github.discvrseq.TestUtils;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
+import org.apache.commons.io.FileUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
+import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -88,52 +91,48 @@ public class ClinvarAnnotatorIntegrationTest extends  CommandLineProgramTest {
     public void testBasicOperation() throws Exception {
         ArgumentsBuilder args = getBaseArgs();
 
-        doTest(args, "ClinvarAnnotatorOutput");
+        doTest(args, "ClinvarAnnotatorOutput.vcf");
     }
-
 
     private void doTest(ArgumentsBuilder args, String fn) throws Exception{
         args.add("-O");
-/*        File outFile = getSafeNonExistentFile(fn);
-        String outFilePrefix = TestUtils.fixFilePath(outFile);
-        args.add(outFilePrefix);
-*/
-        File testOutDir = new File(publicTestDir + "com/github/discvrseq/tools.ClinvarAnnotator");
-        File clinvar = new File (testOutDir, "wgsWithClinvarAnnotation.vcf");
-        args.add(clinvar);
+        File outFile = getSafeNonExistentFile(fn);
+        args.add(outFile);
 
         runCommandLine(args.getArgsArray());
 
+        File expected = getTestFile(fn);
+//        FileUtils.copyFile(outFile,expected);
+        IntegrationTestSpec.assertEqualTextFiles(outFile, expected);
     }
 
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
 
-        args.add("-R");
-        //args.add(fixFilePath(new File(testBaseDir, "hg19micro.fasta")));
-        args.add(new File(testBaseDir, "hg19micro.fasta"));
-
-        //Must also create index for clinvar VCF
+        //Must also create index once for clinvar VCF
         args.add("--clinvar");
-        //args.add(fixFilePath(new File(testBaseDir, "clinvarTest.vcf")));
-        File clinvar = new File(testBaseDir, "clinvarV2Test.vcf");
+        File clinvar = new File(testBaseDir, "clinvarV2.vcf");
+        //arg.add(fixFilePath(clinvar));
         args.add(clinvar);
-        File idxFile = new File(clinvar.getPath() + ".idx");
-        Index index = IndexFactory.createDynamicIndex(clinvar, new VCFCodec());
-        try {
-            index.writeBasedOnFeatureFile(clinvar);
-        }
-        catch (IOException e){
-            throw new RuntimeException(e);
-        }
+//        File idxFile = new File(clinvar.getPath() + ".idx");
+//        Index index = IndexFactory.createDynamicIndex(clinvar, new VCFCodec());
+//        try {
+//            index.writeBasedOnFeatureFile(clinvar);
+//        }
+//        catch (IOException e){
+//            throw new RuntimeException(e);
+//        }
 
         args.add("--variant");
-        //args.add(fixFilePath(new File(testBaseDir, "wgsTest.vcf")));
-        args.add(new File(testBaseDir, "wgsTest.vcf"));
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        //args.add(fixFilePath(input));
+        args.add(input);
 
         return args;
     }
+
+
     @Override
     public Object runCommandLine(final List<String> args) {
         return new Main().instanceMain(makeCommandLineArgs(args));

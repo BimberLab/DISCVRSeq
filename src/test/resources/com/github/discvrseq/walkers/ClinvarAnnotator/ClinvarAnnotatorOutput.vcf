@@ -1,0 +1,46 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FT,Number=.,Type=String,Description="Genotype-level filter">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MV,Number=1,Type=Integer,Description="Number of mendelian violations observed for this sample.">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##INFO=<ID=CLN_ALLELE,Number=R,Type=Character,Description="Alternate alleles from Clinvar">
+##INFO=<ID=CLN_ALLELEID,Number=R,Type=Integer,Description="the ClinVar Allele ID">
+##INFO=<ID=CLN_DBVARID,Number=R,Type=String,Description="nsv accessions from dbVar for the variant">
+##INFO=<ID=CLN_DISDB,Number=R,Type=String,Description="Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN">
+##INFO=<ID=CLN_DISDBINCL,Number=R,Type=String,Description="For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN">
+##INFO=<ID=CLN_DN,Number=R,Type=String,Description="ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=CLN_DNINCL,Number=R,Type=String,Description="For included Variant : ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=CLN_GENEINFO,Number=R,Type=String,Description="Gene(s) for the variant reported as gene symbol:gene id. The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)">
+##INFO=<ID=CLN_HGVS,Number=R,Type=String,Description="For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN">
+##INFO=<ID=CLN_MC,Number=R,Type=String,Description="comma separated list of molecular consequence in the form of Sequence Ontology ID|molecular_consequence">
+##INFO=<ID=CLN_ORIGIN,Number=R,Type=String,Description="Allele origin. One or more of the following values may be added: 0 - unknown; 1 - germline; 2 - somatic; 4 - inherited; 8 - paternal; 16 - maternal; 32 - de-novo; 64 - biparental; 128 - uniparental; 256 - not-tested; 512 - tested-inconclusive; 1073741824 - other">
+##INFO=<ID=CLN_REVSTAT,Number=R,Type=String,Description="Top-level (primary assembly, alt, or patch) HGVS expression.">
+##INFO=<ID=CLN_RS,Number=R,Type=String,Description="dbSNP ID (i.e. rs number)">
+##INFO=<ID=CLN_SIG,Number=R,Type=String,Description="Clinical significance for this single variant">
+##INFO=<ID=CLN_SIGINCL,Number=R,Type=String,Description="Clinical significance for a haplotype or genotype that includes this variant. Reported as pairs of VariationID:clinical significance.">
+##INFO=<ID=CLN_SSR,Number=R,Type=String,Description="Variant Suspect Reason Codes. One or more of the following values may be added: 0 - unspecified, 1 - Paralog, 2 - byEST, 4 - oldAlign, 8 - Para_EST, 16 - 1kg_failed, 1024 - other">
+##INFO=<ID=CLN_VC,Number=R,Type=String,Description="Variant type">
+##INFO=<ID=CLN_VCSO,Number=R,Type=String,Description="Sequence Ontology id for variant type">
+##INFO=<ID=CLN_VI,Number=R,Type=String,Description="the variant's clinical sources reported as tag-value pairs of database and variant identifier">
+##INFO=<ID=MAC,Number=1,Type=Integer,Description="Matching ALT allele count">
+##INFO=<ID=PURPOSE,Number=1,Type=String,Description="Purpose of test case">
+##INFO=<ID=RN,Number=1,Type=Integer,Description="Random number">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2   
+1	12	.	C	CG	12328.69	PASS	CLN_ALLELE=,CG;CLN_ALLELEID=,171288;CLN_DISDB=,MedGen:C4015293|OMIM:616126|Orphanet:ORPHA319563;CLN_DN=,Immunodeficiency_38_with_basal_ganglia_calcification;MAC=1;PURPOSE=same_pos_same_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	0/0:20,0:20:PASS:60:0:0,60,804	0/0:34,0:34:PASS:90:0:0,90,1350
+1	221	.	G	A,T	2328.69	PASS	CLN_ALLELE=,A,;CLN_ALLELEID=,364282,;CLN_DISDB=,MedGen:CN169374,;CLN_DN=,not_specified,;MAC=1;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2;RN=12	GT:AD:DP:FT:GQ:MV:PGT:PID:PL	0/0:27,0:27:PASS:72:0:.:.:0,72,1007	0/0:15,0:15:PASS:45:0:.:.:0,45,597
+1	232	.	G	T,*	1008.03	PASS	CLN_ALLELE=,,*;CLN_ALLELEID=,,364285;CLN_DISDB=,,MedGen:CN169374;CLN_DN=,,not_specified;MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2;RN=12	GT:AD:DP:FT:GQ:MV:PL	0/1:9,15:24:PASS:99:0:396,0,225	0/0:16,0:16:PASS:36:0:0,36,540
+1	244	.	A	AT,CCC	7.80	PASS	CLN_ALLELE=,AT,CCC;CLN_ALLELEID=,206690,249265;CLN_DISDB=,MedGen:CN169374,MedGen:CN169374;CLN_DN=,not_specified,not_specified;MAC=2;PURPOSE=same_pos_same_ref_same_alt1_same_alt2;RN=12	GT:AD:DP:FT:GQ:MV:PGT:PID:PL	0/0:20,0:20:PASS:51:0:.:.:0,51,765	0/1:9,5:14:PASS:99:0:0|1:1750290_TC_T:183,0,363 0/1:10,15:25:PASS:99:0:0|1:1750290_TC_T:599,0,375
+1	3211	.	C	A,G,T	9683.63	PASS	CLN_ALLELE=,A,,;CLN_ALLELEID=,244110,,;CLN_DISDB=,MedGen:C0751882|Orphanet:ORPHA590,,;CLN_DN=,Congenital_myasthenic_syndrome,,;MAC=1;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	0/0:12,0:12:PASS:36:0:0,36,434	0/0:12,0:12:PASS:36:0:0,36,411
+1	3323	.	G	A,C,T	6630.50	PASS	CLN_ALLELE=,,C,;CLN_ALLELEID=,,249305,;CLN_DISDB=,,MedGen:CN169374,;CLN_DN=,,not_specified,;MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:8,0:8:DP-LT10;GQ-LT30:21:0:0,21,315	0/1:5,8:13:PASS:99:0:247,0,179  
+1	3332	.	C	CG,G,TTT	37495.79	PASS	CLN_ALLELE=,,,TTT;CLN_ALLELEID=,,,133769;CLN_DISDB=,,,MedGen:CN169374;CLN_DN=,,,not_specified;MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:9,0:9:DP-LT10;GQ-LT30:18:0:0,18,270	0/0:16,0:16:PASS:48:0:0,48,649
+1	3441	.	ATT	A,C,G	110541.03	PASS	CLN_ALLELE=,A,C,;CLN_ALLELEID=,132069,133740,;CLN_DISDB=,MedGen:C0751882|Orphanet:ORPHA590|MedGen:C3808739|OMIM:615120,MedGen:CN169374,;CLN_DN=,Congenital_myasthenic_syndrome|Myasthenic_syndrome|_congenital|_8,not_specified,;MAC=2;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:4,4:8:DP-LT10:99:0:105,0,141	./.:9,0:9:DP-LT10;GQ-LT30:24:0:0,24,360 0/0:18,0:18:PASS:48:0:0,48,720
+1	3452	.	GT	CG,GGG,TATA	38369.71	PASS	CLN_ALLELE=,CG,,TATA;CLN_ALLELEID=,244112,,249310;CLN_DISDB=,MedGen:C0751882|Orphanet:ORPHA590,,MedGen:CN169374;CLN_DN=,Congenital_myasthenic_syndrome,,not_specified;MAC=2;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PGT:PID:PL	./.:3,0:3:DP-LT10;GQ-LT30:9:0:.:.:0,9,112	0/0:13,0:13:PASS:36:0:.:.:0,36,540
+1	3522	.	C	A,GC,TTTAAAA	38369.71	PASS	CLN_ALLELE=,,GC,TTTAAAA;CLN_ALLELEID=,,249312,249313;CLN_DISDB=,,MedGen:CN169374,MedGen:CN169374;CLN_DN=,,not_specified,not_specified;MAC=2;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PGT:PID:PL    ./.:11,0:11:GQ-LT30:27:0:.:.:0,27,405   ./.:8,0:8:DP-LT10;GQ-LT30:21:0:.:.:0,21,315
+1	3633	.	C	CTAT,GA,TACGTAC	38369.71	PASS	CLN_ALLELE=,CTAT,GA,TACGTAC;CLN_ALLELEID=,249314,249315,364314;CLN_DISDB=,MedGen:CN169374,MedGen:CN169374,MedGen:CN169374;CLN_DN=,not_specified,not_specified,not_specified;MAC=3;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PGT:PID:PL    ./.:5,0:5:DP-LT10;GQ-LT30:12:0:.:.:0,12,180     ./.:2,0:2:DP-LT10;GQ-LT30:6:0:.:.:0,6,71
