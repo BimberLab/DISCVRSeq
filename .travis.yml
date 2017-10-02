@@ -27,7 +27,6 @@ install:
 before_deploy:
   - echo ${TRAVIS_TAG}
   - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
-  - echo "TEST"
 
 deploy:
   provider: releases
