@@ -15,6 +15,33 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Annotate a VCF file with clinically relevant human variants from NCBI's ClinVar version 2.0 VCF.
+ *
+ * <p>
+ * This tool annotates a VCF file with clinically relevant human variants using information from
+ * <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)</>'s
+ * ClinVar version 2.0 VCF.
+ * </p>
+ *
+ * <h3>Input</h3>
+ * <p>
+ * A variant call set in VCF format to annotate.
+ * </p>
+ *
+ * <h3>Output</h3>
+ * <p>
+ * A new VCF containing variants with ClinVar annotations.
+ * </p>
+ *
+ * <h3>Usage example</h3>
+ * <pre>
+ *     java -jar DISCVRSeq.jar ClinvarAnnotator \
+ *     -clinvar clinvar_v2.vcf \
+ *     -variant input.vcf \
+ *     -O output.vcf
+ * </pre>
+ */
 
 @CommandLineProgramProperties(
         summary = "Annotate a VCF with clinical variants using ClinVar vcf_2.0",
@@ -22,14 +49,23 @@ import java.util.stream.Collectors;
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class ClinvarAnnotator extends VariantWalker {
+    /**
+     * Output file of new VCF containing variants with ClinVar annotations.
+     */
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public File out = null;
 
+    /**
+     * ClinVar verison 2.0 VCF from NCBI.
+     */
     @Argument(doc="Clinvar VCF", fullName = "clinvar", shortName = "clinvar", optional = false)
     public List<FeatureInput<VariantContext>> clinvarVariants = null;
 
     private VariantContextWriter writer = null;
 
+    /**
+     * INFO header fields in the new VCF for ClinVar annotations.
+     */
     private List<VCFInfoHeaderLine> HEADER_LINES = Arrays.asList(
             new VCFInfoHeaderLine("CLN_ALLELE", VCFHeaderLineCount.R, VCFHeaderLineType.Character, "Alternate alleles from Clinvar"),
             new VCFInfoHeaderLine("CLN_ALLELEID", VCFHeaderLineCount.R, VCFHeaderLineType.Integer, "the ClinVar Allele ID"),
@@ -137,23 +173,38 @@ public class ClinvarAnnotator extends VariantWalker {
     }
 
     /**
-     * Transfer Annotations from ClinVar VCF to new VCF
+     * Transfers annotations from ClinVar VCF to new VCF.
+     *
+     * <ol>
+     *     <li>Determine the index of the alternate allele in the target variant.
+     *     <li>Extract each annotation from the source for that specific alternate allele.
+     *     <li>Transfer the annotation to the appropriate position in the target.
+     * </ol>
+     *
+     * <p>
+     * Ex. The alternate allele <b>C</b> matches, so transfer matching ClinVar annotation(s) to the target VCF.<br/>
+     * <ul>
+     *      <u>Input:</u><br/>
+     *      <i>Annotate this VCF:</i> <br/>
+     *      Ref: T, Alt: A,<font color="purple"><b>C</b></font>;<br/>
+     *      --------------------------------- <br>
+     *      <i>ClinVar version 2.0 VCF:</i> <br/>
+     *      Ref: T, Alt: <font color="purple"><b>C</b></font>; <font color="purple">ALLELEID=1111</font> <br/>
+     *      Ref: T, Alt: G; ALLELEID=2222 <br/><br/>
+     *      <u>Return This Map:</u><br/>
+     *      key -> value<br/>
+     *      T -> ALLELEID=[]<br/>
+     *      <font color="purple"><b>C</b> -> ALLELEID=1111</font><br/>
+     *      G -> ALLELEID=[]<br/><br/>
+     * </ul>
+     * </p>
+     *
      * @param source    ClinVar VCF
      * @param alt   alternate allele from ClinVar
      * @param vcb   new VCF to annotate
-     * @return
+     * @return  a map which maps ClinVar alleles with their corresponding ClinVar annotations
      */
     private Map<String, String> transferAnnotations (VariantContext source, Allele alt, VariantContextBuilder vcb){
-        //TODO: extract each annotation from source (for that specific alt allele)
-        //determine index of the alt allele in the target variant
-        //transfer that annotation to appropriate position in the target
-
-        //examples:
-        //Ref: A, Alt: T,C
-        //Clinvar: C,G
-        //Clinvar annotations are comma separated arrays, with each position matching the corresponding ALT allele
-        //The allele C matches, so transfer matching clinvar annotation to target VCF.
-
         Map<String, String> annotations = new HashMap<>();
 
         annotations.put("CLN_ALLELE", alt.toString());
@@ -161,25 +212,34 @@ public class ClinvarAnnotator extends VariantWalker {
         annotations.put("CLN_DN", annotateValue(source,"CLNDN"));
         annotations.put("CLN_DNINCL", annotateValue(source, "CLNDNINCL"));
         annotations.put("CLN_DISDB", annotateValue(source, "CLNDISDB"));
-        annotations.put("CLN_DISDBINCL", annotateValue(source,"CLN_DISDBINCL"));
-        annotations.put("CLN_HGVS", annotateValue(source,"CLN_HGVS"));
-        annotations.put("CLN_REVSTAT", annotateValue(source,"CLN_REVSTAT"));
-        annotations.put("CLN_SIG", annotateValue(source,"CLN_SIG"));
-        annotations.put("CLN_SIGINCL", annotateValue(source,"CLN_SIGINCL"));
-        annotations.put("CLN_VC", annotateValue(source,"CLN_VC"));
-        annotations.put("CLN_VCSO", annotateValue(source,"CLN_VCSO"));
-        annotations.put("CLN_VI", annotateValue(source,"CLN_VI"));
-        annotations.put("CLN_GENEINFO", annotateValue(source,"CLN_GENEINFO"));
-        annotations.put("CLN_MC", annotateValue(source,"CLN_MC"));
-        annotations.put("CLN_ORIGIN", annotateValue(source,"CLN_ORIGIN"));
-        annotations.put("CLN_RS", annotateValue(source,"CLN_RS"));
-        annotations.put("CLN_SSR", annotateValue(source,"CLN_SSR"));
+        annotations.put("CLN_DISDBINCL", annotateValue(source,"CLNDISDBINCL"));
+        annotations.put("CLN_HGVS", annotateValue(source,"CLNHGVS"));
+        annotations.put("CLN_REVSTAT", annotateValue(source,"CLNREVSTAT"));
+        annotations.put("CLN_SIG", annotateValue(source,"CLNSIG"));
+        annotations.put("CLN_SIGINCL", annotateValue(source,"CLNSIGINCL"));
+        annotations.put("CLN_VC", annotateValue(source,"CLNVC"));
+        annotations.put("CLN_VCSO", annotateValue(source,"CLNVCSO"));
+        annotations.put("CLN_VI", annotateValue(source,"CLNVI"));
+        annotations.put("CLN_DBVARID", annotateValue(source, "DBVARID"));
+        annotations.put("CLN_GENEINFO", annotateValue(source,"GENEINFO"));
+        annotations.put("CLN_MC", annotateValue(source,"MC"));
+        annotations.put("CLN_ORIGIN", annotateValue(source,"ORIGIN"));
+        annotations.put("CLN_RS", annotateValue(source,"RS"));
+        annotations.put("CLN_SSR", annotateValue(source,"SSR"));
 
         return annotations;
     }
 
     /**
-     * Obtain value for given ClinVar VCF annotation ID
+     * Obtains value for given ClinVar VCF annotation ID.
+     *
+     * <p>
+     * *Note: Annotations containing lists are joined by the "|" character instead of ",", <br/>
+     * ex.<br/>
+     * If the ClinVar VCF has CLNDISDB=MedGen:C0751882,Orphanet:ORPHA590;<br/>the
+     * new VCF result is CLN_DISDB=MedGen:C0751882|Orphanet:ORPHA590;
+     * </p>
+     *
      * @param source    ClinVar VCF
      * @param ID   ClinVar VCF Annotation ID
      * @return
@@ -200,7 +260,7 @@ public class ClinvarAnnotator extends VariantWalker {
     }
 
     /**
-     * Close out the new variants file.
+     * Closes out the new variants file.
      */
     @Override
     public void closeTool() {
