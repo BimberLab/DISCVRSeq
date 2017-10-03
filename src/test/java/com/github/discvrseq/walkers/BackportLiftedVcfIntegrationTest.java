@@ -1,7 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.TestUtils;
-import htsjdk.samtools.reference.ReferenceSequence;
 import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
 import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
 import org.testng.annotations.Test;
@@ -21,12 +19,12 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
 
         args.add("-O");
         File outFile = getSafeNonExistentFile("backportLiftedOutput.vcf");
-        args.add(TestUtils.fixFilePath(outFile));
+        args.add(fixFilePath(outFile));
 
         runCommandLine(args.getArgsArray());
 
         File expected = new File(testBaseDir, "backportLiftedOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(TestUtils.fixFilePath(outFile)), expected);
+        IntegrationTestSpec.assertEqualTextFiles(new File(fixFilePath(outFile)), expected);
     }
 
     private File getInputVcf(){
@@ -39,13 +37,13 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
         File fasta = downloadHg19Micro();
 
         args.add("-R");
-        args.add(TestUtils.fixFilePath(fasta));
+        args.add(fixFilePath(fasta));
 
         args.add("-V");
-        args.add(TestUtils.fixFilePath(getInputVcf()));
+        args.add(fixFilePath(getInputVcf()));
 
         args.add("--targetFasta");
-        args.add(TestUtils.fixFilePath(fasta));
+        args.add(fixFilePath(fasta));
 
         return args;
     }
