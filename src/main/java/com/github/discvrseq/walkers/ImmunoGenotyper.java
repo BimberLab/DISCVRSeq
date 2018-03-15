@@ -602,8 +602,7 @@ public class ImmunoGenotyper extends ReadWalker {
                 }
 
                 if (sharedRefNames == null) {
-                    sharedRefNames = new HashSet<>();
-                    sharedRefNames.addAll(hs.refNames);
+                    sharedRefNames = new HashSet<>(hs.refNames);
                 }
                 else {
                     sharedRefNames.retainAll(hs.refNames);
