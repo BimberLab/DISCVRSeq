@@ -147,6 +147,7 @@ public class ClinvarAnnotator extends VariantWalker {
             return;
         }
 
+        boolean hasAnnotation = false;
         for (VCFInfoHeaderLine line : HEADER_LINES){
             List<String> sb = new ArrayList<>();
 
@@ -164,12 +165,15 @@ public class ClinvarAnnotator extends VariantWalker {
             //Only include annotations with values
             if (nonNull > 0){
                 if (!sb.isEmpty()){
+                    hasAnnotation = true;
                     vcb.attribute(line.getID(), sb.stream().collect(Collectors.joining(",")));
                 }
             }
         }
 
-        writer.add(vcb.make());
+        if (hasAnnotation){
+            writer.add(vcb.make());
+        }
     }
 
     /**
