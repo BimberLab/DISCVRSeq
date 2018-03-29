@@ -1,7 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.annotations.OriginalAlleles;
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import htsjdk.samtools.SAMFileWriterImpl;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.*;
@@ -26,7 +26,7 @@ import java.util.*;
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CHR and ORGINAL_POS annotations left by Picard.  Note: this also requires the original VCF to be annotated with the original alleles (prior to liftover), using the OriginalAlleleAnnotator tool.",
         oneLineSummary = "Backport lifted VCF to the original coordinates",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class BackportLiftedVcf extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)

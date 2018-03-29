@@ -1,11 +1,14 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
+import htsjdk.samtools.util.SortingCollection;
+import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.broadinstitute.hellbender.CommandLineProgramTest;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.testng.annotations.BeforeClass;
@@ -52,12 +55,16 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
     }
 
     protected void ensureVcfIndex(File input){
+        ensureIndex(input, new VCFCodec());
+    }
+
+    protected void ensureIndex(File input, FeatureCodec codec){
         File expected = new File(input.getParent(), input.getName() + Tribble.STANDARD_INDEX_EXTENSION);
         if (expected.exists()){
             return;
         }
 
-        Index index = IndexFactory.createDynamicIndex(input, new VCFCodec());
+        Index index = IndexFactory.createDynamicIndex(input, codec);
         try {
             index.writeBasedOnFeatureFile(input);
         }
@@ -70,12 +77,17 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
      * This was added to so windows filepaths dont fail conversion to URIs in IOUtils
      * There must be a cleaner solution
      */
-    public static String fixFilePath(File file){
-        file = IOUtils.absolute(file);
-        String ret = file.toURI().toString();
-        ret = ret.replaceAll("file://", "");
-        ret = ret.replaceAll("//", "/");
+    public static String normalizePath(File file){
+        return normalizePath(file.getPath());
+    }
 
-        return ret;
+    public static String normalizePath(String path){
+        path = path.replaceAll("\\\\+", "\\\\");
+        int length = FilenameUtils.getPrefixLength(path);
+        if (length > 0) {
+            path = path.substring(length -1);
+        }
+
+        return FilenameUtils.separatorsToUnix(path);
     }
 }

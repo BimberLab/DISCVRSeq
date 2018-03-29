@@ -53,8 +53,8 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
     private void doTest(ArgumentsBuilder args, String fn) throws Exception{
         args.add("-O");
 
-        File outFile = getSafeNonExistentFile(fn);
-        String outFilePrefix = fixFilePath(outFile);
+        File outFile = new File(normalizePath(getSafeNonExistentFile(fn)));
+        String outFilePrefix = normalizePath(outFile);
         args.add(outFilePrefix);
 
         runCommandLine(args.getArgsArray());
@@ -70,13 +70,13 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
-        args.add(fixFilePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
+        args.add(normalizePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
 
         args.add("-I");
-        args.add(fixFilePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
+        args.add(normalizePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
 
         args.add("--referenceToLineageFile");
-        args.add(fixFilePath(new File(testBaseDir, "lineageMap.txt")));
+        args.add(normalizePath(new File(testBaseDir, "lineageMap.txt")));
 
         return args;
     }

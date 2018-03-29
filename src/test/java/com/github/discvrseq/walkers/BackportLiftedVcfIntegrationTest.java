@@ -18,13 +18,13 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
         ArgumentsBuilder args = getBaseArgs();
 
         args.add("-O");
-        File outFile = getSafeNonExistentFile("backportLiftedOutput.vcf");
-        args.add(fixFilePath(outFile));
+        File outFile = new File(normalizePath(getSafeNonExistentFile("backportLiftedOutput.vcf")));
+        args.add(outFile);
 
         runCommandLine(args.getArgsArray());
 
         File expected = new File(testBaseDir, "backportLiftedOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(fixFilePath(outFile)), expected);
+        IntegrationTestSpec.assertEqualTextFiles(new File(normalizePath(outFile)), expected);
     }
 
     private File getInputVcf(){
@@ -37,13 +37,13 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
         File fasta = downloadHg19Micro();
 
         args.add("-R");
-        args.add(fixFilePath(fasta));
+        args.add(normalizePath(fasta));
 
         args.add("-V");
-        args.add(fixFilePath(getInputVcf()));
+        args.add(normalizePath(getInputVcf()));
 
         args.add("--targetFasta");
-        args.add(fixFilePath(fasta));
+        args.add(normalizePath(fasta));
 
         return args;
     }

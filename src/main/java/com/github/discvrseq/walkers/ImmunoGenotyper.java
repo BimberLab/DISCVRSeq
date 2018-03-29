@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers;
 
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.util.IOUtil;
@@ -31,7 +32,7 @@ import java.util.*;
 @CommandLineProgramProperties(
         oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.",
         summary = ImmunoGenotyper.SUMMARY,
-        programGroup = DiscvrSeqProgramGroup.class)
+        programGroup = DiscvrSeqDevProgramGroup.class)
 public class ImmunoGenotyper extends ReadWalker {
     protected static final String SUMMARY = "Genotyping tool for complex loci";
     public static final String GENOTYPE_EXTENSION = ".genotypes.txt";
