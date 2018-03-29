@@ -117,18 +117,11 @@ public class ClinvarAnnotator extends VariantWalker {
 
         boolean foundHit = false;
         for (VariantContext vc : matches){
-            if (vc.getAlternateAlleles().size() != 1){
-                throw new IllegalStateException("More than 1 alternate allele found at position: " + variant.getContig() + ": " + variant.getStart() + ", please use new clinvar vcf_2.0 with 1 alt allele per position");
-            }
-
-            if (!variant.getReference().equals(vc.getReference())) {
-                //throw new IllegalStateException("different references");
-                logger.warn("Reference not equal(chr:startPos:endPos Ref[ALTs]) to ClinVar's:\t" + variant.getContig() + ":" + variant.getStart() + ":" + variant.getEnd() + "\t" + variant.getReference() + variant.getAlternateAlleles() + "\t" + vc.getContig() + ":" + vc.getStart() + ":" + vc.getEnd() + "\t" + vc.getReference() + vc.getAlternateAlleles());
-                continue;
+            if (vc.getAlternateAlleles().size() > 1){
+                throw new IllegalStateException("A total of " + vc.getAlternateAlleles().size() + " alternate alleles found at position: " + variant.getContig() + ": " + variant.getStart() + ", please use new clinvar vcf_2.0 with 1 alt allele per position");
             }
 
             if (variant.getStart() != vc.getStart()) {
-                //throw new IllegalStateException("different start positions");
                 logger.warn("Start position not equal(chr:startPos:endPos Ref[ALTs]) to ClinVar's:\t" + variant.getContig() + ":" + variant.getStart() + ":" + variant.getEnd() + "\t" + variant.getReference() + variant.getAlternateAlleles() + "\t" + vc.getContig() + ":" + vc.getStart() + ":" + vc.getEnd() + "\t" + vc.getReference() + vc.getAlternateAlleles());
                 continue;
             }
@@ -138,8 +131,9 @@ public class ClinvarAnnotator extends VariantWalker {
                 continue;
             }
 
-            Allele cvAllele = vc.getAlternateAllele(0);
-            for (Allele alt : variant.getAlternateAlleles()){
+            //NOTE: it is technically possible for ClinVar to report data on an allele that is the reference
+            Allele cvAllele = vc.getAlternateAlleles().isEmpty() ? vc.getReference() : vc.getAlternateAllele(0);
+            for (Allele alt : variant.getAlleles()){
                 if (cvAllele.equals(alt)){
                     //gather annotations, add to map by allele
                     foundHit = true;
@@ -217,7 +211,7 @@ public class ClinvarAnnotator extends VariantWalker {
     private Map<String, String> transferAnnotations (VariantContext source, Allele alt, VariantContextBuilder vcb){
         Map<String, String> annotations = new HashMap<>();
 
-        annotations.put("CLN_ALLELE", alt.toString());
+        annotations.put("CLN_ALLELE", alt.getDisplayString());
         annotations.put("CLN_ALLELEID", annotateValue(source,"ALLELEID"));
         annotations.put("CLN_DN", annotateValue(source,"CLNDN"));
         annotations.put("CLN_DNINCL", annotateValue(source, "CLNDNINCL"));
