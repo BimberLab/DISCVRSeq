@@ -14,6 +14,7 @@ import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.exceptions.GATKException;
 
 import java.io.File;
 import java.util.*;
@@ -70,6 +71,30 @@ public class ClinvarAnnotator extends VariantWalker {
     private long totalAnnotated = 0L;
 
     /**
+     *  INFO header fields in ClinVar VCF
+     */
+    private final List<String> CLINVAR_INFO = Arrays.asList(
+            "ALLELEID",
+            "CLNDN",
+            "CLNDNINCL",
+            "CLNDISDB",
+            "CLNDISDBINCL",
+            "CLNHGVS",
+            "CLNREVSTAT",
+            "CLNSIG",
+            "CLNSIGINCL",
+            "CLNVC",
+            "CLNVCSO",
+            "CLNVI",
+            "DBVARID",
+            "GENEINFO",
+            "MC",
+            "ORIGIN",
+            "RS",
+            "SSR"
+    );
+
+    /**
      * INFO header fields in the new VCF for ClinVar annotations.
      */
     private List<VCFInfoHeaderLine> HEADER_LINES = Arrays.asList(
@@ -79,8 +104,8 @@ public class ClinvarAnnotator extends VariantWalker {
             new VCFInfoHeaderLine("CLN_DNINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String, "For included Variant : ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB"),
             new VCFInfoHeaderLine("CLN_DISDB", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
             new VCFInfoHeaderLine("CLN_DISDBINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String,"For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
-            new VCFInfoHeaderLine("CLN_HGVS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
-            new VCFInfoHeaderLine("CLN_REVSTAT", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Top-level (primary assembly, alt, or patch) HGVS expression."),
+            new VCFInfoHeaderLine("CLN_HGVS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Top-level (primary assembly, alt, or patch) HGVS expression."),
+            new VCFInfoHeaderLine("CLN_REVSTAT", VCFHeaderLineCount.R, VCFHeaderLineType.String,"ClinVar review status for the Variation ID"),
             new VCFInfoHeaderLine("CLN_SIG", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Clinical significance for this single variant"),
             new VCFInfoHeaderLine("CLN_SIGINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Clinical significance for a haplotype or genotype that includes this variant. Reported as pairs of VariationID:clinical significance."),
             new VCFInfoHeaderLine("CLN_VC", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Variant type"),
@@ -96,6 +121,14 @@ public class ClinvarAnnotator extends VariantWalker {
 
     @Override
     public void onTraversalStart() {
+        VCFHeader clinvarHeader = (VCFHeader)getHeaderForFeatures(clinvarVariants);
+        for (String id : CLINVAR_INFO){
+            VCFInfoHeaderLine line = clinvarHeader.getInfoHeaderLine(id);
+            if (line == null){
+                throw new GATKException("Clinvar missing expected header line: " + id);
+            }
+        }
+
         VCFHeader header = new VCFHeader(getHeaderForVariants());
         for (VCFInfoHeaderLine line : HEADER_LINES){
             header.addMetaDataLine(line);
