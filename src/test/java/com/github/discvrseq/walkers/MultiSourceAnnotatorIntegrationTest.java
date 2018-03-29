@@ -14,31 +14,31 @@ public class MultiSourceAnnotatorIntegrationTest extends BaseIntegrationTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         args.add("-V");
-        args.add(fixFilePath(getInputVcf()));
+        args.add(normalizePath(getInputVcf()));
 
         args.add("-O");
-        File outFile = getSafeNonExistentFile("multiSourceOutput.vcf");
-        args.add(fixFilePath(outFile));
+        File outFile = new File(normalizePath(getSafeNonExistentFile("multiSourceOutput.vcf")));
+        args.add(outFile);
 
         args.add("-cv");
         File clinvar = new File(testBaseDir, "walkers/MultiSourceAnnotator/clinvar.vcf");
-        args.add(fixFilePath(clinvar));
+        args.add(normalizePath(clinvar));
         ensureVcfIndex(clinvar);
 
         args.add("--liftoverReject");
         File liftover = new File(testBaseDir, "walkers/MultiSourceAnnotator/liftoverRejects.vcf");
-        args.add(fixFilePath(liftover));
+        args.add(normalizePath(liftover));
         ensureVcfIndex(liftover);
 
         args.add("--cassandra");
         File cassandra = new File(testBaseDir, "walkers/MultiSourceAnnotator/cassandra.vcf");
-        args.add(fixFilePath(cassandra));
+        args.add(normalizePath(cassandra));
         ensureVcfIndex(cassandra);
 
         runCommandLine(args.getArgsArray());
 
         File expected = new File(testBaseDir, "walkers/MultiSourceAnnotator/multiSourceOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(fixFilePath(outFile)), expected);
+        IntegrationTestSpec.assertEqualTextFiles(new File(normalizePath(outFile)), expected);
     }
 
     private File getInputVcf(){

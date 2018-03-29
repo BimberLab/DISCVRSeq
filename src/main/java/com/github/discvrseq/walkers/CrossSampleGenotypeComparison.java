@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import com.opencsv.CSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
@@ -23,7 +23,7 @@ import java.util.Map;
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool, originally created to help detect potential sample mix-up.  It accepts an input VCF, reference VCF and list of samples to consider.  It will compare each sample in this list from the VCF against every samples in the reference VCF, and produce a summary table about concordance.",
         oneLineSummary = "Produces a concordance report between samples in a VCF against every other sample in a reference VCF",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class CrossSampleGenotypeComparison extends VariantWalker {
     @Argument(doc = "File to which the output table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)

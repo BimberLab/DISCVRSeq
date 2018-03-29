@@ -1,7 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.annotations.OriginalAlleles;
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -22,7 +22,7 @@ import java.util.Map;
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool that will add the current st of alleles to the INFO field as an annoation.  This was designed to preserve this information prior to liftover, during which the alleles can potentially change due to reverse complementation",
         oneLineSummary = "Annotates the current alleles",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class OriginalAlleleAnnotator extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)

@@ -1,16 +1,20 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.vcf.*;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
+
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -46,7 +50,7 @@ import java.util.stream.Collectors;
 @CommandLineProgramProperties(
         summary = "Annotate a VCF with clinical variants using ClinVar vcf_2.0",
         oneLineSummary = "Annotate a VCF with ClinVar vcf_2.0",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class ClinvarAnnotator extends VariantWalker {
     /**
@@ -62,6 +66,8 @@ public class ClinvarAnnotator extends VariantWalker {
     public List<FeatureInput<VariantContext>> clinvarVariants = null;
 
     private VariantContextWriter writer = null;
+
+    private long totalAnnotated = 0L;
 
     /**
      * INFO header fields in the new VCF for ClinVar annotations.
@@ -99,11 +105,10 @@ public class ClinvarAnnotator extends VariantWalker {
         writer.writeHeader(header);
     }
 
-    int max = 0;
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
-        max = variant.getStart();
+
         Map<Allele, Map<String, String>> annotationMap = new HashMap<>();
         List<VariantContext> matches = featureContext.getValues(clinvarVariants);
         if (matches.isEmpty()){
@@ -113,7 +118,7 @@ public class ClinvarAnnotator extends VariantWalker {
         boolean foundHit = false;
         for (VariantContext vc : matches){
             if (vc.getAlternateAlleles().size() != 1){
-                throw new IllegalStateException("More than 1 alternate allele found, please use new clinvar vcf_2.0 with 1 alt allele per position");
+                throw new IllegalStateException("More than 1 alternate allele found at position: " + variant.getContig() + ": " + variant.getStart() + ", please use new clinvar vcf_2.0 with 1 alt allele per position");
             }
 
             if (!variant.getReference().equals(vc.getReference())) {
@@ -172,6 +177,7 @@ public class ClinvarAnnotator extends VariantWalker {
         }
 
         if (hasAnnotation){
+            totalAnnotated++;
             writer.add(vcb.make());
         }
     }
@@ -259,7 +265,7 @@ public class ClinvarAnnotator extends VariantWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        logger.warn("max: " + max);
+        logger.info("Total Variants Annotated From ClinVar: " + totalAnnotated);
         return super.onTraversalSuccess();
     }
 

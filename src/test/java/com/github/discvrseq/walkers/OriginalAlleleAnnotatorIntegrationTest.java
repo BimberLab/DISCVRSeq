@@ -14,13 +14,13 @@ public class OriginalAlleleAnnotatorIntegrationTest extends BaseIntegrationTest 
         ArgumentsBuilder args = getBaseArgs();
 
         args.add("-O");
-        File outFile = getSafeNonExistentFile("originalAlleleAnnotatorOutput.vcf");
-        args.add(fixFilePath(outFile));
+        File outFile = new File(normalizePath(getSafeNonExistentFile("originalAlleleAnnotatorOutput.vcf")));
+        args.add(outFile);
 
         runCommandLine(args.getArgsArray());
 
         File expected = new File(testBaseDir, "walkers/OriginalAlleleAnnotator/originalAlleleAnnotatorOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(fixFilePath(outFile)), expected);
+        IntegrationTestSpec.assertEqualTextFiles(new File(normalizePath(outFile)), expected);
     }
 
     private File getInputVcf(){
@@ -33,10 +33,10 @@ public class OriginalAlleleAnnotatorIntegrationTest extends BaseIntegrationTest 
         File fasta = downloadHg19Micro();
 
         args.add("-R");
-        args.add(fixFilePath(fasta));
+        args.add(normalizePath(fasta));
 
         args.add("-V");
-        args.add(fixFilePath(getInputVcf()));
+        args.add(normalizePath(getInputVcf()));
 
         return args;
     }

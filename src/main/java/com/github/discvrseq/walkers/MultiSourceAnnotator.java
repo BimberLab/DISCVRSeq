@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -21,7 +21,7 @@ import java.util.*;
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator and Cassandra, and transfer select annotations from those VCFs to the input VCF.",
         oneLineSummary = "Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
@@ -170,6 +170,10 @@ public class MultiSourceAnnotator extends VariantWalker {
             "OMIMMUS"
     );
 
+    private long clinvar = 0L;
+    private long cassandra = 0L;
+    private long rejectedLiftover = 0L;
+
     private final VCFInfoHeaderLine UNABLE_TO_LIFT = new VCFInfoHeaderLine("LF", 1, VCFHeaderLineType.String, "Could not be lifted to alternate genome");
 
     private final Collection<String> ALLOWABLE_FILTERS = Arrays.asList("ReverseComplementedIndel", "NoTarget", "MismatchedRefAllele", "IndelStraddlesMultipleIntevals");
@@ -217,6 +221,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 continue;
             }
 
+            clinvar++;
             transferInfoData(vcb, vc, CLINVAR_INFO);
         }
 
@@ -225,6 +230,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 continue;
             }
 
+            cassandra++;
             transferInfoData(vcb, vc, CASSENDRA_INFO);
         }
 
@@ -233,6 +239,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 continue;
             }
 
+            rejectedLiftover++;
             Set<String> filters = new HashSet<>(vc.getFilters());
             filters.retainAll(ALLOWABLE_FILTERS);
             vcb.attribute(UNABLE_TO_LIFT.getID(), StringUtils.join(filters, ","));
@@ -269,5 +276,9 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Override
     public void closeTool(){
         writer.close();
+
+        logger.info("Total variants annotated from ClinVar: " + clinvar);
+        logger.info("Total variants annotated from Cassandra: " + cassandra);
+        logger.info("Total variants annotated as failing liftover: " + rejectedLiftover);
     }
 }
