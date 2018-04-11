@@ -63,7 +63,7 @@ public class ClinvarAnnotator extends VariantWalker {
      * ClinVar verison 2.0 VCF from NCBI.
      */
     @Argument(doc="Clinvar VCF", fullName = "clinvar", shortName = "clinvar", optional = false)
-    public List<FeatureInput<VariantContext>> clinvarVariants = null;
+    public FeatureInput<VariantContext> clinvarVariants = null;
 
     private VariantContextWriter writer = null;
 
@@ -121,13 +121,8 @@ public class ClinvarAnnotator extends VariantWalker {
                 throw new IllegalStateException("A total of " + vc.getAlternateAlleles().size() + " alternate alleles found at position: " + variant.getContig() + ": " + variant.getStart() + ", please use new clinvar vcf_2.0 with 1 alt allele per position");
             }
 
-            if (variant.getStart() != vc.getStart()) {
-                logger.warn("Start position not equal(chr:startPos:endPos Ref[ALTs]) to ClinVar's:\t" + variant.getContig() + ":" + variant.getStart() + ":" + variant.getEnd() + "\t" + variant.getReference() + variant.getAlternateAlleles() + "\t" + vc.getContig() + ":" + vc.getStart() + ":" + vc.getEnd() + "\t" + vc.getReference() + vc.getAlternateAlleles());
-                continue;
-            }
-
-            if (variant.getEnd() != vc.getEnd()) {
-                logger.warn("End position not equal(chr:startPos:endPos Ref[ALTs]) to ClinVar's:\t" + variant.getContig() + ":" + variant.getStart() + ":" + variant.getEnd() + "\t" + variant.getReference() + variant.getAlternateAlleles() + "\t" + vc.getContig() + ":" + vc.getStart() + ":" + vc.getEnd() + "\t" + vc.getReference() + vc.getAlternateAlleles());
+            //NOTE: GATK4 will return all overlapping features, and we only want ot consider those with the same start/end
+            if (variant.getStart() != vc.getStart() || variant.getEnd() != vc.getEnd()) {
                 continue;
             }
 
