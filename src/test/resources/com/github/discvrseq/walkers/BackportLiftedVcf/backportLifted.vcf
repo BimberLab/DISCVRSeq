@@ -1,10 +1,10 @@
 ##fileformat=VCFv4.2
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-##INFO=<ID=OA,Number=R,Type=String,Description="This contains a list of the original alleles at this site.  It is primarily intended to store information prior to liftover.">
+##INFO=<ID=OriginalAlleles,Number=R,Type=String,Description="This contains a list of the original alleles at this site.  It is primarily intended to store information prior to liftover.">
 ##INFO=<ID=OriginalContig,Number=1,Type=String,Description="The name of the source contig/chromosome prior to liftover.">
 ##INFO=<ID=OriginalStart,Number=1,Type=String,Description="The position of the variant on the source contig prior to liftover.">
 ##contig=<ID=1,length=16000>
 ##contig=<ID=2,length=16000>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1
-1	61	.	GT	G	724.43	PASS	OriginalContig=1;OriginalStart=1;OA=GT,G	GT	0/1
-1	72	.	T	A	100	PASS	OriginalContig=1;OriginalStart=469;OA=A,T	GT	0/1
+1	61	.	GT	G	724.43	PASS	OriginalContig=1;OriginalStart=1;OriginalAlleles=GT,G	GT	0/1
+1	72	.	T	A	100	PASS	OriginalContig=1;OriginalStart=469;OriginalAlleles=A,T	GT	0/1

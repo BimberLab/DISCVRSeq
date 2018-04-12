@@ -42,6 +42,7 @@ public class BackportLiftedVcf extends VariantWalker {
 
     public static final String ORIGINAL_CONTIG = "OriginalContig";
     public static final String ORIGINAL_START = "OriginalStart";
+    public static final String ORIGINAL_ALLELES = "OriginalAlleles";
 
     public static final String LIFTED_CONTIG = "LiftedContig";
     public static final String LIFTED_START = "LiftedStart";
@@ -61,7 +62,7 @@ public class BackportLiftedVcf extends VariantWalker {
 
         Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_CONTIG), "The input VCF lacks the " + ORIGINAL_CONTIG + " annotation");
         Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_START), "The input VCF lacks the " + ORIGINAL_START + " annotation");
-        Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(OriginalAlleles.KEY), "The input VCF lacks the " + OriginalAlleles.KEY + " annotation");
+        Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_ALLELES), "The input VCF lacks the " + ORIGINAL_ALLELES + " annotation");
 
         prepareVcfHeader();
         initializeSorter(outputHeader);
@@ -73,7 +74,7 @@ public class BackportLiftedVcf extends VariantWalker {
         Set<VCFHeaderLine> lines = new LinkedHashSet<>(header.getMetaDataInInputOrder());
         lines.remove(header.getInfoHeaderLine(ORIGINAL_CONTIG));
         lines.remove(header.getInfoHeaderLine(ORIGINAL_START));
-        lines.remove(header.getInfoHeaderLine(OriginalAlleles.KEY));
+        lines.remove(header.getInfoHeaderLine(ORIGINAL_ALLELES));
 
         outputHeader = new VCFHeader(lines, header.getSampleNamesInOrder());
 
@@ -118,9 +119,9 @@ public class BackportLiftedVcf extends VariantWalker {
             throw new IllegalArgumentException("Missing annotation for " + ORIGINAL_START + " at position: " + origChr + " " + origStart);
         }
 
-        List<String> origAlleles = variant.getAttributeAsStringList(OriginalAlleles.KEY, null);
+        List<String> origAlleles = variant.getAttributeAsStringList(ORIGINAL_ALLELES, null);
         if (origAlleles == null || origAlleles.isEmpty()){
-            throw new IllegalArgumentException("Missing annotation for " + OriginalAlleles.KEY + " at position: " + origChr + " " + origStart);
+            throw new IllegalArgumentException("Missing annotation for " + ORIGINAL_ALLELES + " at position: " + origChr + " " + origStart);
         }
 
         if (origAlleles.size() != variant.getAlleles().size()){
@@ -151,7 +152,7 @@ public class BackportLiftedVcf extends VariantWalker {
 
         vcb.rmAttribute(ORIGINAL_CONTIG);
         vcb.rmAttribute(ORIGINAL_START);
-        vcb.rmAttribute(OriginalAlleles.KEY);
+        vcb.rmAttribute(ORIGINAL_ALLELES);
 
         sorter.add(vcb.make());
     }
