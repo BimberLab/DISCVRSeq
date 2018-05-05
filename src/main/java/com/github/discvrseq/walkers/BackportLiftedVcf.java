@@ -1,6 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.annotations.OriginalAlleles;
 import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import htsjdk.samtools.SAMFileWriterImpl;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -24,7 +23,7 @@ import java.io.File;
 import java.util.*;
 
 @CommandLineProgramProperties(
-        summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CHR and ORGINAL_POS annotations left by Picard.  Note: this also requires the original VCF to be annotated with the original alleles (prior to liftover), using the OriginalAlleleAnnotator tool.",
+        summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
         oneLineSummary = "Backport lifted VCF to the original coordinates",
         programGroup = DiscvrSeqDevProgramGroup.class
 )
@@ -119,20 +118,21 @@ public class BackportLiftedVcf extends VariantWalker {
             throw new IllegalArgumentException("Missing annotation for " + ORIGINAL_START + " at position: " + origChr + " " + origStart);
         }
 
+        List<Allele> targetAlleles = new ArrayList<>();
         List<String> origAlleles = variant.getAttributeAsStringList(ORIGINAL_ALLELES, null);
         if (origAlleles == null || origAlleles.isEmpty()){
-            throw new IllegalArgumentException("Missing annotation for " + ORIGINAL_ALLELES + " at position: " + origChr + " " + origStart);
+            targetAlleles = variant.getAlleles();
         }
+        else {
+            if (origAlleles.size() != variant.getAlleles().size()){
+                throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site");
+            }
 
-        if (origAlleles.size() != variant.getAlleles().size()){
-            throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site");
-        }
-
-        List<Allele> targetAlleles = new ArrayList<>();
-        int idx = 0;
-        for (String bases : origAlleles){
-            targetAlleles.add(Allele.create(bases, idx ==0));
-            idx++;
+            int idx = 0;
+            for (String bases : origAlleles){
+                targetAlleles.add(Allele.create(bases, idx ==0));
+                idx++;
+            }
         }
 
         //the original variant is always in forward orientation
