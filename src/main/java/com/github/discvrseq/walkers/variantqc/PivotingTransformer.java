@@ -39,12 +39,12 @@ public class PivotingTransformer implements GATKReportTableTransformer {
 
         distinctColNames.addAll(groupBy);
         for (String colName : groupBy){
-            colFormatMap.put(colName, GATKReportDataType.String.toString());
+            colFormatMap.put(colName, getDefaultFormatString(GATKReportDataType.String));
         }
 
         if (showGender && sampleDB != null){
             distinctColNames.add("Gender");
-            colFormatMap.put("Gender", GATKReportDataType.String.toString());
+            colFormatMap.put("Gender", getDefaultFormatString(GATKReportDataType.String));
         }
 
         Map<String, GATKReportColumn> colMap = new HashMap<>();
@@ -84,7 +84,7 @@ public class PivotingTransformer implements GATKReportTableTransformer {
                 String colName = p.getTargetColName(String.valueOf(table.get(i, p.colNameSource)));
                 if (!distinctColNames.contains(colName)){
                     distinctColNames.add(colName);
-                    colFormatMap.put(colName, colMap.get(p.colValueSource).getDataType().toString());
+                    colFormatMap.put(colName, getDefaultFormatString(colMap.get(p.colValueSource).getDataType()));
                 }
 
                 rowMap.get(key).put(colName, table.get(i, p.colValueSource));
@@ -134,6 +134,25 @@ public class PivotingTransformer implements GATKReportTableTransformer {
 
         public String getTargetColName(String sourceCol){
             return sourceCol + (this.suffix == null ? "" : suffix);
+        }
+    }
+
+    //TODO: move to GATK
+    public String getDefaultFormatString(GATKReportDataType type) {
+        switch (type) {
+            case Decimal:
+                return "%.8f";
+            case Boolean:
+                return "%b";
+            case Integer:
+                return "%d";
+            case String:
+                return "%s";
+            case Character:
+                return "%c";
+            case Null:
+            default:
+                return "%s";
         }
     }
 }

@@ -70,8 +70,7 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
             datasetJson.addProperty("name", colName);
 
             JsonArray data = new JsonArray();
-            int rowIdx = 0;
-            while (rowIdx < table.getNumRows()) {
+            for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
                 String sampleName = getSampleNameForRow(rowIdx);
                 if (skippedSamples.contains(sampleName)){
                     continue;

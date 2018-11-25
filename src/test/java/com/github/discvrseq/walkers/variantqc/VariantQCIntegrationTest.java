@@ -52,12 +52,13 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.github.discvrseq.walkers.BaseIntegrationTest;
-import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFHeader;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.hellbender.cmdline.TestProgramGroup;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.engine.FeatureContext;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEval;
@@ -66,7 +67,6 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Spliterator;
 
 public class VariantQCIntegrationTest extends BaseIntegrationTest {
     private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");

@@ -70,14 +70,11 @@ abstract class ReportDescriptor {
 
     protected JsonArray getSampleNames(){
         Set<String> sampleNames = new LinkedHashSet<>();
-        int rowIdx = 0;
-        while (rowIdx<table.getNumRows()) {
+        for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             String sn = getSampleNameForRow(rowIdx);
             if (sn != null && !skippedSamples.contains(sn)){
                 sampleNames.add(sn);
             }
-
-            rowIdx++;
         }
 
         JsonArray ret = new JsonArray();

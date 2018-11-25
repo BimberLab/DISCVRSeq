@@ -76,8 +76,10 @@ public class HtmlGenerator {
         out.println("mqc_plots = {};");
         out.println("num_datasets_plot_limit = 50;");
         out.println("$(function() {");
-        String dateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
-        out.println("$('#dateTime').html('Generated on: " + dateStr + "');");
+
+        //NOTE: including the date is a problem for automated testing, since we currently compare the output to a snapshot
+        //String dateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+        //out.println("$('#dateTime').html('Generated on: " + dateStr + "');");
         out.println("processPlots({");
         out.println("sections:");
 

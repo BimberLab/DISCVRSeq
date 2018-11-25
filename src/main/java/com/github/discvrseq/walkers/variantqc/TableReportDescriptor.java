@@ -64,8 +64,7 @@ public class TableReportDescriptor extends ReportDescriptor {
         dataObj.add("samples", getSampleNames());//Ordering of sample names must correspond with dataset order
 
         JsonArray datasetsJson = new JsonArray();
-        int rowIdx = 0;
-        while (rowIdx < table.getNumRows()) {
+        for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             List<Object> rowList = new ArrayList<>();
             String sampleName = getSampleNameForRow(rowIdx);
             if (skippedSamples.contains(sampleName)) {
@@ -82,6 +81,7 @@ public class TableReportDescriptor extends ReportDescriptor {
 
             datasetsJson.add(new GsonBuilder().create().toJsonTree(rowList).getAsJsonArray());
         }
+
         dataObj.add("datasets", datasetsJson);
 
         dataObj.add("columns", new JsonArray());
@@ -123,8 +123,7 @@ public class TableReportDescriptor extends ReportDescriptor {
 
     private void inferMinMax(JsonObject colJson, String colName) {
         List<Double> rowValuesList = new ArrayList<>();
-        int rowIdx = 0;
-        while (rowIdx < table.getNumRows()) {
+        for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             if (skippedSamples.contains(getSampleNameForRow(rowIdx))) {
                 continue;
             }
@@ -140,8 +139,7 @@ public class TableReportDescriptor extends ReportDescriptor {
 
     private void flagValueByTwoStandardDeviation(JsonObject colJson, String colName){
         DescriptiveStatistics stats = new DescriptiveStatistics();
-        int rowIdx = 0;
-        while (rowIdx < table.getNumRows()) {
+        for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             if (skippedSamples.contains(getSampleNameForRow(rowIdx))) {
                 continue;
             }

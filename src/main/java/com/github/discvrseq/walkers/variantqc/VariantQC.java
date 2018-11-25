@@ -15,7 +15,9 @@ import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEval;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
+import org.broadinstitute.hellbender.utils.SimpleInterval;
 import org.broadinstitute.hellbender.utils.Utils;
+import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
 import org.broadinstitute.hellbender.utils.report.GATKReportVersion;
 import org.broadinstitute.hellbender.utils.samples.PedigreeValidationType;
@@ -134,13 +136,13 @@ public class VariantQC extends VariantWalker {
         Map<String, Class<? extends VariantStratifier>> classMap = getEvaluationClassMap();
 
         for (VariantEvalWrapper wrapper : this.wrappers) {
-            try (BufferedReader sampleReader = new BufferedReader(new StringReader(new String(wrapper.out.toByteArray())))) {
+            try (BufferedReader sampleReader = IOUtil.openFileForBufferedUtf8Reading(wrapper.outFile)) {
                 sampleReader.readLine(); //read first GATKReport line
 
-                for (String evalModule : wrapper.evaluationModules){
+                for (int i=0; i<wrapper.evaluationModules.size(); i++){
+                    //NOTE: this output will have one table per eval module. Iterate
                     GATKReportTable table = new GATKReportTable(sampleReader, GATKReportVersion.V1_1);
-                    //TODO: this used to be based on tableName, why?
-                    List<ReportDescriptor> rds = wrapper.getReportsForModule(evalModule);
+                    List<ReportDescriptor> rds = wrapper.getReportsForModule(table.getTableName());
                     Map<String, String> descriptionMap = new HashMap<>();
                     Class evalClass = classMap.get(table.getTableName());
                     if (evalClass != null){
@@ -191,16 +193,21 @@ public class VariantQC extends VariantWalker {
 
 
     private static class VariantEvalChild extends VariantEval {
+        private final VariantQC variantQC;
+
         public VariantEvalChild(VariantQC variantQC, VariantEvalWrapper wrapper){
+            this.variantQC = variantQC;
             try
             {
                 this.evals = Collections.singletonList(variantQC.getDrivingVariantsFeatureInput());
-                this.outFile = new File(variantQC.outFile);
+                this.outFile = wrapper.outFile;
 
                 this.MODULES_TO_USE = wrapper.evaluationModules;
                 this.NO_STANDARD_MODULES = true;
                 this.STRATIFICATIONS_TO_USE = wrapper.stratifications;
                 this.NO_STANDARD_STRATIFICATIONS = true;
+
+                //TODO: set reference??
 
                 this.onStartup();
             }
@@ -209,11 +216,17 @@ public class VariantQC extends VariantWalker {
                 throw new GATKException(e.getMessage(), e);
             }
         }
+
+        @Override
+        public List<SimpleInterval> getTraversalIntervals() {
+            return variantQC.getTraversalIntervals();
+        }
     }
 
     private static class VariantEvalWrapper {
         private VariantEvalChild walker;
-        private ByteArrayOutputStream out = new ByteArrayOutputStream();
+        //private ByteArrayOutputStream out = new ByteArrayOutputStream();
+        private File outFile = IOUtils.createTempFile("variantQC_data", ".txt");
         List<String> stratifications;
         List<String> evaluationModules;
         String sectionLabel;
