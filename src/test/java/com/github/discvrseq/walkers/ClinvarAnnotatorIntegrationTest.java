@@ -1,12 +1,11 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.Main;
-import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
-import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
+import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
+import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
 
 public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
 
@@ -14,18 +13,24 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
     public void testBasicOperation() throws Exception {
         ArgumentsBuilder args = getBaseArgs();
 
-        doTest(args, "ClinvarAnnotatorOutput.vcf");
+        doTest("testBasicOperation", args, "ClinvarAnnotatorOutput.vcf");
     }
 
-    private void doTest(ArgumentsBuilder args, String fn) throws Exception{
+    private void doTest(String name, ArgumentsBuilder args, String fn) throws Exception {
         args.add("-O");
-        File outFile = new File(normalizePath(getSafeNonExistentFile(fn)));
-        args.add(outFile);
+        args.add("%s");
+        args.add("--tmp-dir");
+        args.add(getTmpDir());
 
-        runCommandLine(args.getArgsArray());
+        File fasta = downloadHg19Micro();
+        args.add("-R");
+        args.add(normalizePath(fasta));
 
-        File expected = getTestFile(fn);
-        IntegrationTestSpec.assertEqualTextFiles(outFile, expected);
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+            args.getString(),
+            Arrays.asList(getTestFile(fn).getPath()));
+
+        spec.executeTest(name, this);
     }
 
     private ArgumentsBuilder getBaseArgs() {
@@ -44,10 +49,5 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
         args.add(normalizePath(input));
 
         return args;
-    }
-
-    @Override
-    public Object runCommandLine(final List<String> args) {
-        return new Main().instanceMain(makeCommandLineArgs(args));
     }
 }

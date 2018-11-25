@@ -24,18 +24,20 @@ apply plugin: 'java'
 
 repositories {
     mavenCentral()
+    jcenter()
     maven {
-        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/"
     }
 }
 
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-//final gatkVersion = '4.beta.2'
-final gatkVersion = '4.beta.5-53-g0598843-20170929.153234-1'
-final htsjdkVersion = '2.12.0'
+final gatkVersion = '4.0.11.0-30-g9c4a27b-SNAPSHOT'
+final htsjdkVersion = System.getProperty('htsjdk.version','2.18.0')
+final barclayVersion = System.getProperty('barclay.version','2.1.0')
 final testNGVersion = '6.11'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.62.0-alpha:shaded'
 
 configurations.all {
     resolutionStrategy {
@@ -46,16 +48,34 @@ configurations.all {
         force 'com.google.protobuf:protobuf-java:3.0.0-beta-1'
         // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
         force 'org.testng:testng:' + testNGVersion
+        force 'org.broadinstitute:barclay:' + barclayVersion
+
+        // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
+        // via Picard, etc.
+        force googleCloudNioDependency
     }
 }
 
 dependencies {
+    compile 'org.broadinstitute:barclay:' + barclayVersion
+
     // use the same GATK dependency for compile and documentation
     final gatkDependency = 'org.broadinstitute:gatk:' + gatkVersion
     compile (gatkDependency) {
         exclude module: 'jgrapht' // this is not required
     }
+    compile group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
     compile group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
+    compile googleCloudNioDependency
+
+    // Required for SV Discovery machine learning
+    compile group: 'biz.k11i', name: 'xgboost-predictor', version: '0.3.0'
+
+    // this comes built-in when running on Google Dataproc, but the library
+    // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
+    // should we want to)
+    compile 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
+
 
     // compilation for testing
     testCompile 'org.testng:testng:' + testNGVersion

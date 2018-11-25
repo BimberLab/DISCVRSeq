@@ -1,14 +1,16 @@
 package com.github.discvrseq.walkers;
 
+import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
+import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
-import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
-import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.github.discvrseq.walkers.ImmunoGenotyper.*;
+
 
 public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
     @Test
@@ -16,7 +18,7 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
         ArgumentsBuilder args = getBaseArgs();
         args.add("--requireValidPair");
 
-        doTest(args, "ImmunoGenotyperOutput");
+        doTest("testBasicOperation", args, "ImmunoGenotyperOutput");
     }
 
     @Test
@@ -33,7 +35,7 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
         args.add("--minReadCountForExport");
         args.add("1");
 
-        doTest(args, "ImmunoGenotyperOutputMM");
+        doTest("testWithMismatches", args, "ImmunoGenotyperOutputMM");
     }
 
     @Test
@@ -47,17 +49,23 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
         args.add("--minPctForExport");
         args.add(0.001);
 
-        doTest(args, "ImmunoGenotyperOutputNVP");
+        doTest("testWithoutRequireValidPair", args, "ImmunoGenotyperOutputNVP");
     }
 
-    private void doTest(ArgumentsBuilder args, String fn) throws Exception{
-        args.add("-O");
-
+    private void doTest(String name, ArgumentsBuilder args, String fn) throws Exception{
         File outFile = new File(normalizePath(getSafeNonExistentFile(fn)));
         String outFilePrefix = normalizePath(outFile);
+        args.add("-O");
         args.add(outFilePrefix);
 
-        runCommandLine(args.getArgsArray());
+        args.add("--tmp-dir");
+        args.add(getTmpDir());
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Collections.emptyList());
+
+        spec.executeTest(name, this);
 
         for (String extention : Arrays.asList(GENOTYPE_EXTENSION, SUMMARY_EXTENSION, MISMATCH_EXTENSION)){
             File expected = getTestFile(fn + extention);
@@ -66,11 +74,13 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
         }
     }
 
-    private ArgumentsBuilder getBaseArgs() {
+    private ArgumentsBuilder getBaseArgs() throws Exception {
         ArgumentsBuilder args = new ArgumentsBuilder();
         File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
-        args.add(normalizePath(new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta")));
+
+        File fasta  = new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta");
+        args.add(normalizePath(fasta));
 
         args.add("-I");
         args.add(normalizePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));

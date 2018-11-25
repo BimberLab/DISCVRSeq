@@ -261,8 +261,8 @@
 ##INFO=<ID=EX_MQ0,Number=.,Type=String,Description="ExAC Total Mapping Quality Zero Reads">
 ##INFO=<ID=EX_MQRankSum,Number=.,Type=String,Description="ExAC Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities">
 ##INFO=<ID=EX_NCC,Number=.,Type=String,Description="ExAC Number of no-called samples">
-##INFO=<ID=EX_NEGATIVE_TRAIN_SITE,Number=0,Type=String,Description="ExAC This variant was used to build the negative training set of bad variants">
-##INFO=<ID=EX_POSITIVE_TRAIN_SITE,Number=0,Type=String,Description="ExAC This variant was used to build the positive training set of good variants">
+##INFO=<ID=EX_NEGATIVE_TRAIN_SITE,Number=.,Type=String,Description="ExAC This variant was used to build the negative training set of bad variants">
+##INFO=<ID=EX_POSITIVE_TRAIN_SITE,Number=.,Type=String,Description="ExAC This variant was used to build the positive training set of good variants">
 ##INFO=<ID=EX_QD,Number=.,Type=String,Description="ExAC Variant Confidence/Quality by Depth">
 ##INFO=<ID=EX_ReadPosRankSum,Number=.,Type=String,Description="ExAC Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias">
 ##INFO=<ID=EX_VQSLOD,Number=.,Type=String,Description="ExAC Log odds ratio of being a true variant versus being false under the trained gaussian mixture model">
