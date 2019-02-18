@@ -111,7 +111,13 @@ public class BaseIntegrationTest extends BaseTest implements CommandLineProgramT
         return new Main().instanceMain(makeCommandLineArgs(args, toolName));
     }
 
+    private String tmpDir = null;
+
     public String getTmpDir() {
-        return normalizePath(IOUtils.getPath(System.getProperty("java.io.tmpdir")).toFile());
+        if (tmpDir == null) {
+            tmpDir = normalizePath(IOUtils.getPath(System.getProperty("java.io.tmpdir")).toFile());
+        }
+
+        return tmpDir;
     }
 }

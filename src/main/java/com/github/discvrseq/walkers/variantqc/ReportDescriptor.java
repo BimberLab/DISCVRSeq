@@ -45,8 +45,8 @@ abstract class ReportDescriptor {
     /**
      * This provides the opportunity for subclasses to supply custom logic to parse the sampleName from rows.
      * This can return null, in which case that row will be ignored, for example if specific states should not be included.
-     * @param rowIdx
-     * @return
+     * @param rowIdx The row index to parse
+     * @return the parsed sample name
      */
     protected String getSampleNameForRow(int rowIdx){
         if (columnsInSampleName == null){

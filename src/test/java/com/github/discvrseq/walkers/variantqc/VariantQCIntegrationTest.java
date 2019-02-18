@@ -52,20 +52,11 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.github.discvrseq.walkers.BaseIntegrationTest;
-import htsjdk.variant.variantcontext.VariantContext;
-import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
-import org.broadinstitute.hellbender.cmdline.TestProgramGroup;
-import org.broadinstitute.hellbender.engine.FeatureContext;
-import org.broadinstitute.hellbender.engine.ReadsContext;
-import org.broadinstitute.hellbender.engine.ReferenceContext;
-import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
-import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEval;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 public class VariantQCIntegrationTest extends BaseIntegrationTest {
@@ -97,66 +88,5 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
                 Arrays.asList(expected.getPath()));
 
         spec.executeTest("testBasicOperation", this);
-    }
-
-    @Test
-    public void testWalkerOverride() {
-
-    }
-
-    /**
-     * This is an example of an attempt to make a walker that configures and calls another
-     * walker during its own iteration.  My use case is that VariantEval will aggregate
-     * data about VCF(s).  In our GATK3 version, we configured multiple instances of
-     * VariantEval, with different parameters.
-     * We iterate the variants one time, calling each child VariantEval
-     * instance (this is a simpler example case).
-     *
-     */
-    @CommandLineProgramProperties(
-            summary = "This is a dummy program for testing online",
-            programGroup = TestProgramGroup.class,
-            omitFromCommandLine = true,
-            oneLineSummary = "This is a test program only"
-    )
-    public static class TestWalkerWrapper extends VariantWalker {
-        //This purpose of this subclass is to provide a wrapper around VariantEval, and allow our code to set arguments
-        private static class VariantEvalSubclass extends VariantEval {
-            public VariantEvalSubclass(TestWalkerWrapper owner) {
-                //set arguments
-                this.evals = new ArrayList<>();
-                this.MODULES_TO_USE = Arrays.asList("A", "B", "C");
-                //etc.... In a real case we would generally uses properties of 'owner' to set arguments.
-
-                this.onStartup();
-            }
-        }
-
-        final private VariantEvalSubclass childWalker;
-
-        public TestWalkerWrapper() {
-            this.childWalker = new VariantEvalSubclass(this);
-        }
-
-        @Override
-        public void onTraversalStart() {
-            super.onTraversalStart();
-
-            childWalker.onTraversalStart();
-        }
-
-        @Override
-        public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
-            childWalker.apply(variant, readsContext, referenceContext, featureContext);
-        }
-
-        @Override
-        public Object onTraversalSuccess() {
-            childWalker.onTraversalSuccess();
-
-            //do something with child walker
-
-            return super.onTraversalSuccess();
-        }
     }
 }
