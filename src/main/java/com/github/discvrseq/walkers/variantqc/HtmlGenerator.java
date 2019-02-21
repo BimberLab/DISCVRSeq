@@ -1,16 +1,13 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.google.gson.JsonArray;
+import org.apache.commons.compress.utils.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.broadinstitute.hellbender.utils.io.Resource;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 
 /**
  * Created by bimber on 5/18/2017.
@@ -57,13 +54,13 @@ public class HtmlGenerator {
 
         //append header
         Resource header = new Resource("templates/template1.html", VariantQC.class);
-        IOUtils.copy(header.getResourceContentsAsStream(), out);
+        IOUtils.copy(header.getResourceContentsAsStream(), out, Charsets.UTF_8);
 
         //scripts:
         for (String script : CSS_FILES){
             Resource r = new Resource(script, VariantQC.class);
             out.println("<style>");
-            IOUtils.copy(r.getResourceContentsAsStream(), out);
+            IOUtils.copy(r.getResourceContentsAsStream(), out, Charsets.UTF_8);
             out.println("</style>");
         }
 
@@ -98,13 +95,13 @@ public class HtmlGenerator {
 
         //append header
         Resource header2 = new Resource("templates/template2.html", VariantQC.class);
-        IOUtils.copy(header2.getResourceContentsAsStream(), out);
+        IOUtils.copy(header2.getResourceContentsAsStream(), out, Charsets.UTF_8);
     }
 
     private void appendScript(String script, PrintWriter out) throws IOException{
         Resource r = new Resource(script, VariantQC.class);
         out.println("<script type=\"text/javascript\">");
-        IOUtils.copy(r.getResourceContentsAsStream(), out);
+        IOUtils.copy(r.getResourceContentsAsStream(), out, Charsets.UTF_8);
         out.println("</script>");
     }
 }

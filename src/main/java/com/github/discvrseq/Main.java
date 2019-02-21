@@ -41,7 +41,6 @@ public final class Main extends org.broadinstitute.hellbender.Main {
         return "java -jar DiscvrAnalysisToolkit.jar";
     }
 
-    /** Command line entry point. */
     public static void main(final String[] args) {
         final Main main = new Main();
         // if only the --version / -v is requested, exit directly
@@ -51,10 +50,6 @@ public final class Main extends org.broadinstitute.hellbender.Main {
         new Main().mainEntry(args);
     }
 
-    /**
-     * Returns {@code true} if only --version / -v is requested after printing the version;
-     * {@code false} otherwise.
-     */
     @VisibleForTesting
     protected boolean printOnlyVersion(final String[] args) {
         if (args.length == 1 && ("--version".equals(args[0]) || "-v".equals(args[0]))) {
@@ -64,7 +59,6 @@ public final class Main extends org.broadinstitute.hellbender.Main {
         return false;
     }
 
-    /** Prints the result to the standard output directly. */
     @Override
     protected void handleResult(final Object result) {
         // TODO: print something else and/or handle metrics?
@@ -73,20 +67,12 @@ public final class Main extends org.broadinstitute.hellbender.Main {
         }
     }
 
-    /**
-     * Prints in {@link #exceptionOutput} the decorated exception as an user error.
-     * In addition, prints the stack-trace if the debug mode is enabled.
-     */
     @Override
     protected void handleUserException(Exception e) {
         printDecoratedExceptionMessage(exceptionOutput, e, "A USER ERROR has occurred: ");
         printStackTrace(e);
     }
 
-    /**
-     * Prints in {@link #exceptionOutput} the decorated exception as an unexpected error.
-     *
-     */
     @Override
     protected void handleNonUserException(final Exception e) {
         printDecoratedExceptionMessage(exceptionOutput, e, "UNEXPECTED ERROR: ");

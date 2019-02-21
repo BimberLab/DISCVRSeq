@@ -7,6 +7,7 @@ import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadWalker;
@@ -29,6 +30,7 @@ import java.util.*;
 /**
  * Created by bimber on 7/31/2017.
  */
+@DocumentedFeature
 @CommandLineProgramProperties(
         oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.",
         summary = ImmunoGenotyper.SUMMARY,
@@ -112,8 +114,9 @@ public class ImmunoGenotyper extends ReadWalker {
         }
     }
 
-    private class Filter extends ReadFilter
-    {
+    private class Filter extends ReadFilter {
+        private static final long serialVersionUID = 1L;
+
         private ReadFilter filter = null;
 
         public Filter() {
@@ -466,7 +469,7 @@ public class ImmunoGenotyper extends ReadWalker {
         }
 
         public Set<String> getLineages(Map<String, String> referenceToLineageMap){
-            TreeSet ret = new TreeSet();
+            TreeSet<String> ret = new TreeSet<>();
             for (String refName : refNames){
                 ret.add(referenceToLineageMap.containsKey(refName) ? referenceToLineageMap.get(refName) : refName);
             }

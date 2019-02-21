@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 
@@ -14,7 +15,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+@DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This tool accepts a BED file with a list of sites, where sample name is the feature name.  If the VCF has a variant at any of these positions, the sample(s) will have their genotypes converted to no-call.  The BED file can have multiple lines per site if more than one sample needs to be filtered.",
         oneLineSummary = "Filters genotypes based on an input list of samples/sites",

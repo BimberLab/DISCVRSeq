@@ -8,6 +8,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+@DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool, originally created to help detect potential sample mix-up.  It accepts an input VCF, reference VCF and list of samples to consider.  It will compare each sample in this list from the VCF against every samples in the reference VCF, and produce a summary table about concordance.",
         oneLineSummary = "Produces a concordance report between samples in a VCF against every other sample in a reference VCF",

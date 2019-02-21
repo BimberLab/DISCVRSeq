@@ -1,10 +1,11 @@
 package com.github.discvrseq.walkers.variantqc;
 
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadsContext;
@@ -25,14 +26,18 @@ import org.broadinstitute.hellbender.utils.samples.SampleDB;
 import org.broadinstitute.hellbender.utils.samples.SampleDBBuilder;
 import org.reflections.Reflections;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
 
+@DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This will generate an HTML summary report for a given VCF, analogous to the report FastQC creates for raw read data.",
         oneLineSummary = "Generate HTML summary report for a VCF",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        programGroup = DiscvrSeqProgramGroup.class
 )
 public class VariantQC extends VariantWalker {
 
@@ -144,7 +149,7 @@ public class VariantQC extends VariantWalker {
                     GATKReportTable table = new GATKReportTable(sampleReader, GATKReportVersion.V1_1);
                     List<ReportDescriptor> rds = wrapper.getReportsForModule(table.getTableName());
                     Map<String, String> descriptionMap = new HashMap<>();
-                    Class evalClass = classMap.get(table.getTableName());
+                    Class<? extends VariantStratifier> evalClass = classMap.get(table.getTableName());
                     if (evalClass != null){
                         AnalysisModuleScanner scanner = new AnalysisModuleScanner(evalClass);
                         Map<Field, DataPoint> fieldDataPointMap = scanner.getData();
