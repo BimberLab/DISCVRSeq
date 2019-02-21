@@ -12,6 +12,7 @@ import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
  *
  * <p>
  * This tool annotates a VCF file with clinically relevant human variants using information from
- * <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)</>'s
- * ClinVar version 2.0 VCF.
+ * <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)'s</a>
+ * ClinVar version VCF (requires 2.0 annotation format).
  * </p>
  *
  * <h3>Input</h3>
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
  *     -O output.vcf
  * </pre>
  */
-
+@DocumentedFeature
 @CommandLineProgramProperties(
         summary = "Annotate a VCF with clinical variants using ClinVar vcf_2.0",
         oneLineSummary = "Annotate a VCF with ClinVar vcf_2.0",

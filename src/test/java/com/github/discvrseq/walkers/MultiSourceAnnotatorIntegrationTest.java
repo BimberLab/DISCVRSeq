@@ -1,10 +1,11 @@
 package com.github.discvrseq.walkers;
 
-import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
-import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
+import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
+import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Arrays;
 
 public class MultiSourceAnnotatorIntegrationTest extends BaseIntegrationTest {
     private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/");
@@ -15,10 +16,6 @@ public class MultiSourceAnnotatorIntegrationTest extends BaseIntegrationTest {
 
         args.add("-V");
         args.add(normalizePath(getInputVcf()));
-
-        args.add("-O");
-        File outFile = new File(normalizePath(getSafeNonExistentFile("multiSourceOutput.vcf")));
-        args.add(outFile);
 
         args.add("-cv");
         File clinvar = new File(testBaseDir, "walkers/MultiSourceAnnotator/clinvar.vcf");
@@ -35,10 +32,16 @@ public class MultiSourceAnnotatorIntegrationTest extends BaseIntegrationTest {
         args.add(normalizePath(cassandra));
         ensureVcfIndex(cassandra);
 
-        runCommandLine(args.getArgsArray());
+        args.add("-O");
+        args.add("%s");
+        args.add("--tmp-dir");
+        args.add(getTmpDir());
 
-        File expected = new File(testBaseDir, "walkers/MultiSourceAnnotator/multiSourceOutput.vcf");
-        IntegrationTestSpec.assertEqualTextFiles(new File(normalizePath(outFile)), expected);
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Arrays.asList(testBaseDir + "/walkers/MultiSourceAnnotator/multiSourceOutput.vcf"));
+
+        spec.executeTest("doBasicTest", this);
     }
 
     private File getInputVcf(){

@@ -1,7 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
-import htsjdk.samtools.util.SortingCollection;
+import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
 import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
@@ -9,12 +9,11 @@ import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.broadinstitute.hellbender.CommandLineProgramTest;
+import org.broadinstitute.hellbender.testutils.BaseTest;
+import org.broadinstitute.hellbender.testutils.CommandLineProgramTester;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
-import org.testng.annotations.BeforeClass;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -22,18 +21,18 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
-public class BaseIntegrationTest extends CommandLineProgramTest {
-    @Override
-    @BeforeClass
-    public void initGenomeLocParser() throws FileNotFoundException {
-        //this expects files that dont exist
-    }
+public class BaseIntegrationTest extends BaseTest implements CommandLineProgramTester {
+    private static final String CURRENT_DIRECTORY = System.getProperty("user.dir");
+    public static final String gatkDirectory = System.getProperty("gatkdir", CURRENT_DIRECTORY) + "/";
 
-    @Override
-    public Object runCommandLine(final List<String> args) {
-        //use our Main, not GATK's
-        return new Main().instanceMain(makeCommandLineArgs(args));
-    }
+    private static final String publicTestDirRelative = "src/test/resources/";
+    public static final String publicTestDir = new File(gatkDirectory, publicTestDirRelative).getAbsolutePath() + "/";
+
+//    @Override
+//    @BeforeClass
+//    public void initGenomeLocParser() throws FileNotFoundException {
+//        //this expects files that dont exist
+//    }
 
     protected File downloadFile(String url, File saveTo) throws IOException {
         URL target = new URL(url);
@@ -58,7 +57,7 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
         ensureIndex(input, new VCFCodec());
     }
 
-    protected void ensureIndex(File input, FeatureCodec codec){
+    protected <FEATURE_TYPE extends Feature, SOURCE_TYPE> void ensureIndex(File input, FeatureCodec<FEATURE_TYPE, SOURCE_TYPE> codec){
         File expected = new File(input.getParent(), input.getName() + Tribble.STANDARD_INDEX_EXTENSION);
         if (expected.exists()){
             return;
@@ -89,5 +88,37 @@ public class BaseIntegrationTest extends CommandLineProgramTest {
         }
 
         return FilenameUtils.separatorsToUnix(path);
+    }
+
+    /**
+     * Returns the location of the resource directory. The default implementation points to the common directory for tools.
+     */
+    public static File getTestDataDir() {
+        return new File("src/test/resources/com/github/discvrseq/");
+    }
+
+    @Override
+    public String getTestedToolName() {
+        return getTestedClassName();
+    }
+
+    @Override
+    public Object runCommandLine(final List<String> args) {
+        return new Main().instanceMain(makeCommandLineArgs(args));
+    }
+
+    @Override
+    public Object runCommandLine(final List<String> args, final String toolName) {
+        return new Main().instanceMain(makeCommandLineArgs(args, toolName));
+    }
+
+    private String tmpDir = null;
+
+    public String getTmpDir() {
+        if (tmpDir == null) {
+            tmpDir = normalizePath(IOUtils.getPath(System.getProperty("java.io.tmpdir")).toFile());
+        }
+
+        return tmpDir;
     }
 }

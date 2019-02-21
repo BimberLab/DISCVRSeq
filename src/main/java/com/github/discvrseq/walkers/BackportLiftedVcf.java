@@ -11,17 +11,20 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.*;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
+import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.utils.Utils;
+import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.reference.ReferenceUtils;
 
 import java.io.File;
 import java.util.*;
 
+@DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
         oneLineSummary = "Backport lifted VCF to the original coordinates",
@@ -96,8 +99,7 @@ public class BackportLiftedVcf extends VariantWalker {
                 VariantContext.class,
                 new VCFRecordCodec(outputHeader, true),
                 outputHeader.getVCFRecordComparator(),
-                MAX_RECORDS_IN_RAM,
-                TMP_DIR);
+                MAX_RECORDS_IN_RAM, IOUtil.getDefaultTmpDir().toPath());
     }
 
     @Override
@@ -195,10 +197,8 @@ public class BackportLiftedVcf extends VariantWalker {
         if (lenientVCFProcessing) {
             options.add(Options.ALLOW_MISSING_FIELDS_IN_HEADER);
         }
-        final VariantContextWriter out = new VariantContextWriterBuilder().
-                setReferenceDictionary(outputHeader.getSequenceDictionary()).
-                setOptions(options).
-                setOutputFile(new File(outFile)).build();
+
+        final VariantContextWriter out = createVCFWriter(new File(outFile));
 
         out.writeHeader(outputHeader);
         for (final VariantContext variantContext : sortedOutput) {

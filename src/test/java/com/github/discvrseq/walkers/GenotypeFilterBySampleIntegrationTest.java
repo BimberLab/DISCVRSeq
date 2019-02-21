@@ -1,13 +1,12 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.Main;
 import htsjdk.tribble.bed.BEDCodec;
-import org.broadinstitute.hellbender.utils.test.ArgumentsBuilder;
-import org.broadinstitute.hellbender.utils.test.IntegrationTestSpec;
+import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
+import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.List;
+import java.util.Arrays;
 
 public class GenotypeFilterBySampleIntegrationTest extends  BaseIntegrationTest {
 
@@ -18,13 +17,15 @@ public class GenotypeFilterBySampleIntegrationTest extends  BaseIntegrationTest 
         String fn = "GenotypeFilterBySample.vcf";
 
         args.add("-O");
-        File outFile = new File(normalizePath(getSafeNonExistentFile(fn)));
-        args.add(outFile);
+        args.add("%s");
+        args.add("--tmp-dir");
+        args.add(getTmpDir());
 
-        runCommandLine(args.getArgsArray());
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Arrays.asList(getTestFile(fn).getPath()));
 
-        File expected = getTestFile(fn);
-        IntegrationTestSpec.assertEqualTextFiles(outFile, expected);
+        spec.executeTest("testBasicOperation", this);
     }
 
     private ArgumentsBuilder getBaseArgs() {

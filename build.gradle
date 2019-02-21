@@ -14,6 +14,8 @@ plugins {
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+import javax.tools.ToolProvider
+
 //if (project.hasProperty('projVersion')) {
 //    project.version = project.projVersion
 //} else {
@@ -24,18 +26,38 @@ apply plugin: 'java'
 
 repositories {
     mavenCentral()
+    jcenter()
     maven {
-        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/"
+    }
+}
+
+//NOTE: we ignore contracts for now
+compileJava {
+    options.compilerArgs = ['-proc:none', '-Xlint:all', '-Werror', '-Xdiags:verbose']
+}
+compileTestJava {
+    options.compilerArgs = ['-proc:none', '-Xlint:all', '-Werror', '-Xdiags:verbose']
+}
+
+configurations {
+    externalSourceConfiguration {
+        // External sources we need for doc and tab completion generation tasks (i.e., Picard sources)
+        transitive false
     }
 }
 
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-//final gatkVersion = '4.beta.2'
-final gatkVersion = '4.beta.5-53-g0598843-20170929.153234-1'
-final htsjdkVersion = '2.12.0'
+final gatkVersion = '4.0.11.0-30-g9c4a27b-SNAPSHOT'
+final htsjdkVersion = System.getProperty('htsjdk.version','2.18.0')
+final barclayVersion = System.getProperty('barclay.version','2.1.0')
 final testNGVersion = '6.11'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.62.0-alpha:shaded'
+
+final docBuildDir = "$buildDir/docs"
+logger.info(docBuildDir)
 
 configurations.all {
     resolutionStrategy {
@@ -46,16 +68,44 @@ configurations.all {
         force 'com.google.protobuf:protobuf-java:3.0.0-beta-1'
         // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
         force 'org.testng:testng:' + testNGVersion
+        force 'org.broadinstitute:barclay:' + barclayVersion
+
+        // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
+        // via Picard, etc.
+        force googleCloudNioDependency
     }
 }
 
+// Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
+// test execution, and htmlDoc generation, but we don't want them as part of the runtime
+// classpath and we don't want to redistribute them in the uber jar.
+final javadocJDKFiles = files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
+
 dependencies {
+    // javadoc utilities; compile/test only to prevent redistribution of sdk jars
+    compileOnly(javadocJDKFiles)
+    testCompile(javadocJDKFiles)
+
+    compile 'org.broadinstitute:barclay:' + barclayVersion
+
     // use the same GATK dependency for compile and documentation
     final gatkDependency = 'org.broadinstitute:gatk:' + gatkVersion
     compile (gatkDependency) {
         exclude module: 'jgrapht' // this is not required
     }
+    externalSourceConfiguration 'org.broadinstitute:gatk:' + gatkVersion + ':sources'
+
+    compile group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
     compile group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
+    compile googleCloudNioDependency
+
+    // Required for SV Discovery machine learning
+    compile group: 'biz.k11i', name: 'xgboost-predictor', version: '0.3.0'
+
+    // this comes built-in when running on Google Dataproc, but the library
+    // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
+    // should we want to)
+    compile 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
 
     // compilation for testing
     testCompile 'org.testng:testng:' + testNGVersion
@@ -66,6 +116,10 @@ tasks.withType(Jar) {
         attributes 'Implementation-Title': rootProject.name,
                 'Main-Class': mainClassName
     }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.1'
 }
 
 tasks.withType(ShadowJar) {
@@ -96,6 +150,61 @@ task localJar{ dependsOn shadowJar }
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     classifier = 'sources'
+}
+
+tasks.withType(Javadoc) {
+    // do this for all javadoc tasks, including htmlDoc
+    options.addStringOption('Xdoclint:none')
+    outputs.upToDateWhen { false }
+}
+
+javadoc {
+    // This is a hack to disable the java 8 default javadoc lint until we fix the html formatting
+    // We only want to do this for the javadoc task, not htmlDoc
+    options.addStringOption('Xdoclint:none', '-quiet')
+    source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
+    include '**com/github/discvrseq/**/*.java'
+    include '**org/broadinstitute/hellbender/cmdline/argumentcollections/**/*.java'
+    include '**org/broadinstitute/hellbender/cmdline/**/*.java'
+}
+
+// Generate Online Doc
+task htmlDoc(type: Javadoc, dependsOn: classes ) {
+    final File htmlDocDir = new File("build/docs/htmlDoc")
+    doFirst {
+        // make sure the output folder exists or we can create it
+        if (!htmlDocDir.exists() && !htmlDocDir.mkdirs()) {
+            throw new GradleException(String.format("Failure creating folder (%s) for HTML doc output in task (%s)",
+                    htmlDocDir.getAbsolutePath(),
+                    it.name));
+        }
+        copy {
+            from('src/main/resources/com/github/discvrseq/util/helpTemplates')
+            include 'stylesheet.css'
+            into htmlDocDir
+        }
+    }
+
+    source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
+    include '**com/github/discvrseq/**/*.java'
+    include '**org/broadinstitute/hellbender/cmdline/argumentcollections/**/*.java'
+    include '**org/broadinstitute/hellbender/cmdline/**/*.java'
+//    exclude '**/hellbender/**/*.java'
+    
+    // The doc process instantiates any documented feature classes, so to run it we need the entire
+    // runtime classpath, as well as jdk javadoc files such as tools.jar, where com.sun.javadoc lives.
+    classpath = sourceSets.main.runtimeClasspath + javadocJDKFiles
+    
+    options.docletpath = classpath.asType(List)
+    options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
+
+    outputs.dir(htmlDocDir)
+    options.destinationDirectory(htmlDocDir)
+
+    options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/helpTemplates");
+    //options.addStringOption("absolute-version", getVersion())
+    options.addStringOption("absolute-version", "1.0")
+    options.addStringOption("build-timestamp", new Date().format("dd-mm-yyyy hh:mm:ss"))
 }
 
 test {
