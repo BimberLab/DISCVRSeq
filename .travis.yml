@@ -28,6 +28,9 @@ before_deploy:
   - echo ${TRAVIS_TAG}
   - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
 
+after_success:
+  - scripts/publish.sh
+
 deploy:
   provider: releases
   api_key: ${GH_TOKEN}
