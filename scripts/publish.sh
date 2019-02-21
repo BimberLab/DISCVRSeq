@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Adapted from: https://benlimmer.com/2013/12/26/automatically-publish-javadoc-to-gh-pages-with-travis-ci/
 
 if [ "$TRAVIS_REPO_SLUG" != "BimberLab/DISCVRSeq" ];then
