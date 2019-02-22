@@ -50,8 +50,8 @@ public class HtmlGenerator {
 
     }
 
-    public void generateHtml(Collection<SectionJsonDescriptor> translatorList, PrintWriter out) throws IOException {
-
+    //separated for testing purposes
+    public static void printStaticContent(PrintWriter out) throws IOException {
         //append header
         Resource header = new Resource("templates/template1.html", VariantQC.class);
         IOUtils.copy(header.getResourceContentsAsStream(), out, Charsets.UTF_8);
@@ -67,6 +67,11 @@ public class HtmlGenerator {
         for (String script : JS_SCRIPTS){
             appendScript(script, out);
         }
+    }
+
+    public void generateHtml(Collection<SectionJsonDescriptor> translatorList, PrintWriter out) throws IOException {
+
+        printStaticContent(out);
 
         //config:
         out.println("<script type=\"text/javascript\">");
@@ -98,7 +103,7 @@ public class HtmlGenerator {
         IOUtils.copy(header2.getResourceContentsAsStream(), out, Charsets.UTF_8);
     }
 
-    private void appendScript(String script, PrintWriter out) throws IOException{
+    private static void appendScript(String script, PrintWriter out) throws IOException{
         Resource r = new Resource(script, VariantQC.class);
         out.println("<script type=\"text/javascript\">");
         IOUtils.copy(r.getResourceContentsAsStream(), out, Charsets.UTF_8);

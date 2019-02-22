@@ -30,7 +30,6 @@ public class GenotypeFilterBySampleIntegrationTest extends  BaseIntegrationTest 
 
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
-        File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
 
         args.add("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");

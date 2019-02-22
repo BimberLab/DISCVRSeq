@@ -22,7 +22,7 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
         args.add("--tmp-dir");
         args.add(getTmpDir());
 
-        File fasta = downloadHg19Micro();
+        File fasta = getHg19Micro();
         args.add("-R");
         args.add(normalizePath(fasta));
 
@@ -35,7 +35,6 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
 
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
-        File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
 
         //Must also create index once for clinvar VCF
         args.add("--clinvar");
