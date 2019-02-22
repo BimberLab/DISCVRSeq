@@ -52,19 +52,21 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.github.discvrseq.walkers.BaseIntegrationTest;
+import htsjdk.samtools.util.IOUtil;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 
 public class VariantQCIntegrationTest extends BaseIntegrationTest {
-    private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
-
     @Test
     public void testBasicOperation() throws Exception {
-
+        File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
         args.add("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
@@ -82,11 +84,40 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         args.add("--tmp-dir");
         args.add(getTmpDir());
 
-        File expected = getTestFile("testBasicOperation.html");
         IntegrationTestSpec spec = new IntegrationTestSpec(
-                args.getString(),
-                Arrays.asList(expected.getPath()));
+                args.getString(), Arrays.asList(expected.getPath()));
 
         spec.executeTest("testBasicOperation", this);
+        expected.delete();
+    }
+
+    private File generateCompleteOutput(File input) throws IOException {
+        File out = new File(getTmpDir(), input.getName() + ".complete");
+        try (BufferedReader reader = IOUtil.openFileForBufferedReading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))) {
+            HtmlGenerator.printStaticContent(writer);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.println(line);
+            }
+        }
+
+        return out;
+    }
+
+    private File removeFirstNLines(File input, int toSkip) throws IOException {
+        File out = new File(input.getPath() + ".skip");
+        try (BufferedReader reader = IOUtil.openFileForBufferedReading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))){
+            String line;
+            int linesRead = 0;
+            while ((line = reader.readLine()) != null) {
+                if (linesRead >= toSkip) {
+                    writer.println(line);
+                }
+
+                linesRead++;
+            }
+        }
+
+        return out;
     }
 }

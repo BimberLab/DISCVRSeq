@@ -7,18 +7,12 @@ import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.broadinstitute.hellbender.testutils.BaseTest;
 import org.broadinstitute.hellbender.testutils.CommandLineProgramTester;
-import org.broadinstitute.hellbender.utils.io.IOUtils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
 public class BaseIntegrationTest extends BaseTest implements CommandLineProgramTester {
@@ -28,29 +22,10 @@ public class BaseIntegrationTest extends BaseTest implements CommandLineProgramT
     private static final String publicTestDirRelative = "src/test/resources/";
     public static final String publicTestDir = new File(gatkDirectory, publicTestDirRelative).getAbsolutePath() + "/";
 
-//    @Override
-//    @BeforeClass
-//    public void initGenomeLocParser() throws FileNotFoundException {
-//        //this expects files that dont exist
-//    }
+    public static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
 
-    protected File downloadFile(String url, File saveTo) throws IOException {
-        URL target = new URL(url);
-        ReadableByteChannel rbc = Channels.newChannel(target.openStream());
-        FileOutputStream fos = new FileOutputStream(saveTo);
-        fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-
-        return saveTo;
-    }
-
-    protected File downloadHg19Micro() throws IOException{
-        File tmpDir = FileUtils.getTempDirectory();
-
-        File fasta = downloadFile("https://raw.githubusercontent.com/broadinstitute/gatk/master/src/test/resources/hg19micro.fasta", new File(tmpDir, "hg19micro.fasta"));
-        downloadFile("https://raw.githubusercontent.com/broadinstitute/gatk/master/src/test/resources/hg19micro.fasta.fai", new File(tmpDir, "hg19micro.fasta.fai"));
-        downloadFile("https://raw.githubusercontent.com/broadinstitute/gatk/master/src/test/resources/hg19micro.dict", new File(tmpDir, "hg19micro.dict"));
-
-        return fasta;
+    protected File getHg19Micro() {
+        return new File(testBaseDir, "hg19micro.fasta");
     }
 
     protected void ensureVcfIndex(File input){
@@ -116,7 +91,7 @@ public class BaseIntegrationTest extends BaseTest implements CommandLineProgramT
 
     public String getTmpDir() {
         if (tmpDir == null) {
-            tmpDir = normalizePath(IOUtils.getPath(System.getProperty("java.io.tmpdir")).toFile());
+            tmpDir = normalizePath(new File(System.getProperty("java.io.tmpdir")));
         }
 
         return tmpDir;

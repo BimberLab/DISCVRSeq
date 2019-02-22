@@ -12,7 +12,7 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void doBasicTest() throws Exception{
-        File fasta = downloadHg19Micro();
+        File fasta = getHg19Micro();
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
             " -R " + normalizePath(fasta) +

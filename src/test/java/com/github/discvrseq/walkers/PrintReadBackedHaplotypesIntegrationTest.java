@@ -76,7 +76,7 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
     }
     @Test
     public void doTestWithoutIntervals() throws Exception{
-        File fasta = downloadHg19Micro();
+        File fasta = getHg19Micro();
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 " -R " + normalizePath(fasta) +

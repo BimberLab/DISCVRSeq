@@ -53,6 +53,7 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
     }
 
     private void doTest(String name, ArgumentsBuilder args, String fn) throws Exception{
+        System.setProperty("java.io.tmpdir", getTmpDir());  //windows hack
         File outFile = new File(normalizePath(getSafeNonExistentFile(fn)));
         String outFilePrefix = normalizePath(outFile);
         args.add("-O");
@@ -76,7 +77,6 @@ public class ImmunoGenotyperIntegrationTest extends BaseIntegrationTest {
 
     private ArgumentsBuilder getBaseArgs() throws Exception {
         ArgumentsBuilder args = new ArgumentsBuilder();
-        File testBaseDir = new File(publicTestDir + "com/github/discvrseq/TestData");
         args.add("-R");
 
         File fasta  = new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta");
