@@ -32,7 +32,30 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
-
+/**
+ * VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order
+ * to provide various summary tables and graphs.
+ *
+ *
+ * <h3>Usage example:</h3>
+ * <pre>
+ *     gatk VariantQC \
+ *     -R Homo_sapiens_assembly38.fasta \
+ *     -V input.vcf \
+ *     -O output.html
+ * </pre>
+ *
+ * <h3>Authors:</h3>
+ * <ul>
+ *  <li>Ben Bimber, Ph.D.</li>
+ *  <li>Melissa Yan</li>
+ * </ul>
+ *
+ * <h3>Acknowledgements:</h3>
+ * This tool internally uses <a href="https://github.com/broadinstitute/gatk">GATK4's VariantEval</a> to aggregate data, and borrows heavily from <a href="https://multiqc.info/">MultiQC</a> for the HTML in the final report.
+ * We thank Philip Ewels for the use of MultiQC code, and Chris Norman of the Broad Institute for assistance with VariantEval.
+ *
+ */
 @DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This will generate an HTML summary report for a given VCF, analogous to the report FastQC creates for raw read data.",

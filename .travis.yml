@@ -23,6 +23,7 @@ install:
 - ./gradlew assemble;
 - ./gradlew installDist;
 - ./gradlew shadowJar;
+- ./gradlew htmlDoc;
 
 before_deploy:
   - echo ${TRAVIS_TAG}

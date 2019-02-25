@@ -1,16 +1,3 @@
-<?php
-
-    include '../../../../common/include/common.php';
-    include_once '../../../config.php';
-    $module = modules::GATK;
-    $name = docSN::toolDocs;
-
-    printHeader($module, $name, "Documentation");
-
-    $dirs = array_diff(scandir("../", SCANDIR_SORT_DESCENDING), array('..', '.'));
-    $curr_version = file_get_contents(engConst::versions_dir.versionFiles::gatk);
-?>
-
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
 
 <div class='row-fluid'>
@@ -98,9 +85,3 @@
 <@footerClose />
 
 </div></div>
-
-<?php
-
-    printFooter($module);
-
-?>
