@@ -1,0 +1,1053 @@
+<link type='text/css' rel='stylesheet' href='stylesheet.css'>
+<title>ClinvarAnnotator</title>
+<div class='row-fluid' id="top">
+
+
+
+	<?php $group = 'DISCVR-Seq Tools (Development)'; ?>
+
+	<!--<section class="span4">-->
+		<!--<aside class="well">-->
+			<!--<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
+			<!--<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
+		<!--</aside>-->
+		<!--<aside class="well hide_me_html">-->
+			<!--<h2>Categories</h2>-->
+			<!--
+        <style>
+            #sidenav .accordion-body a {
+                color : gray;
+            }
+
+            .accordion-body li {
+                list-style : none;
+            }
+        </style>
+
+        <ul class="nav nav-pills nav-stacked" id="sidenav">
+        		<hr>
+        		<hr>
+        		<hr>
+						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsDevelopment">DISCVR-Seq Tools (Development)</a>
+							<div id="DISCVRSeqToolsDevelopment"
+								<?php echo ($group == 'DISCVR-Seq Tools (Development)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
+								<ul>
+											<li>
+												<a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_ImmunoGenotyper.html">ImmunoGenotyper</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a>
+											</li>
+								</ul>
+							</div>
+						</li>
+						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsPublic">DISCVR-Seq Tools (Public)</a>
+							<div id="DISCVRSeqToolsPublic"
+								<?php echo ($group == 'DISCVR-Seq Tools (Public)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
+								<ul>
+											<li>
+												<a href="com_github_discvrseq_walkers_MultipleAllelesAtLoci.html">MultipleAllelesAtLoci</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a>
+											</li>
+											<li>
+												<a href="com_github_discvrseq_walkers_variantqc_VariantQC.html">VariantQC</a>
+											</li>
+								</ul>
+							</div>
+						</li>
+        		<hr>
+        </ul>
+-->
+		<!--</aside>-->
+
+	<!--</section>-->
+
+	<div class="span8">
+
+			<h1>ClinvarAnnotator</h1>
+
+			<p>Annotate a VCF with ClinVar vcf_2.0</p>
+
+			<h3>Category
+				<small> DISCVR-Seq Tools (Development)</small>
+			</h3>
+		<hr>
+		<h2>Overview</h2>
+		Annotate a VCF file with clinically relevant human variants from NCBI's ClinVar version 2.0 VCF.
+
+ <p>
+ This tool annotates a VCF file with clinically relevant human variants using information from
+ <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)'s</a>
+ ClinVar version VCF (requires 2.0 annotation format).
+ </p>
+
+ <h3>Input</h3>
+ <p>
+ A variant call set in VCF format to annotate.
+ </p>
+
+ <h3>Output</h3>
+ <p>
+ A new VCF containing variants with ClinVar annotations.
+ </p>
+
+ <h3>Usage example</h3>
+ <pre>
+     java -jar DISCVRSeq.jar ClinvarAnnotator \
+     -clinvar clinvar_v2.vcf \
+     -variant input.vcf \
+     -O output.vcf
+ </pre>
+
+
+				<h3>ClinvarAnnotator specific arguments</h3>
+				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
+				<table class="table table-striped table-bordered table-condensed cozy">
+					<thead>
+					<tr>
+						<th>Argument name(s)</th>
+						<th>Default value</th>
+						<th>Summary</th>
+					</tr>
+					</thead>
+					<tbody>
+			<tr>
+				<th colspan="4" id="row-divider">Required Arguments</th>
+			</tr>
+				<tr>
+					<td><a href="#--clinvar">--clinvar</a><br />
+					</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Clinvar VCF</td>
+				</tr>
+				<tr>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>File to which variants should be written</td>
+				</tr>
+				<tr>
+					<td><a href="#--variant">--variant</a><br />
+								&nbsp;<em>-V</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>A VCF file containing variants</td>
+				</tr>
+			<tr>
+				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
+			</tr>
+				<tr>
+					<td><a href="#--arguments_file">--arguments_file</a><br />
+					</td>
+					<!--<td>List[File]</td> -->
+					<td>[]</td>
+					<td>read one or more arguments files and add them to the command line</td>
+				</tr>
+				<tr>
+					<td><a href="#--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer</a><br />
+								&nbsp;<em>-CIPB</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>-1</td>
+					<td>Size of the cloud-only prefetch buffer (in MB; 0 to disable). Defaults to cloudPrefetchBuffer if unset.</td>
+				</tr>
+				<tr>
+					<td><a href="#--cloud-prefetch-buffer">--cloud-prefetch-buffer</a><br />
+								&nbsp;<em>-CPB</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>40</td>
+					<td>Size of the cloud-only prefetch buffer (in MB; 0 to disable).</td>
+				</tr>
+				<tr>
+					<td><a href="#--disable-bam-index-caching">--disable-bam-index-caching</a><br />
+								&nbsp;<em>-DBIC</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If true, don't cache bam indexes, this will reduce memory requirements but may harm performance if many intervals are specified.  Caching is automatically disabled if there are no intervals specified.</td>
+				</tr>
+				<tr>
+					<td><a href="#--disable-sequence-dictionary-validation">--disable-sequence-dictionary-validation</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
+				</tr>
+				<tr>
+					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
+								&nbsp;<em>-gcs-retries</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>20</td>
+					<td>If the GCS bucket channel errors out, how many times it will attempt to re-initiate the connection</td>
+				</tr>
+				<tr>
+					<td><a href="#--gcs-project-for-requester-pays">--gcs-project-for-requester-pays</a><br />
+					</td>
+					<!--<td>String</td> -->
+					<td>""</td>
+					<td>Project to bill when accessing "requester pays" buckets. If unset, these buckets cannot be accessed.</td>
+				</tr>
+				<tr>
+					<td><a href="#--help">--help</a><br />
+								&nbsp;<em>-h</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>display the help message</td>
+				</tr>
+				<tr>
+					<td><a href="#--interval-merging-rule">--interval-merging-rule</a><br />
+								&nbsp;<em>-imr</em>
+					</td>
+					<!--<td>IntervalMergingRule</td> -->
+					<td>ALL</td>
+					<td>Interval merging rule for abutting intervals</td>
+				</tr>
+				<tr>
+					<td><a href="#--intervals">--intervals</a><br />
+								&nbsp;<em>-L</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>One or more genomic intervals over which to operate</td>
+				</tr>
+				<tr>
+					<td><a href="#--reference">--reference</a><br />
+								&nbsp;<em>-R</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Reference sequence</td>
+				</tr>
+				<tr>
+					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If true, don't emit genotype fields when writing vcf file output.</td>
+				</tr>
+				<tr>
+					<td><a href="#--version">--version</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>display the version number for this tool</td>
+				</tr>
+			<tr>
+				<th colspan="4" id="row-divider">Optional Common Arguments</th>
+			</tr>
+				<tr>
+					<td><a href="#--add-output-sam-program-record">--add-output-sam-program-record</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>true</td>
+					<td>If true, adds a PG tag to created SAM/BAM/CRAM files.</td>
+				</tr>
+				<tr>
+					<td><a href="#--add-output-vcf-command-line">--add-output-vcf-command-line</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>true</td>
+					<td>If true, adds a command line header line to created VCF files.</td>
+				</tr>
+				<tr>
+					<td><a href="#--create-output-bam-index">--create-output-bam-index</a><br />
+								&nbsp;<em>-OBI</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>true</td>
+					<td>If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.</td>
+				</tr>
+				<tr>
+					<td><a href="#--create-output-bam-md5">--create-output-bam-md5</a><br />
+								&nbsp;<em>-OBM</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If true, create a MD5 digest for any BAM/SAM/CRAM file created</td>
+				</tr>
+				<tr>
+					<td><a href="#--create-output-variant-index">--create-output-variant-index</a><br />
+								&nbsp;<em>-OVI</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>true</td>
+					<td>If true, create a VCF index when writing a coordinate-sorted VCF file.</td>
+				</tr>
+				<tr>
+					<td><a href="#--create-output-variant-md5">--create-output-variant-md5</a><br />
+								&nbsp;<em>-OVM</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If true, create a a MD5 digest any VCF file created.</td>
+				</tr>
+				<tr>
+					<td><a href="#--disable-read-filter">--disable-read-filter</a><br />
+								&nbsp;<em>-DF</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Read filters to be disabled before analysis</td>
+				</tr>
+				<tr>
+					<td><a href="#--disable-tool-default-read-filters">--disable-tool-default-read-filters</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Disable all tool default read filters (WARNING: many tools will not function correctly without their default read filters on)</td>
+				</tr>
+				<tr>
+					<td><a href="#--exclude-intervals">--exclude-intervals</a><br />
+								&nbsp;<em>-XL</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>One or more genomic intervals to exclude from processing</td>
+				</tr>
+				<tr>
+					<td><a href="#--gatk-config-file">--gatk-config-file</a><br />
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>A configuration file to use with the GATK.</td>
+				</tr>
+				<tr>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
+				</tr>
+				<tr>
+					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
+								&nbsp;<em>-ixp</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Amount of padding (in bp) to add to each interval you are excluding.</td>
+				</tr>
+				<tr>
+					<td><a href="#--interval-padding">--interval-padding</a><br />
+								&nbsp;<em>-ip</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Amount of padding (in bp) to add to each interval you are including.</td>
+				</tr>
+				<tr>
+					<td><a href="#--interval-set-rule">--interval-set-rule</a><br />
+								&nbsp;<em>-isr</em>
+					</td>
+					<!--<td>IntervalSetRule</td> -->
+					<td>UNION</td>
+					<td>Set merging approach to use for combining interval inputs</td>
+				</tr>
+				<tr>
+					<td><a href="#--lenient">--lenient</a><br />
+								&nbsp;<em>-LE</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Lenient processing of VCF files</td>
+				</tr>
+				<tr>
+					<td><a href="#--QUIET">--QUIET</a><br />
+					</td>
+					<!--<td>Boolean</td> -->
+					<td>false</td>
+					<td>Whether to suppress job-summary info on System.err.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read-filter">--read-filter</a><br />
+								&nbsp;<em>-RF</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Read filters to be applied before analysis</td>
+				</tr>
+				<tr>
+					<td><a href="#--read-index">--read-index</a><br />
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Indices to use for the read inputs. If specified, an index must be provided for every read input and in the same order as the read inputs. If this argument is not specified, the path to the index for each input will be inferred automatically.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read-validation-stringency">--read-validation-stringency</a><br />
+								&nbsp;<em>-VS</em>
+					</td>
+					<!--<td>ValidationStringency</td> -->
+					<td>SILENT</td>
+					<td>Validation stringency for all SAM/BAM/CRAM/SRA files read by this program.  The default stringency value SILENT can improve performance when processing a BAM file in which variable-length data (read, qualities, tags) do not otherwise need to be decoded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--seconds-between-progress-updates">--seconds-between-progress-updates</a><br />
+					</td>
+					<!--<td>double</td> -->
+					<td>10.0</td>
+					<td>Output traversal statistics every time this many seconds elapse</td>
+				</tr>
+				<tr>
+					<td><a href="#--sequence-dictionary">--sequence-dictionary</a><br />
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Use the given sequence dictionary as the master/canonical sequence dictionary.  Must be a .dict file.</td>
+				</tr>
+				<tr>
+					<td><a href="#--tmp-dir">--tmp-dir</a><br />
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Temp directory to use.</td>
+				</tr>
+				<tr>
+					<td><a href="#--use-jdk-deflater">--use-jdk-deflater</a><br />
+								&nbsp;<em>-jdk-deflater</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Whether to use the JdkDeflater (as opposed to IntelDeflater)</td>
+				</tr>
+				<tr>
+					<td><a href="#--use-jdk-inflater">--use-jdk-inflater</a><br />
+								&nbsp;<em>-jdk-inflater</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Whether to use the JdkInflater (as opposed to IntelInflater)</td>
+				</tr>
+				<tr>
+					<td><a href="#--verbosity">--verbosity</a><br />
+					</td>
+					<!--<td>LogLevel</td> -->
+					<td>INFO</td>
+					<td>Control verbosity of logging.</td>
+				</tr>
+			<tr>
+				<th colspan="4" id="row-divider">Advanced Arguments</th>
+			</tr>
+				<tr>
+					<td><a href="#--showHidden">--showHidden</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>display hidden arguments</td>
+				</tr>
+					</tbody>
+				</table>
+
+					<h3>Argument details</h3>
+					<p>Arguments in this list are specific to this tool. Keep in mind that other arguments are available that are shared with other tools (e.g. command-line GATK arguments); see Inherited arguments above.</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--add-output-sam-program-record">--add-output-sam-program-record </a>
+			 / <small>-add-output-sam-program-record</small>
+		</h3>
+		<p class="args">
+			<b>If true, adds a PG tag to created SAM/BAM/CRAM files.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--add-output-vcf-command-line">--add-output-vcf-command-line </a>
+			 / <small>-add-output-vcf-command-line</small>
+		</h3>
+		<p class="args">
+			<b>If true, adds a command line header line to created VCF files.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--arguments_file">--arguments_file </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>read one or more arguments files and add them to the command line</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[File]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--clinvar">--clinvar </a>
+			 / <small>-clinvar</small>
+		</h3>
+		<p class="args">
+			<b>Clinvar VCF</b><br />
+			ClinVar verison 2.0 VCF from NCBI.
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">FeatureInput[VariantContext]</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
+			 / <small>-CIPB</small>
+		</h3>
+		<p class="args">
+			<b>Size of the cloud-only prefetch buffer (in MB; 0 to disable). Defaults to cloudPrefetchBuffer if unset.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">-1</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--cloud-prefetch-buffer">--cloud-prefetch-buffer </a>
+			 / <small>-CPB</small>
+		</h3>
+		<p class="args">
+			<b>Size of the cloud-only prefetch buffer (in MB; 0 to disable).</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">40</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--create-output-bam-index">--create-output-bam-index </a>
+			 / <small>-OBI</small>
+		</h3>
+		<p class="args">
+			<b>If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--create-output-bam-md5">--create-output-bam-md5 </a>
+			 / <small>-OBM</small>
+		</h3>
+		<p class="args">
+			<b>If true, create a MD5 digest for any BAM/SAM/CRAM file created</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--create-output-variant-index">--create-output-variant-index </a>
+			 / <small>-OVI</small>
+		</h3>
+		<p class="args">
+			<b>If true, create a VCF index when writing a coordinate-sorted VCF file.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--create-output-variant-md5">--create-output-variant-md5 </a>
+			 / <small>-OVM</small>
+		</h3>
+		<p class="args">
+			<b>If true, create a a MD5 digest any VCF file created.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--disable-bam-index-caching">--disable-bam-index-caching </a>
+			 / <small>-DBIC</small>
+		</h3>
+		<p class="args">
+			<b>If true, don't cache bam indexes, this will reduce memory requirements but may harm performance if many intervals are specified.  Caching is automatically disabled if there are no intervals specified.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--disable-read-filter">--disable-read-filter </a>
+			 / <small>-DF</small>
+		</h3>
+		<p class="args">
+			<b>Read filters to be disabled before analysis</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--disable-sequence-dictionary-validation">--disable-sequence-dictionary-validation </a>
+			 / <small>-disable-sequence-dictionary-validation</small>
+		</h3>
+		<p class="args">
+			<b>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--disable-tool-default-read-filters">--disable-tool-default-read-filters </a>
+			 / <small>-disable-tool-default-read-filters</small>
+		</h3>
+		<p class="args">
+			<b>Disable all tool default read filters (WARNING: many tools will not function correctly without their default read filters on)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--exclude-intervals">--exclude-intervals </a>
+			 / <small>-XL</small>
+		</h3>
+		<p class="args">
+			<b>One or more genomic intervals to exclude from processing</b><br />
+			Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite).
+ This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the
+ command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals
+ (e.g. -XL myFile.intervals).
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--gatk-config-file">--gatk-config-file </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>A configuration file to use with the GATK.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--gcs-max-retries">--gcs-max-retries </a>
+			 / <small>-gcs-retries</small>
+		</h3>
+		<p class="args">
+			<b>If the GCS bucket channel errors out, how many times it will attempt to re-initiate the connection</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">20</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--gcs-project-for-requester-pays">--gcs-project-for-requester-pays </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Project to bill when accessing "requester pays" buckets. If unset, these buckets cannot be accessed.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">""</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--help">--help </a>
+			 / <small>-h</small>
+		</h3>
+		<p class="args">
+			<b>display the help message</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--input">--input </a>
+			 / <small>-I</small>
+		</h3>
+		<p class="args">
+			<b>BAM/SAM/CRAM file containing reads</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--interval-exclusion-padding">--interval-exclusion-padding </a>
+			 / <small>-ixp</small>
+		</h3>
+		<p class="args">
+			<b>Amount of padding (in bp) to add to each interval you are excluding.</b><br />
+			Use this to add padding to the intervals specified using -XL. For example, '-XL 1:100' with a
+ padding value of 20 would turn into '-XL 1:80-120'. This is typically used to add padding around targets when
+ analyzing exomes.
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--interval-merging-rule">--interval-merging-rule </a>
+			 / <small>-imr</small>
+		</h3>
+		<p class="args">
+			<b>Interval merging rule for abutting intervals</b><br />
+			By default, the program merges abutting intervals (i.e. intervals that are directly side-by-side but do not
+ actually overlap) into a single continuous interval. However you can change this behavior if you want them to be
+ treated as separate intervals instead.
+		</p>
+			<p>
+				The --interval-merging-rule argument is an enumerated type (IntervalMergingRule), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">ALL</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">OVERLAPPING_ONLY</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">IntervalMergingRule</span>
+			&nbsp;<span class="label">ALL</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--interval-padding">--interval-padding </a>
+			 / <small>-ip</small>
+		</h3>
+		<p class="args">
+			<b>Amount of padding (in bp) to add to each interval you are including.</b><br />
+			Use this to add padding to the intervals specified using -L. For example, '-L 1:100' with a
+ padding value of 20 would turn into '-L 1:80-120'. This is typically used to add padding around targets when
+ analyzing exomes.
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--interval-set-rule">--interval-set-rule </a>
+			 / <small>-isr</small>
+		</h3>
+		<p class="args">
+			<b>Set merging approach to use for combining interval inputs</b><br />
+			By default, the program will take the UNION of all intervals specified using -L and/or -XL. However, you can
+ change this setting for -L, for example if you want to take the INTERSECTION of the sets instead. E.g. to
+ perform the analysis only on chromosome 1 exomes, you could specify -L exomes.intervals -L 1 --interval-set-rule
+ INTERSECTION. However, it is not possible to modify the merging approach for intervals passed using -XL (they will
+ always be merged using UNION).
+
+ Note that if you specify both -L and -XL, the -XL interval set will be subtracted from the -L interval set.
+		</p>
+			<p>
+				The --interval-set-rule argument is an enumerated type (IntervalSetRule), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">UNION</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">INTERSECTION</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">IntervalSetRule</span>
+			&nbsp;<span class="label">UNION</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--intervals">--intervals </a>
+			 / <small>-L</small>
+		</h3>
+		<p class="args">
+			<b>One or more genomic intervals over which to operate</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--lenient">--lenient </a>
+			 / <small>-LE</small>
+		</h3>
+		<p class="args">
+			<b>Lenient processing of VCF files</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--output">--output </a>
+			 / <small>-O</small>
+		</h3>
+		<p class="args">
+			<b>File to which variants should be written</b><br />
+			Output file of new VCF containing variants with ClinVar annotations.
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--QUIET">--QUIET </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Whether to suppress job-summary info on System.err.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read-filter">--read-filter </a>
+			 / <small>-RF</small>
+		</h3>
+		<p class="args">
+			<b>Read filters to be applied before analysis</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read-index">--read-index </a>
+			 / <small>-read-index</small>
+		</h3>
+		<p class="args">
+			<b>Indices to use for the read inputs. If specified, an index must be provided for every read input and in the same order as the read inputs. If this argument is not specified, the path to the index for each input will be inferred automatically.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read-validation-stringency">--read-validation-stringency </a>
+			 / <small>-VS</small>
+		</h3>
+		<p class="args">
+			<b>Validation stringency for all SAM/BAM/CRAM/SRA files read by this program.  The default stringency value SILENT can improve performance when processing a BAM file in which variable-length data (read, qualities, tags) do not otherwise need to be decoded.</b><br />
+			
+		</p>
+			<p>
+				The --read-validation-stringency argument is an enumerated type (ValidationStringency), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">STRICT</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">LENIENT</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">SILENT</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">ValidationStringency</span>
+			&nbsp;<span class="label">SILENT</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--reference">--reference </a>
+			 / <small>-R</small>
+		</h3>
+		<p class="args">
+			<b>Reference sequence</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
+			 / <small>-seconds-between-progress-updates</small>
+		</h3>
+		<p class="args">
+			<b>Output traversal statistics every time this many seconds elapse</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">double</span>
+			&nbsp;<span class="label">10.0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--sequence-dictionary">--sequence-dictionary </a>
+			 / <small>-sequence-dictionary</small>
+		</h3>
+		<p class="args">
+			<b>Use the given sequence dictionary as the master/canonical sequence dictionary.  Must be a .dict file.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--showHidden">--showHidden </a>
+			 / <small>-showHidden</small>
+		</h3>
+		<p class="args">
+			<b>display hidden arguments</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--sites-only-vcf-output">--sites-only-vcf-output </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If true, don't emit genotype fields when writing vcf file output.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--tmp-dir">--tmp-dir </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Temp directory to use.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--use-jdk-deflater">--use-jdk-deflater </a>
+			 / <small>-jdk-deflater</small>
+		</h3>
+		<p class="args">
+			<b>Whether to use the JdkDeflater (as opposed to IntelDeflater)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--use-jdk-inflater">--use-jdk-inflater </a>
+			 / <small>-jdk-inflater</small>
+		</h3>
+		<p class="args">
+			<b>Whether to use the JdkInflater (as opposed to IntelInflater)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--variant">--variant </a>
+			 / <small>-V</small>
+		</h3>
+		<p class="args">
+			<b>A VCF file containing variants</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--verbosity">--verbosity </a>
+			 / <small>-verbosity</small>
+		</h3>
+		<p class="args">
+			<b>Control verbosity of logging.</b><br />
+			
+		</p>
+			<p>
+				The --verbosity argument is an enumerated type (LogLevel), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">ERROR</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">WARNING</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">INFO</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">DEBUG</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">LogLevel</span>
+			&nbsp;<span class="label">INFO</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--version">--version </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>display the version number for this tool</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+
+        <hr>
+        <p><a href='#top'><i class='fa fa-chevron-up'></i> Return to top</a></p>
+        <hr>
+        <p class="see-also">See also 
+        	<a href="https://bimberlab.github.io/DISCVRSeq/">General Documentation</a> |
+        	<a class="hide_me_php" href="index.html">Tool Docs Index</a> <a class="hide_me_html" href="index">Tool Docs Index</a> |
+        	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
+        </p>
+
+        <p class="version">DISCVR-Seq version 1.0 built at 25-31-2019 06:31:00.
+        </p>
+
+</div></div>

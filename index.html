@@ -1,0 +1,128 @@
+<link type='text/css' rel='stylesheet' href='stylesheet.css'>
+
+<div class='row-fluid'>
+
+    <aside class="span3">
+
+        <?php echo produceGuideNav($module, $name) . makeTwitterFeed(); ?>
+
+    </aside>
+
+    <div class='span9'>
+
+
+
+        <div class="row-fluid">
+            <div class="span6">
+                <h1 id="top"><i class='<?php print ico::toolDocsIcon; ?>'></i> Tool Documentation Index</h1>
+            </div>
+            <div class="span6">
+                <div class="btn-group pull-right">
+                    <a class="btn btn-warning dropdown-toggle" data-toggle="dropdown" href="#">
+                        Version 1.0
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <?php foreach($dirs as $dir) { ?>
+                            <li class="hide_me_html"><a tabindex='-1' href='../<?=$dir?>' ><?=$dir?></a></li>
+                        <?php } ?>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h1 class="hide_me_html"><small>Showing docs for version 1.0 | The latest version is <?=$curr_version?></small></h1>
+        <hr />
+
+        <div class="accordion" id="index">
+                <br />
+                <br />
+                <br />
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#index" href="#DISCVRSeqToolsDevelopment">
+                    <h4>DISCVR-Seq Tools (Development)</h4>
+                </a>
+            </div>
+            <div class="accordion-body collapse" id="DISCVRSeqToolsDevelopment">
+                <div class="accordion-inner">
+                    <p class="lead">Unlike the public tools group, these tools may have have received less rigorous testing and may be under active development.</p>
+                    <table class="table table-striped table-bordered table-condensed cozy">
+                        <tr>
+                            <th>Name</th>
+                            <th>Summary</th>
+                        </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a></td>
+                                        <td>Backport lifted VCF to the original coordinates</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a></td>
+                                        <td>Annotate a VCF with ClinVar vcf_2.0</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a></td>
+                                        <td>Produces a concordance report between samples in a VCF against every other sample in a reference VCF</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a></td>
+                                        <td>Filters genotypes based on an input list of samples/sites</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_ImmunoGenotyper.html">ImmunoGenotyper</a></td>
+                                        <td>Provides genotyping summary for complex multi-genic loci, like KIR or MHC.</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a></td>
+                                        <td>Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF</td>
+                                </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#index" href="#DISCVRSeqToolsPublic">
+                    <h4>DISCVR-Seq Tools (Public)</h4>
+                </a>
+            </div>
+            <div class="accordion-body collapse" id="DISCVRSeqToolsPublic">
+                <div class="accordion-inner">
+                    <p class="lead">These tools should be rigorously validated and stable.</p>
+                    <table class="table table-striped table-bordered table-condensed cozy">
+                        <tr>
+                            <th>Name</th>
+                            <th>Summary</th>
+                        </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_MultipleAllelesAtLoci.html">MultipleAllelesAtLoci</a></td>
+                                        <td>Generate a list of loci with three or more distinct bases detected</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a></td>
+                                        <td>Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_variantqc_VariantQC.html">VariantQC</a></td>
+                                        <td>Generate HTML summary report for a VCF</td>
+                                </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+                <br />
+        </div>
+
+        <hr>
+        <p><a href='#top'><i class='fa fa-chevron-up'></i> Return to top</a></p>
+        <hr>
+        <p class="see-also">See also 
+        	<a href="https://bimberlab.github.io/DISCVRSeq/">General Documentation</a> |
+        	<a class="hide_me_php" href="index.html">Tool Docs Index</a> <a class="hide_me_html" href="index">Tool Docs Index</a> |
+        	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
+        </p>
+
+        <p class="version">DISCVR-Seq version 1.0 built at 25-31-2019 06:31:00.
+        </p>
+
+</div></div>
