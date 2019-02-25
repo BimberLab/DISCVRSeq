@@ -25,7 +25,7 @@ install:
 - echo ${IS_RELEASE}
 - ./gradlew assemble;
 - ./gradlew installDist;
-- ./gradlew shadowJar -dRelease=$IS_RELEASE;
+- ./gradlew shadowJar -Drelease=$IS_RELEASE;
 - ./gradlew htmlDoc;
 
 before_deploy:
