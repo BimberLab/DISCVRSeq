@@ -27,15 +27,20 @@ install:
 before_deploy:
   - echo ${TRAVIS_TAG}
   - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
-
-after_success:
-  - scripts/publish.sh
+  - mv build/docs/htmlDoc htmlDoc
 
 deploy:
-  provider: releases
-  api_key: ${GH_TOKEN}
-  file:
-    - DISCVRSeq-${TRAVIS_TAG}.jar
-  skip_cleanup: true
-  on:
-    tags: true
+  - provider: releases
+    api_key: ${GH_TOKEN}
+    file:
+     - DISCVRSeq-${TRAVIS_TAG}.jar
+    skip_cleanup: true
+    on:
+      tags: true
+  - provider: pages
+    local-dir: htmlDoc
+    api_key: ${GH_TOKEN}
+    keep-history: true
+    skip_cleanup: true
+    on:
+      branch: master
