@@ -39,8 +39,8 @@ deploy:
     on:
       tags: true
   - provider: pages
+    github-token: ${GH_TOKEN}
     local-dir: htmlDoc
-    api_key: ${GH_TOKEN}
     keep-history: true
     skip_cleanup: true
     on:
