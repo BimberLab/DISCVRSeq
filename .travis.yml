@@ -20,14 +20,17 @@ cache:
     - $HOME/site-library
 
 install:
+- IS_RELEASE=false
+- if [[ ! -z $TRAVIS_TAG ]];then IS_RELEASE=true fi;
+- echo ${IS_RELEASE}
 - ./gradlew assemble;
 - ./gradlew installDist;
-- ./gradlew shadowJar;
+- ./gradlew shadowJar -dRelease=$IS_RELEASE;
 - ./gradlew htmlDoc;
 
 before_deploy:
   - echo ${TRAVIS_TAG}
-  - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
+  - mv build/libs/DISCVRSeq-* DISCVRSeq-${TRAVIS_TAG}.jar
   - mv build/docs/htmlDoc htmlDoc
 
 deploy:

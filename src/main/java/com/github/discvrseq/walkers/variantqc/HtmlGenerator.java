@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
+import com.github.discvrseq.Main;
 import com.google.gson.JsonArray;
 import org.apache.commons.compress.utils.Charsets;
 import org.apache.commons.io.IOUtils;
@@ -7,7 +8,10 @@ import org.broadinstitute.hellbender.utils.io.Resource;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 
 /**
  * Created by bimber on 5/18/2017.
@@ -69,6 +73,16 @@ public class HtmlGenerator {
         }
     }
 
+    private static final String DEV = "*DevelopmentVersion*";
+
+    private String getVersion() {
+        return Main.class.getPackage().getImplementationVersion() == null ? DEV : Main.class.getPackage().getImplementationVersion();
+    }
+
+    private boolean isDevOrTest() {
+        return DEV.equals(getVersion());
+    }
+
     public void generateHtml(Collection<SectionJsonDescriptor> translatorList, PrintWriter out) throws IOException {
 
         printStaticContent(out);
@@ -79,9 +93,9 @@ public class HtmlGenerator {
         out.println("num_datasets_plot_limit = 50;");
         out.println("$(function() {");
 
-        //NOTE: including the date is a problem for automated testing, since we currently compare the output to a snapshot
-        //String dateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
-        //out.println("$('#dateTime').html('Generated on: " + dateStr + "');");
+        //NOTE: if this is a dev or test build, use a static value (instead of date), so we can compare against a static output file
+        String dateStr = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+        out.println("$('#dateTime').html('Generated on: " + (isDevOrTest() ? "*Timestamp*" : dateStr) + "');");
         out.println("processPlots({");
         out.println("sections:");
 
@@ -100,7 +114,13 @@ public class HtmlGenerator {
 
         //append header
         Resource header2 = new Resource("templates/template2.html", VariantQC.class);
-        IOUtils.copy(header2.getResourceContentsAsStream(), out, Charsets.UTF_8);
+
+        try (StringWriter writer = new StringWriter()) {
+            IOUtils.copy(header2.getResourceContentsAsStream(), writer, Charsets.UTF_8);
+
+            String toWrite = writer.getBuffer().toString().replaceAll("\\{version}", getVersion());
+            IOUtils.write(toWrite, out);
+        }
     }
 
     private static void appendScript(String script, PrintWriter out) throws IOException{
