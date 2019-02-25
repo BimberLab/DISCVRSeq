@@ -181,6 +181,7 @@ task htmlDoc(type: Javadoc, dependsOn: classes ) {
         copy {
             from('src/main/resources/com/github/discvrseq/util/helpTemplates')
             include 'stylesheet.css'
+            include 'images/**'
             into htmlDocDir
         }
     }

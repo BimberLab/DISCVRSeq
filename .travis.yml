@@ -41,6 +41,7 @@ deploy:
   - provider: pages
     github-token: ${GH_TOKEN}
     local-dir: htmlDoc
+    verbose: true
     keep-history: true
     skip_cleanup: true
     on:
