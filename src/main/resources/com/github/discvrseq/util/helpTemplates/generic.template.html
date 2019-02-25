@@ -1,17 +1,5 @@
-<?php
-
-	define('noTWITTER', TRUE);
-    include '../../../../common/include/common.php';
-    include_once '../../../config.php';
-    $module = modules::GATK;
-    printHeader($module, "Tool Documentation Index", "Documentation");
-
-    $curr_version = file_get_contents(engConst::versions_dir.versionFiles::gatk);
-    $dirs = array_diff(scandir("../", SCANDIR_SORT_DESCENDING), array('..', '.'));
-?>
-
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-
+<title>${name}</title>
 <div class='row-fluid' id="top">
 
 	<#include "common.html"/>
@@ -90,17 +78,17 @@
 
 	<?php $group = '${group}'; ?>
 
-	<section class="span4">
-		<aside class="well">
-			<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
-			<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
-		</aside>
-		<aside class="well hide_me_html">
-			<h2>Categories</h2>
-			<@getCategories groups=groups />
-		</aside>
+	<!--<section class="span4">-->
+		<!--<aside class="well">-->
+			<!--<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
+			<!--<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
+		<!--</aside>-->
+		<!--<aside class="well hide_me_html">-->
+			<!--<h2>Categories</h2>-->
+			<!--<@getCategories groups=groups />-->
+		<!--</aside>-->
 
-	</section>
+	<!--</section>-->
 
 	<div class="span8">
 
@@ -200,5 +188,3 @@
 			<@footerClose />
 
 </div></div>
-
-	<?php printFooter($module); ?>
