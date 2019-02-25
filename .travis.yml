@@ -21,7 +21,7 @@ cache:
 
 install:
 - IS_RELEASE=false
-- if [[ ! -z $TRAVIS_TAG ]];then IS_RELEASE=true fi;
+- if [[ ! -z $TRAVIS_TAG ]];then IS_RELEASE=true; fi;
 - echo ${IS_RELEASE}
 - ./gradlew assemble;
 - ./gradlew installDist;
