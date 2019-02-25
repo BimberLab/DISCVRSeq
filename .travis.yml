@@ -26,12 +26,13 @@ install:
 - ./gradlew assemble;
 - ./gradlew installDist;
 - ./gradlew shadowJar -Drelease=$IS_RELEASE;
-- ./gradlew htmlDoc;
+- ./gradlew toolDoc;
 
 before_deploy:
   - echo ${TRAVIS_TAG}
   - mv build/libs/DISCVRSeq-* DISCVRSeq-${TRAVIS_TAG}.jar
-  - mv build/docs/htmlDoc htmlDoc
+  - rm -Rf build/javadoc
+  - mv build/docs ghDocs
 
 deploy:
   - provider: releases
@@ -43,7 +44,7 @@ deploy:
       tags: true
   - provider: pages
     github-token: ${GH_TOKEN}
-    local-dir: htmlDoc
+    local-dir: ghDocs
     verbose: true
     keep-history: true
     skip_cleanup: true

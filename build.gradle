@@ -80,7 +80,7 @@ configurations.all {
 }
 
 // Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
-// test execution, and htmlDoc generation, but we don't want them as part of the runtime
+// test execution, and toolDoc generation, but we don't want them as part of the runtime
 // classpath and we don't want to redistribute them in the uber jar.
 final javadocJDKFiles = files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
 
@@ -160,14 +160,14 @@ task sourcesJar(type: Jar) {
 }
 
 tasks.withType(Javadoc) {
-    // do this for all javadoc tasks, including htmlDoc
+    // do this for all javadoc tasks, including toolDoc
     options.addStringOption('Xdoclint:none')
     outputs.upToDateWhen { false }
 }
 
 javadoc {
     // This is a hack to disable the java 8 default javadoc lint until we fix the html formatting
-    // We only want to do this for the javadoc task, not htmlDoc
+    // We only want to do this for the javadoc task, not toolDoc
     options.addStringOption('Xdoclint:none', '-quiet')
     source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
     include '**com/github/discvrseq/**/*.java'
@@ -176,21 +176,28 @@ javadoc {
 }
 
 // Generate Online Doc
-task htmlDoc(type: Javadoc, dependsOn: classes ) {
-    final File htmlDocDir = new File("build/docs/htmlDoc")
+task toolDoc(type: Javadoc, dependsOn: classes ) {
+    final File baseDocDir = new File("build/docs")
+    final File toolDocDir = new File("build/docs/toolDoc")
     doFirst {
         // make sure the output folder exists or we can create it
-        if (!htmlDocDir.exists() && !htmlDocDir.mkdirs()) {
+        if (!toolDocDir.exists() && !toolDocDir.mkdirs()) {
             throw new GradleException(String.format("Failure creating folder (%s) for HTML doc output in task (%s)",
-                    htmlDocDir.getAbsolutePath(),
+                    toolDocDir.getAbsolutePath(),
                     it.name));
         }
         copy {
-            from('src/main/resources/com/github/discvrseq/util/helpTemplates')
+            from('src/main/resources/com/github/discvrseq/util/docTemplates')
             include 'stylesheet.css'
             include 'images/**'
             include 'resources/**'
-            into htmlDocDir
+            into toolDocDir
+        }
+        copy {
+            from('src/main/resources/com/github/discvrseq/util/docTemplates')
+            include 'index.md'
+            include '_.config.yml'
+            into baseDocDir
         }
     }
 
@@ -206,10 +213,10 @@ task htmlDoc(type: Javadoc, dependsOn: classes ) {
     options.docletpath = classpath.asType(List)
     options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
 
-    outputs.dir(htmlDocDir)
-    options.destinationDirectory(htmlDocDir)
+    outputs.dir(toolDocDir)
+    options.destinationDirectory(toolDocDir)
 
-    options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/helpTemplates");
+    options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/docTemplates");
     options.addStringOption("absolute-version", getVersion())
     options.addStringOption("build-timestamp", new Date().format("dd-mm-yyyy hh:mm:ss"))
 }
