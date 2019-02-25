@@ -88,16 +88,32 @@
 		<hr>
 		<h2>Overview</h2>
 		VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order
- to provide various summary tables and graphs.
+ to provide various summary tables and graphs.  In most cases the tables overlay bar graphs for numeric columns in order to help identify outliers.
+ This tool is analogous to FASTQC or MultiQC, which provide similar HTML summary reports for different types of sequence data.
 
-
- <h3>Usage example:</h3>
+ <h3>Usage examples:</h3>
+ <h4>Basic Usage, Without Pedigree:</h4>
  <pre>
-     gatk VariantQC \
+ java -jar DISCVRSeq.jar VariantQC \
      -R Homo_sapiens_assembly38.fasta \
      -V input.vcf \
      -O output.html
  </pre>
+
+ <h4>Report With Pedigree (required for gender information to display):</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R Homo_sapiens_assembly38.fasta \
+     -ped myPedigree.ped \
+     -V input.vcf \
+     -O output.html
+ </pre>
+
+ <h3>Example Report:</h3>
+ Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).  The report
+ contains a series of tables or graphs summarizing different aspects of the data.
+ <p></p>
+ <img src="images/variantQCSampleReport1.png" style="width: 75%"/>
 
  <h3>Authors:</h3>
  <ul>
@@ -1043,7 +1059,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.0 built at 25-11-2019 07:11:01.
+        <p class="version">DISCVR-Seq version 1.0 built at 25-14-2019 06:14:32.
         </p>
 
 </div></div>
