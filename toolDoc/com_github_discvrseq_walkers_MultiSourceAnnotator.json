@@ -1,5 +1,5 @@
 {
-  "summary": "Backport lifted VCF to the original coordinates",
+  "summary": "Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -44,6 +44,36 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Cassandra Annotated VCF",
+      "name": "--cassandra",
+      "synonyms": "-c",
+      "type": "FeatureInput[VariantContext]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
+      "summary": "Clinvar Annotated VCF",
+      "name": "--clinvar",
+      "synonyms": "-cv",
+      "type": "FeatureInput[VariantContext]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
       "options": []
     },
     {
@@ -395,6 +425,21 @@
       "options": []
     },
     {
+      "summary": "Liftover Reject VCF",
+      "name": "--liftoverReject",
+      "synonyms": "-lr",
+      "type": "FeatureInput[VariantContext]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
@@ -558,21 +603,6 @@
       "options": []
     },
     {
-      "summary": "Target FASTA file",
-      "name": "--targetFasta",
-      "synonyms": "-targetFasta",
-      "type": "String",
-      "required": "yes",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "required",
-      "options": []
-    },
-    {
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",
@@ -681,8 +711,8 @@
     }
   ],
   "description": "",
-  "name": "BackportLiftedVcf",
-  "group": "DISCVR-Seq Tools (Development)",
+  "name": "MultiSourceAnnotator",
+  "group": "Development/Internal Tools",
   "beta": false,
   "experimental": false
 }

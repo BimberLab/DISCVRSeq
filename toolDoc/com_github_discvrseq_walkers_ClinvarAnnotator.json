@@ -1,5 +1,5 @@
 {
-  "summary": "Generate HTML summary report for a VCF",
+  "summary": "Annotate a VCF with ClinVar vcf_2.0",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -44,6 +44,21 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Clinvar VCF",
+      "name": "--clinvar",
+      "synonyms": "-clinvar",
+      "type": "FeatureInput[VariantContext]",
+      "required": "yes",
+      "fulltext": "ClinVar verison 2.0 VCF from NCBI.",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
       "options": []
     },
     {
@@ -395,33 +410,18 @@
       "options": []
     },
     {
-      "summary": "File to which the report should be written",
+      "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
-      "type": "String",
+      "type": "File",
       "required": "yes",
-      "fulltext": "",
+      "fulltext": "Output file of new VCF containing variants with ClinVar annotations.",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
-      "options": []
-    },
-    {
-      "summary": "Pedigree file for identifying Mendelian violations",
-      "name": "--pedigree",
-      "synonyms": "-ped",
-      "type": "File",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
       "options": []
     },
     {
@@ -680,9 +680,9 @@
       "options": []
     }
   ],
-  "description": "VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order\n to provide various summary tables and graphs.  In most cases the tables overlay bar graphs for numeric columns in order to help identify outliers.\n This tool is analogous to FASTQC or MultiQC, which provide similar HTML summary reports for different types of sequence data.\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n \u003ch4\u003eBasic Usage, Without Pedigree:\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R Homo_sapiens_assembly38.fasta \\\n     -V input.vcf \\\n     -O output.html\n \u003c/pre\u003e\n\n \u003ch4\u003eReport With Pedigree (required for gender information to display):\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R Homo_sapiens_assembly38.fasta \\\n     -ped myPedigree.ped \\\n     -V input.vcf \\\n     -O output.html\n \u003c/pre\u003e\n\n \u003ch3\u003eExample Report:\u003c/h3\u003e\n Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).  The report\n contains a series of tables or graphs summarizing different aspects of the data.\n \u003cp\u003e\u003c/p\u003e\n \u003cimg src\u003d\"images/variantQCSampleReport1.png\" style\u003d\"width: 75%\"/\u003e\n\n \u003ch3\u003eAuthors:\u003c/h3\u003e\n \u003cul\u003e\n  \u003cli\u003eBen Bimber, Ph.D.\u003c/li\u003e\n  \u003cli\u003eMelissa Yan\u003c/li\u003e\n \u003c/ul\u003e\n\n \u003ch3\u003eAcknowledgements:\u003c/h3\u003e\n This tool internally uses \u003ca href\u003d\"https://github.com/broadinstitute/gatk\"\u003eGATK4\u0027s VariantEval\u003c/a\u003e to aggregate data, and borrows heavily from \u003ca href\u003d\"https://multiqc.info/\"\u003eMultiQC\u003c/a\u003e for the HTML in the final report.\n We thank Philip Ewels for the use of MultiQC code, and Chris Norman of the Broad Institute for assistance with VariantEval.",
-  "name": "VariantQC",
-  "group": "DISCVR-Seq Tools (Public)",
+  "description": "Annotate a VCF file with clinically relevant human variants from NCBI\u0027s ClinVar version 2.0 VCF.\n\n \u003cp\u003e\n This tool annotates a VCF file with clinically relevant human variants using information from\n \u003ca href\u003dhttps://www.ncbi.nlm.nih.gov/clinvar/\u003eNational Center for Biotechnology Information (NCBI)\u0027s\u003c/a\u003e\n ClinVar version VCF (requires 2.0 annotation format).\n \u003c/p\u003e\n\n \u003ch3\u003eInput\u003c/h3\u003e\n \u003cp\u003e\n A variant call set in VCF format to annotate.\n \u003c/p\u003e\n\n \u003ch3\u003eOutput\u003c/h3\u003e\n \u003cp\u003e\n A new VCF containing variants with ClinVar annotations.\n \u003c/p\u003e\n\n \u003ch3\u003eUsage example\u003c/h3\u003e\n \u003cpre\u003e\n     java -jar DISCVRSeq.jar ClinvarAnnotator \\\n     -clinvar clinvar_v2.vcf \\\n     -variant input.vcf \\\n     -O output.vcf\n \u003c/pre\u003e",
+  "name": "ClinvarAnnotator",
+  "group": "Development/Internal Tools",
   "beta": false,
   "experimental": false
 }

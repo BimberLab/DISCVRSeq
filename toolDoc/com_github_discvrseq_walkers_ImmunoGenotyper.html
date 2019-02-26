@@ -1,120 +1,31 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>ClinvarAnnotator</title>
+<title>ImmunoGenotyper</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'DISCVR-Seq Tools (Development)'; ?>
+	<?php $group = 'Development/Internal Tools'; ?>
 
-	<!--<section class="span4">-->
-		<!--<aside class="well">-->
-			<!--<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-			<!--<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-		<!--</aside>-->
-		<!--<aside class="well hide_me_html">-->
-			<!--<h2>Categories</h2>-->
-			<!--
-        <style>
-            #sidenav .accordion-body a {
-                color : gray;
-            }
-
-            .accordion-body li {
-                list-style : none;
-            }
-        </style>
-
-        <ul class="nav nav-pills nav-stacked" id="sidenav">
-        		<hr>
-        		<hr>
-        		<hr>
-						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsDevelopment">DISCVR-Seq Tools (Development)</a>
-							<div id="DISCVRSeqToolsDevelopment"
-								<?php echo ($group == 'DISCVR-Seq Tools (Development)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
-								<ul>
-											<li>
-												<a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_ImmunoGenotyper.html">ImmunoGenotyper</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a>
-											</li>
-								</ul>
-							</div>
-						</li>
-						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsPublic">DISCVR-Seq Tools (Public)</a>
-							<div id="DISCVRSeqToolsPublic"
-								<?php echo ($group == 'DISCVR-Seq Tools (Public)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
-								<ul>
-											<li>
-												<a href="com_github_discvrseq_walkers_MultipleAllelesAtLoci.html">MultipleAllelesAtLoci</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_variantqc_VariantQC.html">VariantQC</a>
-											</li>
-								</ul>
-							</div>
-						</li>
-        		<hr>
-        </ul>
--->
-		<!--</aside>-->
-
-	<!--</section>-->
+	<section class="span4">
+		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
+	</section>
+	<hr>
 
 	<div class="span8">
 
-			<h1>ClinvarAnnotator</h1>
+			<h1>ImmunoGenotyper</h1>
 
-			<p>Annotate a VCF with ClinVar vcf_2.0</p>
+		<p>Provides genotyping summary for complex multi-genic loci, like KIR or MHC.</p>
 
 			<h3>Category
-				<small> DISCVR-Seq Tools (Development)</small>
+				<small> Development/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		Annotate a VCF file with clinically relevant human variants from NCBI's ClinVar version 2.0 VCF.
-
- <p>
- This tool annotates a VCF file with clinically relevant human variants using information from
- <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)'s</a>
- ClinVar version VCF (requires 2.0 annotation format).
- </p>
-
- <h3>Input</h3>
- <p>
- A variant call set in VCF format to annotate.
- </p>
-
- <h3>Output</h3>
- <p>
- A new VCF containing variants with ClinVar annotations.
- </p>
-
- <h3>Usage example</h3>
- <pre>
-     java -jar DISCVRSeq.jar ClinvarAnnotator \
-     -clinvar clinvar_v2.vcf \
-     -variant input.vcf \
-     -O output.vcf
- </pre>
+		Created by bimber on 7/31/2017.
 
 
-				<h3>ClinvarAnnotator specific arguments</h3>
+				<h3>ImmunoGenotyper specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -129,27 +40,20 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--clinvar">--clinvar</a><br />
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
 					</td>
-					<!--<td>FeatureInput[VariantContext]</td> -->
-					<td>null</td>
-					<td>Clinvar VCF</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--output">--output</a><br />
 								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which variants should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--variant">--variant</a><br />
-								&nbsp;<em>-V</em>
-					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
-					<td>A VCF file containing variants</td>
+					<td>Prefix for output files</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -232,12 +136,85 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
+					<td><a href="#--minAlignmentLength">--minAlignmentLength</a><br />
+					</td>
+					<!--<td>Integer</td> -->
+					<td>40</td>
+					<td>Alignments shorted than this value will be discarded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minMappingQuality">--minMappingQuality</a><br />
+								&nbsp;<em>-mmq</em>
+					</td>
+					<!--<td>Integer</td> -->
+					<td>0</td>
+					<td>Minimum mapping quality of reads to count towards depth.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minPctForExport">--minPctForExport</a><br />
+					</td>
+					<!--<td>Double</td> -->
+					<td>0.0</td>
+					<td>If provided, any genotype representing fewer than this fraction of mapped reads will be discarded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minPctForLineageFiltering">--minPctForLineageFiltering</a><br />
+					</td>
+					<!--<td>Double</td> -->
+					<td>0.01</td>
+					<td>This is part of the filtering strategy for ambiguous hits.  If provided, references will be grouped by lineage/allotype (based on the supplied file).  Within each group any hit sets below this threshold will be ignored.  Of the remaining, if any alleles are present across all groups, only those hits will be retained.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minPctForRef">--minPctForRef</a><br />
+					</td>
+					<!--<td>Double</td> -->
+					<td>0.01</td>
+					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minReadCountForExport">--minReadCountForExport</a><br />
+					</td>
+					<!--<td>Integer</td> -->
+					<td>5</td>
+					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minReadCountForRef">--minReadCountForRef</a><br />
+					</td>
+					<!--<td>Integer</td> -->
+					<td>5</td>
+					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--mismatchesTolerated">--mismatchesTolerated</a><br />
+								&nbsp;<em>-mm</em>
+					</td>
+					<!--<td>Integer</td> -->
+					<td>0</td>
+					<td>The maximum number of mismatches tolerated for alignment.  If a given read has multiple alignments, those with the fewest mismatches will be kept (irrespective of length).</td>
+				</tr>
+				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>Reference sequence</td>
+				</tr>
+				<tr>
+					<td><a href="#--referenceToLineageFile">--referenceToLineageFile</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>This is a simple tab-delimited file, no header, with two columns.  The first is the reference name, identical to that provided in the FASTA/BAM.  The second column is the lineage/allotype of this sequence.  This is used for grouping purposes and filtering.</td>
+				</tr>
+				<tr>
+					<td><a href="#--requireValidPair">--requireValidPair</a><br />
+								&nbsp;<em>-rvp</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If true, only reads with a valid pair to the same reference will be considered</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -331,14 +308,6 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
-				</tr>
-				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
-					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -496,19 +465,6 @@
 		<p>
 		<span class="label label-info ">List[File]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--clinvar">--clinvar </a>
-			 / <small>-clinvar</small>
-		</h3>
-		<p class="args">
-			<b>Clinvar VCF</b><br />
-			ClinVar verison 2.0 VCF from NCBI.
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">FeatureInput[VariantContext]</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
@@ -708,6 +664,7 @@
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -818,16 +775,128 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minAlignmentLength">--minAlignmentLength </a>
+			 / <small>-minAlignmentLength</small>
+		</h3>
+		<p class="args">
+			<b>Alignments shorted than this value will be discarded.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
+			&nbsp;<span class="label">40</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minMappingQuality">--minMappingQuality </a>
+			 / <small>-mmq</small>
+		</h3>
+		<p class="args">
+			<b>Minimum mapping quality of reads to count towards depth.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minPctForExport">--minPctForExport </a>
+			 / <small>-minPctForExport</small>
+		</h3>
+		<p class="args">
+			<b>If provided, any genotype representing fewer than this fraction of mapped reads will be discarded.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Double</span>
+			&nbsp;<span class="label">0.0</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">1 ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minPctForLineageFiltering">--minPctForLineageFiltering </a>
+			 / <small>-minPctForLineageFiltering</small>
+		</h3>
+		<p class="args">
+			<b>This is part of the filtering strategy for ambiguous hits.  If provided, references will be grouped by lineage/allotype (based on the supplied file).  Within each group any hit sets below this threshold will be ignored.  Of the remaining, if any alleles are present across all groups, only those hits will be retained.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Double</span>
+			&nbsp;<span class="label">0.01</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">1 ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minPctForRef">--minPctForRef </a>
+			 / <small>-minPctForRef</small>
+		</h3>
+		<p class="args">
+			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Double</span>
+			&nbsp;<span class="label">0.01</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">1 ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minReadCountForExport">--minReadCountForExport </a>
+			 / <small>-minReadCountForExport</small>
+		</h3>
+		<p class="args">
+			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
+			&nbsp;<span class="label">5</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minReadCountForRef">--minReadCountForRef </a>
+			 / <small>-minReadCountForRef</small>
+		</h3>
+		<p class="args">
+			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
+			&nbsp;<span class="label">5</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--mismatchesTolerated">--mismatchesTolerated </a>
+			 / <small>-mm</small>
+		</h3>
+		<p class="args">
+			<b>The maximum number of mismatches tolerated for alignment.  If a given read has multiple alignments, those with the fewest mismatches will be kept (irrespective of length).</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which variants should be written</b><br />
-			Output file of new VCF containing variants with ClinVar annotations.
+			<b>Prefix for output files</b><br />
+			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -900,6 +969,30 @@
 		<p>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--referenceToLineageFile">--referenceToLineageFile </a>
+			 / <small>-referenceToLineageFile</small>
+		</h3>
+		<p class="args">
+			<b>This is a simple tab-delimited file, no header, with two columns.  The first is the reference name, identical to that provided in the FASTA/BAM.  The second column is the lineage/allotype of this sequence.  This is used for grouping purposes and filtering.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--requireValidPair">--requireValidPair </a>
+			 / <small>-rvp</small>
+		</h3>
+		<p class="args">
+			<b>If true, only reads with a valid pair to the same reference will be considered</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
@@ -988,19 +1081,6 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--variant">--variant </a>
-			 / <small>-V</small>
-		</h3>
-		<p class="args">
-			<b>A VCF file containing variants</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
 			 / <small>-verbosity</small>
 		</h3>
@@ -1047,7 +1127,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.0 built at 25-14-2019 06:14:32.
+        <p class="version">DISCVR-Seq version 0.09-2-g914f365-SNAPSHOT built at 26-17-2019 12:17:58.
         </p>
 
 </div></div>

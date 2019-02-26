@@ -1,5 +1,5 @@
 {
-  "summary": "Generate a list of loci with three or more distinct bases detected",
+  "summary": "Produces a concordance report between samples in a VCF against every other sample in a reference VCF",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -276,14 +276,14 @@
       "name": "--input",
       "synonyms": "-I",
       "type": "List[String]",
-      "required": "yes",
+      "required": "no",
       "fulltext": "",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "required",
+      "kind": "common",
       "options": []
     },
     {
@@ -395,93 +395,18 @@
       "options": []
     },
     {
-      "summary": "Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.",
-      "name": "--maxDepthPerSample",
-      "synonyms": "-maxDepthPerSample",
-      "type": "int",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "0",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.",
-      "name": "--minBasePct",
-      "synonyms": "-minBasePct",
-      "type": "double",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "0.1",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Minimum quality of bases to count towards depth.",
-      "name": "--minBaseQuality",
-      "synonyms": "-mbq",
-      "type": "byte",
-      "required": "no",
-      "fulltext": "Bases with less than minBaseQuality are viewed as not sufficiently high quality to contribute to the PASS state",
-      "defaultValue": "20",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Minimum QC+ read depth before a locus is considered callable",
-      "name": "--minDepth",
-      "synonyms": "-minDepth",
-      "type": "int",
-      "required": "no",
-      "fulltext": "If the number of QC+ bases (on reads with MAPQ \u003e minMappingQuality and with base quality \u003e minBaseQuality) exceeds this\n value and is less than maxDepth the site is considered PASS.",
-      "defaultValue": "4",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "advanced",
-      "options": []
-    },
-    {
-      "summary": "Minimum mapping quality of reads to count towards depth.",
-      "name": "--minMappingQuality",
-      "synonyms": "-mmq",
-      "type": "byte",
-      "required": "no",
-      "fulltext": "Reads with MAPQ \u003e minMappingQuality are treated as usable for variation detection, contributing to the PASS\n state.",
-      "defaultValue": "10",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "The output BED file",
+      "summary": "File to which the output table should be written",
       "name": "--output",
       "synonyms": "-O",
-      "type": "File",
-      "required": "no",
+      "type": "String",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
@@ -573,6 +498,36 @@
       "options": []
     },
     {
+      "summary": "Reference VCF",
+      "name": "--referenceVCF",
+      "synonyms": "-rv",
+      "type": "FeatureInput[VariantContext]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
+      "summary": "Samples To Consider",
+      "name": "--samples",
+      "synonyms": "-s",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "Output traversal statistics every time this many seconds elapse",
       "name": "--seconds-between-progress-updates",
       "synonyms": "-seconds-between-progress-updates",
@@ -633,6 +588,21 @@
       "options": []
     },
     {
+      "summary": "File to which the summary table should be written",
+      "name": "--summaryTable",
+      "synonyms": "-st",
+      "type": "String",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",
@@ -675,6 +645,21 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "options": []
+    },
+    {
+      "summary": "A VCF file containing variants",
+      "name": "--variant",
+      "synonyms": "-V",
+      "type": "String",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
       "options": []
     },
     {
@@ -725,9 +710,9 @@
       "options": []
     }
   ],
-  "description": "This is based on the CallableLoci walker, designed to report sites with more than 2 alleles, where\n the third allele is above the supplied threshold.  The original purpose was to find positions of potential duplications\n or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site)\n\n \u003ch3\u003eUsage example\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar GenomeAnalysisTK.jar \\\n     -T MultipleAllelesAtLoci \\\n     -R reference.fasta \\\n     -I bams.list \\\n     -o output.bed\n \u003c/pre\u003e\n \u003cp\u003e\u003c/p\u003e\n would produce a BED file that looks like:\n \u003cp\u003e\u003c/p\u003e\n \u003cpre\u003e\n     chr20 10000000 10000001 2 Subj1:A/0.13;Subj12:A/0.23;\n     chr20 10000865 10000866 2 Subj4:T/0.12\n \u003c/pre\u003e",
-  "name": "MultipleAllelesAtLoci",
-  "group": "DISCVR-Seq Tools (Public)",
+  "description": "",
+  "name": "CrossSampleGenotypeComparison",
+  "group": "Development/Internal Tools",
   "beta": false,
   "experimental": false
 }

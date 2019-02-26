@@ -1,114 +1,31 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>MultipleAllelesAtLoci</title>
+<title>CrossSampleGenotypeComparison</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'DISCVR-Seq Tools (Public)'; ?>
+	<?php $group = 'Development/Internal Tools'; ?>
 
-	<!--<section class="span4">-->
-		<!--<aside class="well">-->
-			<!--<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-			<!--<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-		<!--</aside>-->
-		<!--<aside class="well hide_me_html">-->
-			<!--<h2>Categories</h2>-->
-			<!--
-        <style>
-            #sidenav .accordion-body a {
-                color : gray;
-            }
-
-            .accordion-body li {
-                list-style : none;
-            }
-        </style>
-
-        <ul class="nav nav-pills nav-stacked" id="sidenav">
-        		<hr>
-        		<hr>
-        		<hr>
-						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsDevelopment">DISCVR-Seq Tools (Development)</a>
-							<div id="DISCVRSeqToolsDevelopment"
-								<?php echo ($group == 'DISCVR-Seq Tools (Development)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
-								<ul>
-											<li>
-												<a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_ImmunoGenotyper.html">ImmunoGenotyper</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a>
-											</li>
-								</ul>
-							</div>
-						</li>
-						<li><a data-toggle="collapse" data-parent="#sidenav" href="#DISCVRSeqToolsPublic">DISCVR-Seq Tools (Public)</a>
-							<div id="DISCVRSeqToolsPublic"
-								<?php echo ($group == 'DISCVR-Seq Tools (Public)')? 'class="accordion-body collapse in"'.chr(62) : 'class="accordion-body collapse"'.chr(62);?>
-								<ul>
-											<li>
-												<a href="com_github_discvrseq_walkers_MultipleAllelesAtLoci.html">MultipleAllelesAtLoci</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a>
-											</li>
-											<li>
-												<a href="com_github_discvrseq_walkers_variantqc_VariantQC.html">VariantQC</a>
-											</li>
-								</ul>
-							</div>
-						</li>
-        		<hr>
-        </ul>
--->
-		<!--</aside>-->
-
-	<!--</section>-->
+	<section class="span4">
+		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
+	</section>
+	<hr>
 
 	<div class="span8">
 
-			<h1>MultipleAllelesAtLoci</h1>
+			<h1>CrossSampleGenotypeComparison</h1>
 
-			<p>Generate a list of loci with three or more distinct bases detected</p>
+		<p>Produces a concordance report between samples in a VCF against every other sample in a reference VCF</p>
 
 			<h3>Category
-				<small> DISCVR-Seq Tools (Public)</small>
+				<small> Development/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This is based on the CallableLoci walker, designed to report sites with more than 2 alleles, where
- the third allele is above the supplied threshold.  The original purpose was to find positions of potential duplications
- or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site)
-
- <h3>Usage example</h3>
- <pre>
-  java -jar GenomeAnalysisTK.jar \
-     -T MultipleAllelesAtLoci \
-     -R reference.fasta \
-     -I bams.list \
-     -o output.bed
- </pre>
- <p></p>
- would produce a BED file that looks like:
- <p></p>
- <pre>
-     chr20 10000000 10000001 2 Subj1:A/0.13;Subj12:A/0.23;
-     chr20 10000865 10000866 2 Subj4:T/0.12
- </pre>
+		
 
 
-				<h3>MultipleAllelesAtLoci specific arguments</h3>
+				<h3>CrossSampleGenotypeComparison specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -123,12 +40,36 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>File to which the output table should be written</td>
+				</tr>
+				<tr>
+					<td><a href="#--referenceVCF">--referenceVCF</a><br />
+								&nbsp;<em>-rv</em>
+					</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Reference VCF</td>
+				</tr>
+				<tr>
+					<td><a href="#--summaryTable">--summaryTable</a><br />
+								&nbsp;<em>-st</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>File to which the summary table should be written</td>
+				</tr>
+				<tr>
+					<td><a href="#--variant">--variant</a><br />
+								&nbsp;<em>-V</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>A VCF file containing variants</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -211,50 +152,20 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--maxDepthPerSample">--maxDepthPerSample</a><br />
-					</td>
-					<!--<td>int</td> -->
-					<td>0</td>
-					<td>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minBasePct">--minBasePct</a><br />
-					</td>
-					<!--<td>double</td> -->
-					<td>0.1</td>
-					<td>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minBaseQuality">--minBaseQuality</a><br />
-								&nbsp;<em>-mbq</em>
-					</td>
-					<!--<td>byte</td> -->
-					<td>20</td>
-					<td>Minimum quality of bases to count towards depth.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minMappingQuality">--minMappingQuality</a><br />
-								&nbsp;<em>-mmq</em>
-					</td>
-					<!--<td>byte</td> -->
-					<td>10</td>
-					<td>Minimum mapping quality of reads to count towards depth.</td>
-				</tr>
-				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>The output BED file</td>
-				</tr>
-				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>Reference sequence</td>
+				</tr>
+				<tr>
+					<td><a href="#--samples">--samples</a><br />
+								&nbsp;<em>-s</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Samples To Consider</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -348,6 +259,14 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
+				</tr>
+				<tr>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -458,13 +377,6 @@
 			<tr>
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
-				<tr>
-					<td><a href="#--minDepth">--minDepth</a><br />
-					</td>
-					<!--<td>int</td> -->
-					<td>4</td>
-					<td>Minimum QC+ read depth before a locus is considered callable</td>
-				</tr>
 				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
@@ -711,7 +623,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -822,87 +733,16 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--maxDepthPerSample">--maxDepthPerSample </a>
-			 / <small>-maxDepthPerSample</small>
-		</h3>
-		<p class="args">
-			<b>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minBasePct">--minBasePct </a>
-			 / <small>-minBasePct</small>
-		</h3>
-		<p class="args">
-			<b>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.1</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minBaseQuality">--minBaseQuality </a>
-			 / <small>-mbq</small>
-		</h3>
-		<p class="args">
-			<b>Minimum quality of bases to count towards depth.</b><br />
-			Bases with less than minBaseQuality are viewed as not sufficiently high quality to contribute to the PASS state
-		</p>
-		<p>
-		<span class="label label-info ">byte</span>
-			&nbsp;<span class="label">20</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minDepth">--minDepth </a>
-			 / <small>-minDepth</small>
-		</h3>
-		<p class="args">
-			<b>Minimum QC+ read depth before a locus is considered callable</b><br />
-			If the number of QC+ bases (on reads with MAPQ > minMappingQuality and with base quality > minBaseQuality) exceeds this
- value and is less than maxDepth the site is considered PASS.
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">4</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minMappingQuality">--minMappingQuality </a>
-			 / <small>-mmq</small>
-		</h3>
-		<p class="args">
-			<b>Minimum mapping quality of reads to count towards depth.</b><br />
-			Reads with MAPQ > minMappingQuality are treated as usable for variation detection, contributing to the PASS
- state.
-		</p>
-		<p>
-		<span class="label label-info ">byte</span>
-			&nbsp;<span class="label">10</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>The output BED file</b><br />
+			<b>File to which the output table should be written</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">File</span>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -977,6 +817,31 @@
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--referenceVCF">--referenceVCF </a>
+			 / <small>-rv</small>
+		</h3>
+		<p class="args">
+			<b>Reference VCF</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">FeatureInput[VariantContext]</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--samples">--samples </a>
+			 / <small>-s</small>
+		</h3>
+		<p class="args">
+			<b>Samples To Consider</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
 			 / <small>-seconds-between-progress-updates</small>
 		</h3>
@@ -1027,6 +892,19 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--summaryTable">--summaryTable </a>
+			 / <small>-st</small>
+		</h3>
+		<p class="args">
+			<b>File to which the summary table should be written</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
 			 / <small>NA</small>
 		</h3>
@@ -1061,6 +939,19 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--variant">--variant </a>
+			 / <small>-V</small>
+		</h3>
+		<p class="args">
+			<b>A VCF file containing variants</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
@@ -1109,7 +1000,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.0 built at 25-14-2019 06:14:32.
+        <p class="version">DISCVR-Seq version 0.09-2-g914f365-SNAPSHOT built at 26-17-2019 12:17:58.
         </p>
 
 </div></div>

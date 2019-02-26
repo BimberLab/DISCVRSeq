@@ -1,5 +1,5 @@
 {
-  "summary": "Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals",
+  "summary": "Filters genotypes based on an input list of samples/sites",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -257,6 +257,21 @@
       "options": []
     },
     {
+      "summary": "Genotype Blastlist BED",
+      "name": "--genotypeBlacklist",
+      "synonyms": "-bl",
+      "type": "FeatureInput[BEDFeature]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "display the help message",
       "name": "--help",
       "synonyms": "-h",
@@ -369,14 +384,14 @@
       "name": "--intervals",
       "synonyms": "-L",
       "type": "List[String]",
-      "required": "yes",
+      "required": "no",
       "fulltext": "",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "required",
+      "kind": "optional",
       "options": []
     },
     {
@@ -395,33 +410,18 @@
       "options": []
     },
     {
-      "summary": "If specified, bases with quality lower than this value will be converted to N",
-      "name": "--minQual",
-      "synonyms": "-mq",
-      "type": "int",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "0",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Output file (if not provided, defaults to STDOUT)",
+      "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
       "type": "File",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
@@ -498,30 +498,15 @@
       ]
     },
     {
-      "summary": "Reference sequence file",
+      "summary": "Reference sequence",
       "name": "--reference",
       "synonyms": "-R",
       "type": "String",
-      "required": "yes",
+      "required": "no",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "required",
-      "options": []
-    },
-    {
-      "summary": "If provided, only reads or read pairs with complete coverage over at least this fraction of the interval will be included",
-      "name": "--requiredCoverageFraction",
-      "synonyms": "-rc",
-      "type": "Double",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "0.0",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
@@ -633,6 +618,21 @@
       "options": []
     },
     {
+      "summary": "A VCF file containing variants",
+      "name": "--variant",
+      "synonyms": "-V",
+      "type": "String",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "Control verbosity of logging.",
       "name": "--verbosity",
       "synonyms": "-verbosity",
@@ -681,8 +681,8 @@
     }
   ],
   "description": "",
-  "name": "PrintReadBackedHaplotypes",
-  "group": "DISCVR-Seq Tools (Public)",
+  "name": "GenotypeFilterBySample",
+  "group": "Development/Internal Tools",
   "beta": false,
   "experimental": false
 }
