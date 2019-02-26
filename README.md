@@ -1,13 +1,15 @@
 [![Build Status](https://api.travis-ci.org/BimberLab/DISCVRSeq.svg)](https://travis-ci.org/BimberLab/DISCVRSeq)
 
 ## Overview
-DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine. The set of cools is analogous to GATK or Picard.  A description of all software produced by the Bimber Lab can be found [here](https://bimberlab.github.io).  
+DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine. The set of tools is analogous to GATK or Picard.  A description of all software produced by the Bimber Lab can be found [here](https://bimberlab.github.io).  
 
 ## Documentation
 [Please view our documentation](https://bimberlab.github.io/DISCVRSeq/) for more information about the set of tools and usage.
 
 ## Getting Started
-DISCVR-seq Toolkit is a java program distributed as a single JAR.  You can download the latest JAR from our [release page](https://github.com/BimberLab/DISCVRSeq/releases).  Running tools is analogous to GATK4.  While we recommend [our documentation](https://bimberlab.github.io/DISCVRSeq/) to learn about available tools and options, one can also view a list of tools and/or arguments from the command line:
+DISCVR-seq Toolkit is a java program distributed as a single JAR.  You can download the latest JAR from our [release page](https://github.com/BimberLab/DISCVRSeq/releases).  Running tools is analogous to GATK4.  
+
+While we recommend [our documentation](https://bimberlab.github.io/DISCVRSeq/) to learn about available tools and options, one can also view a list of tools and/or arguments from the command line:
 
 ```
 
