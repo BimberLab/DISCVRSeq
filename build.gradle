@@ -10,17 +10,12 @@ plugins {
     id "java"
     id "application"
     id "com.github.johnrengelman.shadow" version "1.2.3"    //used to build the shadow and sparkJars
+    id 'com.palantir.git-version' version '0.5.1' //version helper
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 import javax.tools.ToolProvider
-
-//if (project.hasProperty('projVersion')) {
-//    project.version = project.projVersion
-//} else {
-//    project.version = '1.0-SNAPSHOT'
-//}
 
 apply plugin: 'java'
 
@@ -31,6 +26,14 @@ repositories {
         url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/"
     }
 }
+
+// This if -dRelease=true is passed, this should return only the last tag (i.e. 1.0).  
+// Otherwise it should return the tag and hash, i.e.: 1.08-7-g72826dd
+final isRelease = Boolean.getBoolean("release")
+final details = versionDetails()
+version = (isRelease ? details.lastTag : gitVersion() + "-SNAPSHOT").replaceAll(".dirty", "")
+
+logger.info("build for version:" + version)
 
 //NOTE: we ignore contracts for now
 compileJava {
@@ -77,7 +80,7 @@ configurations.all {
 }
 
 // Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
-// test execution, and htmlDoc generation, but we don't want them as part of the runtime
+// test execution, and toolDoc generation, but we don't want them as part of the runtime
 // classpath and we don't want to redistribute them in the uber jar.
 final javadocJDKFiles = files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
 
@@ -111,15 +114,18 @@ dependencies {
     testCompile 'org.testng:testng:' + testNGVersion
 }
 
-tasks.withType(Jar) {
-    manifest {
-        attributes 'Implementation-Title': rootProject.name,
-                'Main-Class': mainClassName
-    }
-}
-
 task wrapper(type: Wrapper) {
     gradleVersion = '3.1'
+}
+
+tasks.withType(Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
+                'Implementation-Version': version,
+                'Main-Class': mainClassName,
+                'GATK-Version': gatkVersion,
+                'htsjdk-Version': htsjdkVersion
+    }
 }
 
 tasks.withType(ShadowJar) {
@@ -141,6 +147,7 @@ tasks.withType(ShadowJar) {
 
 shadowJar {
     configurations = [project.configurations.runtime]
+    baseName = project.name
     classifier = ''
     mergeServiceFiles('reference.conf')
 }
@@ -153,14 +160,14 @@ task sourcesJar(type: Jar) {
 }
 
 tasks.withType(Javadoc) {
-    // do this for all javadoc tasks, including htmlDoc
+    // do this for all javadoc tasks, including toolDoc
     options.addStringOption('Xdoclint:none')
     outputs.upToDateWhen { false }
 }
 
 javadoc {
     // This is a hack to disable the java 8 default javadoc lint until we fix the html formatting
-    // We only want to do this for the javadoc task, not htmlDoc
+    // We only want to do this for the javadoc task, not toolDoc
     options.addStringOption('Xdoclint:none', '-quiet')
     source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
     include '**com/github/discvrseq/**/*.java'
@@ -169,20 +176,28 @@ javadoc {
 }
 
 // Generate Online Doc
-task htmlDoc(type: Javadoc, dependsOn: classes ) {
-    final File htmlDocDir = new File("build/docs/htmlDoc")
+task toolDoc(type: Javadoc, dependsOn: classes ) {
+    final File baseDocDir = new File("build/docs")
+    final File toolDocDir = new File("build/docs/toolDoc")
     doFirst {
         // make sure the output folder exists or we can create it
-        if (!htmlDocDir.exists() && !htmlDocDir.mkdirs()) {
+        if (!toolDocDir.exists() && !toolDocDir.mkdirs()) {
             throw new GradleException(String.format("Failure creating folder (%s) for HTML doc output in task (%s)",
-                    htmlDocDir.getAbsolutePath(),
+                    toolDocDir.getAbsolutePath(),
                     it.name));
         }
         copy {
-            from('src/main/resources/com/github/discvrseq/util/helpTemplates')
+            from('src/main/resources/com/github/discvrseq/util/docTemplates')
             include 'stylesheet.css'
             include 'images/**'
-            into htmlDocDir
+            include 'resources/**'
+            into toolDocDir
+        }
+        copy {
+            from('src/main/resources/com/github/discvrseq/util/docTemplates')
+            include 'index.md'
+            include '_.config.yml'
+            into baseDocDir
         }
     }
 
@@ -190,8 +205,7 @@ task htmlDoc(type: Javadoc, dependsOn: classes ) {
     include '**com/github/discvrseq/**/*.java'
     include '**org/broadinstitute/hellbender/cmdline/argumentcollections/**/*.java'
     include '**org/broadinstitute/hellbender/cmdline/**/*.java'
-//    exclude '**/hellbender/**/*.java'
-    
+
     // The doc process instantiates any documented feature classes, so to run it we need the entire
     // runtime classpath, as well as jdk javadoc files such as tools.jar, where com.sun.javadoc lives.
     classpath = sourceSets.main.runtimeClasspath + javadocJDKFiles
@@ -199,12 +213,11 @@ task htmlDoc(type: Javadoc, dependsOn: classes ) {
     options.docletpath = classpath.asType(List)
     options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
 
-    outputs.dir(htmlDocDir)
-    options.destinationDirectory(htmlDocDir)
+    outputs.dir(toolDocDir)
+    options.destinationDirectory(toolDocDir)
 
-    options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/helpTemplates");
-    //options.addStringOption("absolute-version", getVersion())
-    options.addStringOption("absolute-version", "1.0")
+    options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/docTemplates");
+    options.addStringOption("absolute-version", getVersion())
     options.addStringOption("build-timestamp", new Date().format("dd-mm-yyyy hh:mm:ss"))
 }
 

@@ -1,12 +1,6 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>DISCVRseq Tool Documentation</title>
+<title>DISCVR-seq Toolkit Documentation</title>
 <div class='row-fluid'>
-
-    <aside class="span3">
-
-        <?php echo produceGuideNav($module, $name) . makeTwitterFeed(); ?>
-
-    </aside>
 
     <div class='span9'>
 
@@ -49,7 +43,7 @@
 
         <div class="row-fluid">
             <div class="span6">
-                <h1 id="top"><i class='<?php print ico::toolDocsIcon; ?>'></i> Tool Documentation Index</h1>
+                <h1 id="top"><i class='<?php print ico::toolDocsIcon; ?>'></i>DISCVR-Seq Toolkit Tool List</h1>
             </div>
             <div class="span6">
                 <div class="btn-group pull-right">
@@ -57,27 +51,21 @@
                         Version ${version}
                         <span class="caret"></span>
                     </a>
-                    <ul class="dropdown-menu">
-                        <?php foreach($dirs as $dir) { ?>
-                            <li class="hide_me_html"><a tabindex='-1' href='../<?=$dir?>' ><?=$dir?></a></li>
-                        <?php } ?>
-                    </ul>
                 </div>
             </div>
         </div>
 
-        <h1 class="hide_me_html"><small>Showing docs for version ${version} | The latest version is <?=$curr_version?></small></h1>
         <hr />
 
+        <br>
+        <p class="lead">
+            Below is a list of the tools in DISCVR-seq Toolkit.  Tools in the 'Public' category are intended to be more general-purpose, include more extensive automated testing, and should be stable. Tools in the 'Development' section may be subject to change and have potentially received less testing.
+        </p>
+        <br>
+
         <div class="accordion" id="index">
-            <#assign seq = ["engine", "tools", "other", "utilities"]>
-            <#list seq as supercat>
-                <br />
-                <#list groups?sort_by("name") as group>
-                    <#if group.supercat == supercat>
-                        <@emitGroup group=group/>
-                    </#if>
-                </#list>
+            <#list groups?sort_by("name") as group>
+                <@emitGroup group=group/>
             </#list>
         </div>
 

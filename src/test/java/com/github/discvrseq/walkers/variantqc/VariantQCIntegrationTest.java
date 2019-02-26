@@ -72,10 +72,6 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         args.add(normalizePath(input));
 
-//        args.add("-ped");
-//        args.add(testBaseDir + "gatk.ped");
-//        args.add("-pedValidationType");
-//        args.add("SILENT");
         args.add("-L");
         args.add("1");
 
@@ -91,30 +87,38 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         expected.delete();
     }
 
+//    @Test
+//    public void testPedigreeOutput() throws Exception {
+//        File expected = generateCompleteOutput(getTestFile("testPedigreeOutput.html"));
+//        ArgumentsBuilder args = new ArgumentsBuilder();
+//        args.add("--variant");
+//        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+//        args.add(normalizePath(input));
+//
+//        args.add("-ped");
+//        args.add(normalizePath(getTestFile("testPedigree.ped")));
+//        args.add("-L");
+//        args.add("1");
+//
+//        args.add("-O");
+//        args.add("%s");
+//        args.add("--tmp-dir");
+//        args.add(getTmpDir());
+//
+//        IntegrationTestSpec spec = new IntegrationTestSpec(
+//                args.getString(), Arrays.asList(expected.getPath()));
+//
+//        spec.executeTest("testBasicOperation", this);
+//        expected.delete();
+//    }
+
     private File generateCompleteOutput(File input) throws IOException {
-        File out = new File(getTmpDir(), input.getName() + ".complete");
-        try (BufferedReader reader = IOUtil.openFileForBufferedReading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))) {
+        File out = new File(getTmpDir(), input.getName() + ".complete.html");
+        try (BufferedReader reader = IOUtil.openFileForBufferedUtf8Reading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))) {
             HtmlGenerator.printStaticContent(writer);
             String line;
             while ((line = reader.readLine()) != null) {
                 writer.println(line);
-            }
-        }
-
-        return out;
-    }
-
-    private File removeFirstNLines(File input, int toSkip) throws IOException {
-        File out = new File(input.getPath() + ".skip");
-        try (BufferedReader reader = IOUtil.openFileForBufferedReading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))){
-            String line;
-            int linesRead = 0;
-            while ((line = reader.readLine()) != null) {
-                if (linesRead >= toSkip) {
-                    writer.println(line);
-                }
-
-                linesRead++;
             }
         }
 

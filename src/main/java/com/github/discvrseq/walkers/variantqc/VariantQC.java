@@ -57,7 +57,7 @@ import java.util.*;
 
  * <h3>Example Report:</h3>
  * Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).  The report
- * contains a series of tables or graphs summarizing different aspects of the data.
+ * contains a series of tables or graphs summarizing different aspects of the data.  A complete example HTML report can be <a href="resources/variantQCSampleReport.html">viewed here</a>
  * <p></p>
  * <img src="images/variantQCSampleReport1.png" style="width: 75%"/>
  *

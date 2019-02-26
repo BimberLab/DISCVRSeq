@@ -36,8 +36,7 @@ function render_plots() {
         credits: {
             enabled: true,
             text: 'Created with VariantQC',
-            //TODO
-            href: 'http://multiqc.info'
+            href: 'https://bimberlab.github.io/DISCVRSeq/'
         },
         lang: {
             decimalPoint: (mqc_config['decimalPoint_format'] == undefined ? '.' : mqc_config['decimalPoint_format']),

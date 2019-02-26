@@ -38,7 +38,7 @@ public final class Main extends org.broadinstitute.hellbender.Main {
 
     /** Returns the command line that will appear in the usage. */
     protected String getCommandLineName() {
-        return "java -jar DiscvrAnalysisToolkit.jar";
+        return "java -jar DISCVRseq.jar";
     }
 
     public static void main(final String[] args) {
@@ -61,7 +61,6 @@ public final class Main extends org.broadinstitute.hellbender.Main {
 
     @Override
     protected void handleResult(final Object result) {
-        // TODO: print something else and/or handle metrics?
         if (result != null) {
             resultOutput.println(result);
         }

@@ -20,15 +20,19 @@ cache:
     - $HOME/site-library
 
 install:
+- IS_RELEASE=false
+- if [[ ! -z $TRAVIS_TAG ]];then IS_RELEASE=true; fi;
+- echo ${IS_RELEASE}
 - ./gradlew assemble;
 - ./gradlew installDist;
-- ./gradlew shadowJar;
-- ./gradlew htmlDoc;
+- ./gradlew shadowJar -Drelease=$IS_RELEASE;
+- ./gradlew toolDoc;
 
 before_deploy:
   - echo ${TRAVIS_TAG}
-  - mv build/libs/DISCVRSeq.jar DISCVRSeq-${TRAVIS_TAG}.jar
-  - mv build/docs/htmlDoc htmlDoc
+  - mv build/libs/DISCVRSeq-* DISCVRSeq-${TRAVIS_TAG}.jar
+  - rm -Rf build/javadoc
+  - mv build/docs ghDocs
 
 deploy:
   - provider: releases
@@ -40,7 +44,7 @@ deploy:
       tags: true
   - provider: pages
     github-token: ${GH_TOKEN}
-    local-dir: htmlDoc
+    local-dir: ghDocs
     verbose: true
     keep-history: true
     skip_cleanup: true
