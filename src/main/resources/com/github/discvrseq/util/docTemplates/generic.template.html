@@ -78,17 +78,10 @@
 
 	<?php $group = '${group}'; ?>
 
-	<!--<section class="span4">-->
-		<!--<aside class="well">-->
-			<!--<a class="hide_me_php" href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-			<!--<a class="hide_me_html" href="index"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>-->
-		<!--</aside>-->
-		<!--<aside class="well hide_me_html">-->
-			<!--<h2>Categories</h2>-->
-			<!--<@getCategories groups=groups />-->
-		<!--</aside>-->
-
-	<!--</section>-->
+	<section class="span4">
+		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
+	</section>
+	<hr>
 
 	<div class="span8">
 
@@ -100,11 +93,7 @@
 			<h1>${name}</h1>
 		</#if>
 
-		<#if picardsummary??>
-			<p>${picardsummary}</p>
-		<#else>
-			<p>${summary}</p>
-		</#if>
+		<p>${summary}</p>
 
 		<#if group?? >
 			<h3>Category
