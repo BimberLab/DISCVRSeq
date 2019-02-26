@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.org/BimberLab/DISCVRSeq.svg)](https://travis-ci.org/BimberLab/DISCVRSeq)
+[![Build Status](https://api.travis-ci.com/BimberLab/DISCVRSeq.svg)](https://travis-ci.com/BimberLab/DISCVRSeq)
 
 ## Overview
 DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine. The set of tools is analogous to GATK or Picard.  A description of all software produced by the Bimber Lab can be found [here](https://bimberlab.github.io).  
