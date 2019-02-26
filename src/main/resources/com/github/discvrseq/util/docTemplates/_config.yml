@@ -7,4 +7,3 @@ relative_links:
   collections: true
 include:
   - index.md
-  - README.md
