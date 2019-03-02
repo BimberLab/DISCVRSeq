@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -15,11 +15,32 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+/**
+ * This tool accepts a VCF and a BED file with a list of sites, where sample name is the feature name.  If the VCF has a variant at any of these positions, the sample(s) will have their 
+ * genotypes converted to no-call. The BED file can have multiple lines per site if more than one sample needs to be filtered.
+ * 
+ * <h3>Usage example:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar GenotypeFilterBySample \
+ *     -V myVCF.vcf \
+ *     -bl blacklist.bed \
+ *     -O output.vcf.gz
+ * </pre>
+ *
+ * And the blacklist.bed file might look like:
+ * <pre>
+ * #Comment lines are ignored. Format is: contig, start, stop, sampleName
+ * 1	11	12	sample1
+ * 1	11	12	sample2
+ * 1	3210	3211	sample2
+ * </pre>
+ */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "This tool accepts a BED file with a list of sites, where sample name is the feature name.  If the VCF has a variant at any of these positions, the sample(s) will have their genotypes converted to no-call.  The BED file can have multiple lines per site if more than one sample needs to be filtered.",
+        summary = "This tool accepts a BED file with a list of sites, where sample name is the feature name (i.e. 4th column).  If the VCF has a variant at any of these positions, the sample(s) will have their genotypes converted to no-call.  The BED file can have multiple lines per site if more than one sample needs to be filtered.",
         oneLineSummary = "Filters genotypes based on an input list of samples/sites",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        programGroup = DiscvrSeqProgramGroup.class
 )
 public class GenotypeFilterBySample extends VariantWalker {
 

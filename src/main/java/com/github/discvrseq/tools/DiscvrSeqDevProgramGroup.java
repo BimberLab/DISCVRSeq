@@ -8,7 +8,7 @@ import org.broadinstitute.barclay.argparser.CommandLineProgramGroup;
 public class DiscvrSeqDevProgramGroup implements CommandLineProgramGroup {
     @Override
     public String getName() {
-        return "Development/Internal Tools";
+        return "Development/Pre-production Tools";
     }
 
     @Override

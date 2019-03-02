@@ -1,7 +1,7 @@
 package com.github.discvrseq.walkers;
 
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import com.github.discvrseq.util.CigarPositionIterable;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
@@ -35,18 +35,39 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
+/**
+ * This tool will extract the reads from a BAM over each of the provided intervals, reconstruct the local haplotypes (using simple logic and only relying on regions with coverage), and
+ * produce a table listing the frequency of every unique haplotype.  It was originally created to inspect amplicon-based deep sequencing, such as evaluating CRISPR edits.
+ *
+ * <h3>Usage example:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+ *     -R reference.fasta \
+ *     -L chr01:100-200 \
+ *     -I myBam.bam \
+ *     -O output.txt
+ * </pre>
+ * <h3>Usage example, <a href="https://gatkforums.broadinstitute.org/gatk/discussion/1319/collected-faqs-about-interval-lists"></a>supplying intervals from a file:</a></h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+ *     -R reference.fasta \
+ *     -L myFile.intervals \
+ *     -I myBam.bam \
+ *     -O output.txt
+ * </pre>
+ *
+ */
 @DocumentedFeature
 @CommandLineProgramProperties(
         summary = "Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals.",
         oneLineSummary = "Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class PrintReadBackedHaplotypes extends IntervalWalker {
 
     @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", common = false, optional = true)
     private File outputFile = null;
 
-    //TODO
     @Argument(fullName = "requiredCoverageFraction", shortName = "rc", doc = "If provided, only reads or read pairs with complete coverage over at least this fraction of the interval will be included")
     private Double requiredCoverageFraction  = 0.0;
 

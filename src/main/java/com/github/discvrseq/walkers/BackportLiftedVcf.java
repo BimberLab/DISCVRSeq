@@ -1,13 +1,12 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import htsjdk.samtools.SAMFileWriterImpl;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.*;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.variantcontext.writer.Options;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.*;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -18,17 +17,30 @@ import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.utils.Utils;
-import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.reference.ReferenceUtils;
 
 import java.io.File;
 import java.util.*;
 
+/**
+ * This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated
+ * in those coordinates. Lifeover must be performed using Picard Tools LiftoverVcf, which annotates lifted variants with the values for ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE.  This tool
+ * reads one of these lifted VCFs, and writes a new sorted VCF in which the original coordinates are restored.
+ *
+ * <h3>Usage example:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar BackportLiftedVcf \
+ *     -R currentGenome.fasta \
+ *     -targetFasta targetGenomes.fasta \
+ *     -V myVCF.vcf \
+ *     -O output.vcf.gz
+ * </pre>
+ */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "This is a fairly specialized tool designed to backport a VCF, created using Picard LiftoverVcf or similar, back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
+        summary = "This is a fairly specialized tool designed to restore the original coorindate in a VCF after liftover (created using Picard LiftoverVcf), back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
         oneLineSummary = "Backport lifted VCF to the original coordinates",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class BackportLiftedVcf extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)

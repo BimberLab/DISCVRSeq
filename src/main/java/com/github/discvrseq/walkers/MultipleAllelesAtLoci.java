@@ -13,6 +13,8 @@ import org.broadinstitute.hellbender.engine.AlignmentContext;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.LocusWalker;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.filters.ReadFilter;
+import org.broadinstitute.hellbender.engine.filters.ReadFilterLibrary;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.BaseUtils;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
@@ -26,24 +28,23 @@ import java.util.*;
 
 
 /**
- * This is based on the CallableLoci walker, designed to report sites with more than 2 alleles, where
+ * This walker will iterate a BAM and report sites with passing alignments with reads from more than 2 alleles, where
  * the third allele is above the supplied threshold.  The original purpose was to find positions of potential duplications
- * or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site)
+ * or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site).
  *
- * <h3>Usage example</h3>
+ * <h3>Usage example:</h3>
  * <pre>
- *  java -jar GenomeAnalysisTK.jar \
- *     -T MultipleAllelesAtLoci \
+ *  java -jar DISCVRseq.jar MultipleAllelesAtLoci \
  *     -R reference.fasta \
  *     -I bams.list \
- *     -o output.bed
+ *     -O output.bed
  * </pre>
  * <p></p>
  * would produce a BED file that looks like:
  * <p></p>
  * <pre>
- *     chr20 10000000 10000001 2 Subj1:A/0.13;Subj12:A/0.23;
- *     chr20 10000865 10000866 2 Subj4:T/0.12
+ *     chr20 10000000 10000001 MultiAllelicSite 2   +   Subj1: [A/0.25/1/4];Subj12: [A/0.2/2/10];
+ *     chr20 10000865 10000866 MultiAllelicSite 1   +   Subj4: [T/0.1/1/10]
  * </pre>
  *
  */
@@ -232,6 +233,13 @@ public class MultipleAllelesAtLoci extends LocusWalker {
             ret += i;
         }
 
+        return ret;
+    }
+
+    @Override
+    public List<ReadFilter> getDefaultReadFilters() {
+        List<ReadFilter> ret = super.getDefaultReadFilters();
+        ret.add(new ReadFilterLibrary.NotDuplicateReadFilter());
         return ret;
     }
 }

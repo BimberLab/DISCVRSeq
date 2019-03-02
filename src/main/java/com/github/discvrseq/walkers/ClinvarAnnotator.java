@@ -1,6 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -21,37 +22,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Annotate a VCF file with clinically relevant human variants from NCBI's ClinVar version 2.0 VCF.
- *
- * <p>
- * This tool annotates a VCF file with clinically relevant human variants using information from
- * <a href=https://www.ncbi.nlm.nih.gov/clinvar/>National Center for Biotechnology Information (NCBI)'s</a>
- * ClinVar version VCF (requires 2.0 annotation format).
- * </p>
- *
- * <h3>Input</h3>
- * <p>
- * A variant call set in VCF format to annotate.
- * </p>
- *
- * <h3>Output</h3>
- * <p>
- * A new VCF containing variants with ClinVar annotations.
- * </p>
+ * This tool compares an input VCF to the provided <a href=https://www.ncbi.nlm.nih.gov/clinvar/>ClinVar</a> VCF and adds annotations to
+ * any variant overlapping with a variant from ClinVar (matching both site and allele). Note, this requires the VCF to use ClinVar's 2.0 VCF format.
+ * The ClinVar VCFs can be foind here: <a href="https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/">https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/</a>
+ * <p/>
  *
  * <h3>Usage example</h3>
  * <pre>
- *     java -jar DISCVRSeq.jar ClinvarAnnotator \
- *     -clinvar clinvar_v2.vcf \
+*   java -jar DISCVRSeq.jar ClinvarAnnotator \
  *     -variant input.vcf \
+ *     -clinvar clinvar_v2.vcf \
  *     -O output.vcf
  * </pre>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "Annotate a VCF with clinical variants using ClinVar vcf_2.0",
-        oneLineSummary = "Annotate a VCF with ClinVar vcf_2.0",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        summary = "Annotate variants that overlap with ClinVar",
+        oneLineSummary = "Annotate variants overlapping ClinVar",
+        programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class ClinvarAnnotator extends VariantWalker {
     /**
