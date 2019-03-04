@@ -40,12 +40,20 @@ import java.util.*;
  *     -O output.bed
  * </pre>
  * <p></p>
- * would produce a BED file that looks like:
+ * Would produce a BED file that looks like:
  * <p></p>
  * <pre>
  *     chr20 10000000 10000001 MultiAllelicSite 2   +   Subj1: [A/0.25/1/4];Subj12: [A/0.2/2/10];
  *     chr20 10000865 10000866 MultiAllelicSite 1   +   Subj4: [T/0.1/1/10]
  * </pre>
+ *
+ * Where the columns are:
+ * 1) Contig
+ * 2) Start (0-based)
+ * 3) End (0-based, exclusive)
+ * 4) This always uses the name MultiAllelicSite
+ * 5) Strand (always listed as plus)
+ * 6) The subject/allele information. There is a semicolon-delimited list, where each element describes one subject/allele (any subject generally only has one flagged allele/site; however, in theory there could be two).  Each block uses the format: subject name, followed by colon, followed by [allele/frequency/count/totalDepth]
  *
  */
 @DocumentedFeature
