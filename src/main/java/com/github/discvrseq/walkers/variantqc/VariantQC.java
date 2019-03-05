@@ -338,4 +338,9 @@ public class VariantQC extends VariantWalker {
 
         return stratifierClasses;
     }
+
+    @Override
+    public boolean requiresReference() {
+        return true;
+    }
 }

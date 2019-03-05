@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -18,11 +18,25 @@ import org.broadinstitute.hellbender.utils.Utils;
 
 import java.io.File;
 import java.util.*;
+
+/**
+ * This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and <a href="https://www.hgsc.bcm.edu/software/cassandra">Cassandra</a>,
+ * and transfer select annotations from those VCFs to the input VCF.
+ *
+ * <h3>Usage example:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar MultiSourceAnnotator \
+ *     -cv clinvar.vcf.gz \
+ *     -lr liftoverFailures.vcf \
+ *     -c cassandraVcf.vcf.gz \
+ *     -O output.vcf.gz
+ * </pre>
+ */
 @DocumentedFeature
 @CommandLineProgramProperties(
         summary = "This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator and Cassandra, and transfer select annotations from those VCFs to the input VCF.",
         oneLineSummary = "Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
