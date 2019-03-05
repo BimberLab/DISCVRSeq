@@ -30,8 +30,8 @@ install:
 
 before_deploy:
   - echo ${TRAVIS_TAG}
-  - ls build/libs/
-  - mv build/libs/DISCVRSeq-* DISCVRSeq-${TRAVIS_TAG}.jar
+  - ls -lah build/libs/
+  - mv build/libs/DISCVRSeq-${TRAVIS_TAG}.jar DISCVRSeq-${TRAVIS_TAG}.jar
   - rm -Rf build/javadoc
   - mv build/docs ghDocs
 
