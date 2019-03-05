@@ -28,15 +28,38 @@ import java.text.NumberFormat;
 import java.util.*;
 
 /**
- * Created by bimber on 7/31/2017.
+ * This tool will generate genotype calls for complex loci (such as many immune genes), from next-generation sequence data.
+ * In general, most next-generation sequencing tasks (WGS, RNA-seq, etc.) expect to align each read uniquely in the genome and frequently discard or ignore
+ * those reads that do not. While this is sufficient for much of the genome, complex, polygenic regions are frequently systematically filtered or missed by many
+ * variant-calling or genotyping methods. Further, the reference genome often has a poor representation of complex loci, including those that are polygenic or have copy-number differences
+ * in the population (often the reference genome has a single copy of the gene), or situations where the set of genes varies widely between individuals (in which case a single reference genome
+ * poorly captures variation). This tool applies the same general approach as originally published for macaque MHC genotyping (<a href="https://www.ncbi.nlm.nih.gov/pubmed/19820716">https://www.ncbi.nlm.nih.gov/pubmed/19820716</a>),
+ * though is a much newer implementation. This tool can either be run using targeted sequencing (i.e. amplicon), or using whole genome DNA- or RNA-seq data.
+ *
+ * To use this tool, first align your raw reads to a specialized database. For MHC, KIR, or NCR genotyping, we build a specialized database of alleles (<a href="https://www.ebi.ac.uk/ipd/">IPD is a good starting point</a>).
+ * We often use an aligner that will retain multiple matches per read (<a href="https://github.com/wanpinglee/MOSAIK">MOSAIK</a>, for example); however, we use BWA-mem in some cases as well. This BAM is the input
+ * for the this tool. ImmunoGenotyper iterates this BAM, capturing the set of contigs each read aligned against, within the provided number of mismatches. We expect ambiguity in many cases, with reads aligning
+ * to groups of related alleles (i.e. A002*001:02 and A*002*001:01). Finally, we series of filters can be run (described for each argument below) that attempt to collapse these genotypes. A final table
+ * is produced. Note: the reference data is essential for this tool to operate as-expected, and thoughtful design of that database for your application is critical.
+ *
+ * <h3>Usage example:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar ImmunoGenotyper \
+ *     -R reference.fasta \
+ *     -I myBam.bam \
+ *     -mm 1 \
+ *     -minReadCountForRef 10 \
+ *     -O outputBaseDir
+ * </pre>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        oneLineSummary = "Provides genotyping summary for complex multi-genic loci, like KIR or MHC.",
+        oneLineSummary = "Provides genotyping summary for complex multigenic loci, like KIR or MHC.",
         summary = ImmunoGenotyper.SUMMARY,
         programGroup = DiscvrSeqDevProgramGroup.class)
 public class ImmunoGenotyper extends ReadWalker {
     protected static final String SUMMARY = "Genotyping tool for complex loci";
+
     public static final String GENOTYPE_EXTENSION = ".genotypes.txt";
     public static final String MISMATCH_EXTENSION = ".mismatches.txt";
     public static final String SUMMARY_EXTENSION = ".summary.txt";
