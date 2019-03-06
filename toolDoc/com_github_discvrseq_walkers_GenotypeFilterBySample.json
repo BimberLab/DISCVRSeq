@@ -680,9 +680,9 @@
       "options": []
     }
   ],
-  "description": "",
+  "description": "This tool accepts a VCF and a BED file with a list of sites, where sample name is the feature name.  If the VCF has a variant at any of these positions, the sample(s) will have their \n genotypes converted to no-call. The BED file can have multiple lines per site if more than one sample needs to be filtered.\n \n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar GenotypeFilterBySample \\\n     -V myVCF.vcf \\\n     -bl blacklist.bed \\\n     -O output.vcf.gz\n \u003c/pre\u003e\n\n And the blacklist.bed file might look like:\n \u003cpre\u003e\n #Comment lines are ignored. Format is: contig, start, stop, sampleName\n 1\t11\t12\tsample1\n 1\t11\t12\tsample2\n 1\t3210\t3211\tsample2\n \u003c/pre\u003e",
   "name": "GenotypeFilterBySample",
-  "group": "Development/Internal Tools",
+  "group": "Public/Stable Tools",
   "beta": false,
   "experimental": false
 }

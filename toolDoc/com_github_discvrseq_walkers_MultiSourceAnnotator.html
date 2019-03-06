@@ -4,7 +4,7 @@
 
 
 
-	<?php $group = 'Development/Internal Tools'; ?>
+	<?php $group = 'Specialized/Internal Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -18,11 +18,21 @@
 		<p>Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF</p>
 
 			<h3>Category
-				<small> Development/Internal Tools</small>
+				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		
+		This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and <a href="https://www.hgsc.bcm.edu/software/cassandra">Cassandra</a>,
+ and transfer select annotations from those VCFs to the input VCF.
+
+ <h3>Usage example:</h3>
+ <pre>
+  java -jar DISCVRseq.jar MultiSourceAnnotator \
+     -cv clinvar.vcf.gz \
+     -lr liftoverFailures.vcf \
+     -c cassandraVcf.vcf.gz \
+     -O output.vcf.gz
+ </pre>
 
 
 				<h3>MultiSourceAnnotator specific arguments</h3>
@@ -1001,7 +1011,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 0.09-6-g900e308-SNAPSHOT built at 26-13-2019 07:13:23.
+        <p class="version">DISCVR-Seq version 1.0-SNAPSHOT built at 06-36-2019 12:36:10.
         </p>
 
 </div></div>

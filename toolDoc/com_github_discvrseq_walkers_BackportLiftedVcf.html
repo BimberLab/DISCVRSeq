@@ -4,7 +4,7 @@
 
 
 
-	<?php $group = 'Development/Internal Tools'; ?>
+	<?php $group = 'Specialized/Internal Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -18,11 +18,22 @@
 		<p>Backport lifted VCF to the original coordinates</p>
 
 			<h3>Category
-				<small> Development/Internal Tools</small>
+				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		
+		This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated
+ in those coordinates. Lifeover must be performed using Picard Tools LiftoverVcf, which annotates lifted variants with the values for ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE.  This tool
+ reads one of these lifted VCFs, and writes a new sorted VCF in which the original coordinates are restored.
+
+ <h3>Usage example:</h3>
+ <pre>
+  java -jar DISCVRseq.jar BackportLiftedVcf \
+     -R currentGenome.fasta \
+     -targetFasta targetGenomes.fasta \
+     -V myVCF.vcf \
+     -O output.vcf.gz
+ </pre>
 
 
 				<h3>BackportLiftedVcf specific arguments</h3>
@@ -958,7 +969,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 0.09-6-g900e308-SNAPSHOT built at 26-13-2019 07:13:23.
+        <p class="version">DISCVR-Seq version 1.0-SNAPSHOT built at 06-36-2019 12:36:10.
         </p>
 
 </div></div>

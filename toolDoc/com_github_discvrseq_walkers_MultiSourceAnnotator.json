@@ -710,9 +710,9 @@
       "options": []
     }
   ],
-  "description": "",
+  "description": "This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and \u003ca href\u003d\"https://www.hgsc.bcm.edu/software/cassandra\"\u003eCassandra\u003c/a\u003e,\n and transfer select annotations from those VCFs to the input VCF.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar MultiSourceAnnotator \\\n     -cv clinvar.vcf.gz \\\n     -lr liftoverFailures.vcf \\\n     -c cassandraVcf.vcf.gz \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
   "name": "MultiSourceAnnotator",
-  "group": "Development/Internal Tools",
+  "group": "Specialized/Internal Tools",
   "beta": false,
   "experimental": false
 }

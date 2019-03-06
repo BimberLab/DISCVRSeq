@@ -4,7 +4,7 @@
 
 
 
-	<?php $group = 'Public/Stable Tools'; ?>
+	<?php $group = 'Development/Pre-production Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -18,11 +18,29 @@
 		<p>Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals</p>
 
 			<h3>Category
-				<small> Public/Stable Tools</small>
+				<small> Development/Pre-production Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		
+		This tool will extract the reads from a BAM over each of the provided intervals, reconstruct the local haplotypes (using simple logic and only relying on regions with coverage), and
+ produce a table listing the frequency of every unique haplotype.  It was originally created to inspect amplicon-based deep sequencing, such as evaluating CRISPR edits.
+
+ <h3>Usage example:</h3>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+     -R reference.fasta \
+     -L chr01:100-200 \
+     -I myBam.bam \
+     -O output.txt
+ </pre>
+ <h3>Usage example, <a href="https://gatkforums.broadinstitute.org/gatk/discussion/1319/collected-faqs-about-interval-lists"></a>supplying intervals from a file:</a></h3>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+     -R reference.fasta \
+     -L myFile.intervals \
+     -I myBam.bam \
+     -O output.txt
+ </pre>
 
 
 				<h3>PrintReadBackedHaplotypes specific arguments</h3>
@@ -962,7 +980,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 0.09-6-g900e308-SNAPSHOT built at 26-13-2019 07:13:23.
+        <p class="version">DISCVR-Seq version 1.0-SNAPSHOT built at 06-36-2019 12:36:10.
         </p>
 
 </div></div>

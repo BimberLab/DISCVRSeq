@@ -13,7 +13,7 @@
             <div class="span6">
                 <div class="btn-group pull-right">
                     <a class="btn btn-warning dropdown-toggle" data-toggle="dropdown" href="#">
-                        Version 0.09-6-g900e308-SNAPSHOT
+                        Version 1.0-SNAPSHOT
                         <span class="caret"></span>
                     </a>
                 </div>
@@ -29,11 +29,11 @@
         <div class="accordion" id="index">
         <div class="accordion-group">
             <div class="accordion-heading">
-                <a class="accordion-toggle" data-toggle="collapse" data-parent="#index" href="#DevelopmentInternalTools">
-                    <h4>Development/Internal Tools</h4>
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#index" href="#DevelopmentPreproductionTools">
+                    <h4>Development/Pre-production Tools</h4>
                 </a>
             </div>
-            <div class="accordion-body collapse" id="DevelopmentInternalTools">
+            <div class="accordion-body collapse" id="DevelopmentPreproductionTools">
                 <div class="accordion-inner">
                     <p class="lead">Unlike the public tools group, these tools may have have received less rigorous testing and may be under active development.</p>
                     <table class="table table-striped table-bordered table-condensed cozy">
@@ -42,28 +42,12 @@
                             <th>Summary</th>
                         </tr>
                                 <tr>
-                                    <td><a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a></td>
-                                        <td>Backport lifted VCF to the original coordinates</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a></td>
-                                        <td>Annotate a VCF with ClinVar vcf_2.0</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a></td>
-                                        <td>Produces a concordance report between samples in a VCF against every other sample in a reference VCF</td>
-                                </tr>
-                                <tr>
-                                    <td><a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a></td>
-                                        <td>Filters genotypes based on an input list of samples/sites</td>
-                                </tr>
-                                <tr>
                                     <td><a href="com_github_discvrseq_walkers_ImmunoGenotyper.html">ImmunoGenotyper</a></td>
-                                        <td>Provides genotyping summary for complex multi-genic loci, like KIR or MHC.</td>
+                                        <td>Provides genotyping summary for complex multigenic loci, like KIR or MHC.</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a></td>
-                                        <td>Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF</td>
+                                    <td><a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a></td>
+                                        <td>Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals</td>
                                 </tr>
                     </table>
                 </div>
@@ -84,16 +68,54 @@
                             <th>Summary</th>
                         </tr>
                                 <tr>
+                                    <td><a href="com_github_discvrseq_walkers_CrossSampleGenotypeComparison.html">CrossSampleGenotypeComparison</a></td>
+                                        <td>Produces a concordance report between samples in a VCF against every other sample in a reference VCF</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_GenotypeFilterBySample.html">GenotypeFilterBySample</a></td>
+                                        <td>Filters genotypes based on an input list of samples/sites</td>
+                                </tr>
+                                <tr>
                                     <td><a href="com_github_discvrseq_walkers_MultipleAllelesAtLoci.html">MultipleAllelesAtLoci</a></td>
                                         <td>Generate a list of loci with three or more distinct bases detected</td>
                                 </tr>
                                 <tr>
-                                    <td><a href="com_github_discvrseq_walkers_PrintReadBackedHaplotypes.html">PrintReadBackedHaplotypes</a></td>
-                                        <td>Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals</td>
+                                    <td><a href="com_github_discvrseq_walkers_RemoveAnnotations.html">RemoveAnnotations</a></td>
+                                        <td>Removes specific site or genotype annotations from a VCF</td>
                                 </tr>
                                 <tr>
                                     <td><a href="com_github_discvrseq_walkers_variantqc_VariantQC.html">VariantQC</a></td>
                                         <td>Generate HTML summary report for a VCF</td>
+                                </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-group">
+            <div class="accordion-heading">
+                <a class="accordion-toggle" data-toggle="collapse" data-parent="#index" href="#SpecializedInternalTools">
+                    <h4>Specialized/Internal Tools</h4>
+                </a>
+            </div>
+            <div class="accordion-body collapse" id="SpecializedInternalTools">
+                <div class="accordion-inner">
+                    <p class="lead">These tools are designed for fairly specialized purposes and are most likely only useful internally.</p>
+                    <table class="table table-striped table-bordered table-condensed cozy">
+                        <tr>
+                            <th>Name</th>
+                            <th>Summary</th>
+                        </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_BackportLiftedVcf.html">BackportLiftedVcf</a></td>
+                                        <td>Backport lifted VCF to the original coordinates</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_ClinvarAnnotator.html">ClinvarAnnotator</a></td>
+                                        <td>Annotate variants overlapping ClinVar</td>
+                                </tr>
+                                <tr>
+                                    <td><a href="com_github_discvrseq_walkers_MultiSourceAnnotator.html">MultiSourceAnnotator</a></td>
+                                        <td>Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF</td>
                                 </tr>
                     </table>
                 </div>
@@ -110,7 +132,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 0.09-6-g900e308-SNAPSHOT built at 26-13-2019 07:13:23.
+        <p class="version">DISCVR-Seq version 1.0-SNAPSHOT built at 06-36-2019 12:36:10.
         </p>
 
 </div></div>

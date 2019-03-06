@@ -680,9 +680,9 @@
       "options": []
     }
   ],
-  "description": "",
+  "description": "This tool will extract the reads from a BAM over each of the provided intervals, reconstruct the local haplotypes (using simple logic and only relying on regions with coverage), and\n produce a table listing the frequency of every unique haplotype.  It was originally created to inspect amplicon-based deep sequencing, such as evaluating CRISPR edits.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \\\n     -R reference.fasta \\\n     -L chr01:100-200 \\\n     -I myBam.bam \\\n     -O output.txt\n \u003c/pre\u003e\n \u003ch3\u003eUsage example, \u003ca href\u003d\"https://gatkforums.broadinstitute.org/gatk/discussion/1319/collected-faqs-about-interval-lists\"\u003e\u003c/a\u003esupplying intervals from a file:\u003c/a\u003e\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \\\n     -R reference.fasta \\\n     -L myFile.intervals \\\n     -I myBam.bam \\\n     -O output.txt\n \u003c/pre\u003e",
   "name": "PrintReadBackedHaplotypes",
-  "group": "Public/Stable Tools",
+  "group": "Development/Pre-production Tools",
   "beta": false,
   "experimental": false
 }

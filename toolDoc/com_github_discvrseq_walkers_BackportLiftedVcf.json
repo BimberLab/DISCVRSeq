@@ -680,9 +680,9 @@
       "options": []
     }
   ],
-  "description": "",
+  "description": "This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated\n in those coordinates. Lifeover must be performed using Picard Tools LiftoverVcf, which annotates lifted variants with the values for ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE.  This tool\n reads one of these lifted VCFs, and writes a new sorted VCF in which the original coordinates are restored.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar BackportLiftedVcf \\\n     -R currentGenome.fasta \\\n     -targetFasta targetGenomes.fasta \\\n     -V myVCF.vcf \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
   "name": "BackportLiftedVcf",
-  "group": "Development/Internal Tools",
+  "group": "Specialized/Internal Tools",
   "beta": false,
   "experimental": false
 }
