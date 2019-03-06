@@ -37,7 +37,7 @@ before_deploy:
       ls -lah build/libs/;
       mv build/libs/DISCVRSeq-${TRAVIS_TAG}.jar DISCVRSeq-${TRAVIS_TAG}.jar;
       rm -Rf build/javadoc;
-      mv -R build/docs ghDocs;
+      mv build/docs ghDocs;
     fi
 deploy:
   - provider: releases
