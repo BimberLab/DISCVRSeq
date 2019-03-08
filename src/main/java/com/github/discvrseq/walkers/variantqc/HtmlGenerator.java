@@ -1,11 +1,16 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.github.discvrseq.Main;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.apache.commons.compress.utils.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.broadinstitute.hellbender.utils.io.Resource;
+import org.json.simple.JSONObject;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -83,7 +88,7 @@ public class HtmlGenerator {
         return DEV.equals(getVersion());
     }
 
-    public void generateHtml(Collection<SectionJsonDescriptor> translatorList, PrintWriter out) throws IOException {
+    public void generateHtml(Collection<SectionJsonDescriptor> translatorList, PrintWriter out, @Nullable PrintWriter jsonWriter) throws IOException {
 
         printStaticContent(out);
 
@@ -121,6 +126,32 @@ public class HtmlGenerator {
             String toWrite = writer.getBuffer().toString().replaceAll("\\{version}", getVersion());
             IOUtils.write(toWrite, out);
         }
+
+        //write raw data
+        if (jsonWriter != null) {
+            JsonObject json = new JsonObject();
+            arr.forEach(e -> {
+                JsonObject j = e.getAsJsonObject();
+                String section = j.get("label").getAsString();
+                JsonObject sectionJson = json.has(section) ? json.get(section).getAsJsonObject() : new JsonObject();
+
+                JsonArray reports = j.get("reports").getAsJsonArray();
+                reports.forEach( report -> {
+                    JsonObject r = report.getAsJsonObject();
+                    String reportName = r.get("label").getAsString();
+                    if (sectionJson.has(reportName)){
+                        throw new RuntimeException("Duplicate report name: " + reportName);
+                    }
+                    sectionJson.add(reportName, r);
+                });
+
+                json.add(section, sectionJson);
+            });
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            jsonWriter.write(gson.toJson(json));
+        }
+
     }
 
     private static void appendScript(String script, PrintWriter out) throws IOException{

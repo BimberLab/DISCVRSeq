@@ -86,7 +86,8 @@ public class VariantQC extends VariantWalker {
     @Argument(doc="File to which the report should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
 
-    private PrintWriter writer;
+    @Argument(doc="File to which the raw data will be written as JSON", fullName = "rawData", shortName = "rd", optional = true)
+    public String jsonFile = null;
 
     private SampleDB sampleDB = null;
 
@@ -151,7 +152,11 @@ public class VariantQC extends VariantWalker {
         super.onTraversalStart();
 
         Utils.nonNull(outFile);
-        writer = new PrintWriter(IOUtil.openFileForBufferedWriting(new File(outFile)));
+
+        if (jsonFile != null) {
+            File json = new File(jsonFile);
+            IOUtil.assertFileIsWritable(json);
+        }
 
         sampleDB = initializeSampleDB();
 
@@ -223,14 +228,14 @@ public class VariantQC extends VariantWalker {
 
             sectionMap.keySet().forEach(key -> sections.add(sectionMap.get(key)));
 
-            HtmlGenerator generator = new HtmlGenerator();
-            generator.generateHtml(sections, writer);
+            try (PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedWriting(new File(outFile))); PrintWriter jsonWriter = (jsonFile == null ? null : new PrintWriter(IOUtil.openFileForBufferedWriting(new File(jsonFile))))) {
+                HtmlGenerator generator = new HtmlGenerator();
+                generator.generateHtml(sections, writer, jsonWriter);
+            }
         }
         catch (IOException e){
             throw new GATKException(e.getMessage(), e);
         }
-
-        writer.close();
 
         return super.onTraversalSuccess();
     }
