@@ -69,9 +69,8 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         expected.delete();
     }
 
-    @Test
-    public void testPedigreeOutput() throws Exception {
-        File expected = generateCompleteOutput(getTestFile("testPedigreeOutput.html"));
+    private ArgumentsBuilder getBasePedigreeArgs()
+    {
         ArgumentsBuilder args = new ArgumentsBuilder();
         args.add("--variant");
         File input = new File(testBaseDir, "MendelianViolationEval.vcf");
@@ -90,10 +89,31 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         args.add("--tmp-dir");
         args.add(getTmpDir());
 
+        return args;
+    }
+
+    @Test
+    public void testPedigreeOutput() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testPedigreeOutput.html"));
+        ArgumentsBuilder args = getBasePedigreeArgs();
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
 
         spec.executeTest("testPedigreeOutput", this);
+        expected.delete();
+    }
+
+    @Test
+    public void testPedigreeOutputWithValidation() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testPedigreeOutput.html"));
+        ArgumentsBuilder args = getBasePedigreeArgs();
+        args.add("-pedValidationType");
+        args.add("SILENT");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testPedigreeOutputWithValidation", this);
         expected.delete();
     }
 
