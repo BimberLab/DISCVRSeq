@@ -56,7 +56,7 @@ function generateTableHtml(config){
 
                 // see this issue for the reason behind the manual height:
                 // https://github.com/ewels/MultiQC/issues/545
-                html += '<td style="height: 1px;" ' + (showBar ? 'class="data-coloured' + (doFlag ? '-flagged ' : '') : '') + column.colId + '_' + column.name + ' "><div class="wrapper">' + (showBar ? '<span class="bar" style="width:' + percentage + '%;"></span>' : '') + '<span class="val">' + formattedVal + '</span></div></td>';
+                html += '<td style="height: 1px;" class="' + (showBar ? 'data-coloured' + (doFlag ? '-flagged ' : ' ') : '') + column.colId + '_' + column.name + ' "><div class="wrapper">' + (showBar ? '<span class="bar" style="width:' + percentage + '%;"></span>' : '') + '<span class="val">' + formattedVal + '</span></div></td>';
             }
             else {
                 html += '<td>ND</td>';
