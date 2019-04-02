@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>GenotypeFilterBySample</title>
+<title>PrintReadsContaining</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,36 +13,80 @@
 
 	<div class="span8">
 
-			<h1>GenotypeFilterBySample</h1>
+			<h1>PrintReadsContaining</h1>
 
-		<p>Filters genotypes based on an input list of samples/sites</p>
+		<p>Print read pairs matching a list of sequences/expressions</p>
 
 			<h3>Category
 				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool accepts a VCF and a BED file with a list of sites, where sample name is the feature name.  If the VCF has a variant at any of these positions, the sample(s) will have their 
- genotypes converted to no-call. The BED file can have multiple lines per site if more than one sample needs to be filtered.
- 
- <h3>Usage example:</h3>
+		This walker will iterate FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.
+
+
+ <h3>Usage examples:</h3>
+ <h4>Simple search for a sequence in either forward or reverse read:</h4>
  <pre>
-  java -jar DISCVRseq.jar GenotypeFilterBySample \
-     -V myVCF.vcf \
-     -bl blacklist.bed \
-     -O output.vcf.gz
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e 'TACG' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>RegEx search for reads where either forward or reverse contains only A/T</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$ \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>Same as above, except tests forward read only</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e1 '^[AT]+$' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>In this example, the forward read must be exclusively A/T, and either the forward or reverse must contain AA</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e1 '^[AT]+$' \
+     -e 'AA' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>In this example, one of these two conditions must be true: either read is exclusively A/T or either read contains AA</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$' \
+     -e 'AA' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>Similar to the above, except both conditions must be met.</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$' \
+     -e 'AA' \
+     --matchAllExpressions \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
  </pre>
 
- And the blacklist.bed file might look like:
- <pre>
- #Comment lines are ignored. Format is: contig, start, stop, sampleName
- 1	11	12	sample1
- 1	11	12	sample2
- 1	3210	3211	sample2
- </pre>
 
-
-				<h3>GenotypeFilterBySample specific arguments</h3>
+				<h3>PrintReadsContaining specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -57,28 +101,18 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--genotypeBlacklist">--genotypeBlacklist</a><br />
-								&nbsp;<em>-bl</em>
-					</td>
-					<!--<td>FeatureInput[BEDFeature]</td> -->
-					<td>null</td>
-					<td>Genotype Blastlist BED</td>
-				</tr>
-				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
+					<td><a href="#--fastq">--fastq</a><br />
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>File to which variants should be written</td>
+					<td>Input fastq file (optionally gzipped) for single end data, or first read in paired end data.</td>
 				</tr>
 				<tr>
-					<td><a href="#--variant">--variant</a><br />
-								&nbsp;<em>-V</em>
+					<td><a href="#--output">--output</a><br />
 					</td>
-					<!--<td>String</td> -->
+					<!--<td>File</td> -->
 					<td>null</td>
-					<td>A VCF file containing variants</td>
+					<td>The output file for the first FASTQ file</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -122,6 +156,21 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--expressions">--expressions</a><br />
+								&nbsp;<em>-e</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test.  If either the forward or reverse read matches, it will be included.</td>
+				</tr>
+				<tr>
+					<td><a href="#--fastq2">--fastq2</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>Input fastq file (optionally gzipped) for the second read of paired end data.</td>
+				</tr>
+				<tr>
 					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
 								&nbsp;<em>-gcs-retries</em>
 					</td>
@@ -159,6 +208,37 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>One or more genomic intervals over which to operate</td>
+				</tr>
+				<tr>
+					<td><a href="#--matchAllExpressions">--matchAllExpressions</a><br />
+								&nbsp;<em>-ma</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If provided, a read pair must match all sequences/expressions to be included.  Default: false</td>
+				</tr>
+				<tr>
+					<td><a href="#--output2">--output2</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>The output file for the second FASTQ file.  Required if -FQ2 is used.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read1Expressions">--read1Expressions</a><br />
+								&nbsp;<em>-e1</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read2Expressions">--read2Expressions</a><br />
+								&nbsp;<em>-e2</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test against the reverse read. If passing, the pair will be included.</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -566,6 +646,43 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--expressions">--expressions </a>
+			 / <small>-e</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test.  If either the forward or reverse read matches, it will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--fastq">--fastq </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Input fastq file (optionally gzipped) for single end data, or first read in paired end data.</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--fastq2">--fastq2 </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Input fastq file (optionally gzipped) for the second read of paired end data.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--gatk-config-file">--gatk-config-file </a>
 			 / <small>NA</small>
 		</h3>
@@ -602,19 +719,6 @@
 		<p>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">""</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--genotypeBlacklist">--genotypeBlacklist </a>
-			 / <small>-bl</small>
-		</h3>
-		<p class="args">
-			<b>Genotype Blastlist BED</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">FeatureInput[BEDFeature]</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--help">--help </a>
@@ -747,15 +851,39 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--output">--output </a>
-			 / <small>-O</small>
+		<h3><a name="--matchAllExpressions">--matchAllExpressions </a>
+			 / <small>-ma</small>
 		</h3>
 		<p class="args">
-			<b>File to which variants should be written</b><br />
+			<b>If provided, a read pair must match all sequences/expressions to be included.  Default: false</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--output">--output </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file for the first FASTQ file</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--output2">--output2 </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file for the second FASTQ file.  Required if -FQ2 is used.</b><br />
+			
+		</p>
+		<p>
 		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -817,6 +945,30 @@
 		<p>
 		<span class="label label-info ">ValidationStringency</span>
 			&nbsp;<span class="label">SILENT</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read1Expressions">--read1Expressions </a>
+			 / <small>-e1</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read2Expressions">--read2Expressions </a>
+			 / <small>-e2</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test against the reverse read. If passing, the pair will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
@@ -915,19 +1067,6 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--variant">--variant </a>
-			 / <small>-V</small>
-		</h3>
-		<p class="args">
-			<b>A VCF file containing variants</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
