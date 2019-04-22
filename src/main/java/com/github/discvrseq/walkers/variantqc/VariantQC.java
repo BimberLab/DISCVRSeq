@@ -83,6 +83,9 @@ public class VariantQC extends VariantWalker {
     @Argument(fullName = StandardArgumentDefinitions.PEDIGREE_FILE_LONG_NAME, shortName = StandardArgumentDefinitions.PEDIGREE_FILE_SHORT_NAME, doc="Pedigree file for identifying Mendelian violations", optional=true)
     private File pedigreeFile;
 
+    @Argument(fullName = "pedigreeValidationType", shortName = "pedValidationType", doc="The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT", optional=true)
+    private PedigreeValidationType pedigreeValidationType = PedigreeValidationType.STRICT;
+
     @Argument(doc="File to which the report should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
 
@@ -320,7 +323,7 @@ public class VariantQC extends VariantWalker {
     }
 
     private SampleDB initializeSampleDB() {
-        final SampleDBBuilder sampleDBBuilder = new SampleDBBuilder(PedigreeValidationType.STRICT);
+        final SampleDBBuilder sampleDBBuilder = new SampleDBBuilder(pedigreeValidationType);
         if (pedigreeFile != null)
             sampleDBBuilder.addSamplesFromPedigreeFiles(Collections.singletonList(pedigreeFile));
 
