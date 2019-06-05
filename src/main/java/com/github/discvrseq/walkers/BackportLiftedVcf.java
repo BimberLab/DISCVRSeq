@@ -18,6 +18,7 @@ import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.reference.ReferenceUtils;
+import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
 
 import java.io.File;
 import java.util.*;
@@ -210,7 +211,11 @@ public class BackportLiftedVcf extends VariantWalker {
             options.add(Options.ALLOW_MISSING_FIELDS_IN_HEADER);
         }
 
-        final VariantContextWriter out = createVCFWriter(new File(outFile));
+        final VariantContextWriter out = GATKVariantContextUtils.createVCFWriter(
+                new File(outFile),
+                outputHeader.getSequenceDictionary(),
+                createOutputVariantMD5,
+                options.toArray(new Options[options.size()]));
 
         out.writeHeader(outputHeader);
         for (final VariantContext variantContext : sortedOutput) {
@@ -218,5 +223,10 @@ public class BackportLiftedVcf extends VariantWalker {
             writeProgress.record(variantContext.getContig(), variantContext.getStart());
         }
         out.close();
+    }
+
+    @Override
+    public boolean requiresReference() {
+        return true;
     }
 }

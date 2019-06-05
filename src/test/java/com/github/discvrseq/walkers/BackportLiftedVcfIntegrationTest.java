@@ -1,6 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
 
