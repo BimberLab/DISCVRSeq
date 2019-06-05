@@ -59,6 +59,14 @@
 					<td>File to which variants should be written</td>
 				</tr>
 				<tr>
+					<td><a href="#--reference">--reference</a><br />
+								&nbsp;<em>-R</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Reference sequence file</td>
+				</tr>
+				<tr>
 					<td><a href="#--targetFasta">--targetFasta</a><br />
 					</td>
 					<!--<td>String</td> -->
@@ -152,14 +160,6 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>One or more genomic intervals over which to operate</td>
-				</tr>
-				<tr>
-					<td><a href="#--reference">--reference</a><br />
-								&nbsp;<em>-R</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Reference sequence</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -803,10 +803,11 @@
 			 / <small>-R</small>
 		</h3>
 		<p class="args">
-			<b>Reference sequence</b><br />
+			<b>Reference sequence file</b><br />
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -969,7 +970,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.03 built at 22-43-2019 07:43:38.
+        <p class="version">DISCVR-Seq version 1.04 built at 05-43-2019 06:43:13.
         </p>
 
 </div></div>

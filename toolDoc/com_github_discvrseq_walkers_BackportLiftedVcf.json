@@ -483,18 +483,18 @@
       ]
     },
     {
-      "summary": "Reference sequence",
+      "summary": "Reference sequence file",
       "name": "--reference",
       "synonyms": "-R",
       "type": "String",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
