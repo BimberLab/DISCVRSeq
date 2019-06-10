@@ -108,11 +108,16 @@ public class BackportLiftedVcf extends VariantWalker {
     }
 
     private void initializeSorter(VCFHeader outputHeader) {
+        File tmpDir = IOUtil.getDefaultTmpDir();
+        if (!tmpDir.exists()) {
+            tmpDir.mkdirs();
+        }
+
         sorter = SortingCollection.newInstance(
                 VariantContext.class,
                 new VCFRecordCodec(outputHeader, true),
                 outputHeader.getVCFRecordComparator(),
-                MAX_RECORDS_IN_RAM, IOUtil.getDefaultTmpDir().toPath());
+                MAX_RECORDS_IN_RAM, tmpDir.toPath());
     }
 
     @Override
