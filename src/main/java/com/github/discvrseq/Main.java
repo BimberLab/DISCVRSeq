@@ -86,8 +86,6 @@ public final class Main extends org.broadinstitute.hellbender.Main {
      */
     @VisibleForTesting
     protected final void printStackTrace(final Exception e) {
-        if (Log.isEnabled(Log.LogLevel.DEBUG)) {
-            e.printStackTrace(exceptionOutput);
-        }
+        e.printStackTrace(exceptionOutput);
     }
 }
