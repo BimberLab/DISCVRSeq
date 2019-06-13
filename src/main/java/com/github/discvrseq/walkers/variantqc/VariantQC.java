@@ -201,7 +201,7 @@ public class VariantQC extends VariantWalker {
                 if (sectionLabel == null || reportLabel == null || stratifiers == null || infoField == null) {
                     throw new UserException.BadInput("Field " + infoField + " not found: on line " + i + " of report config file");
                 }
-                
+
                 VCFInfoHeaderLine headerLine = header.getInfoHeaderLine(infoField);
                 if (headerLine == null) {
                     throw new UserException.BadInput("INFO field " + infoField + " not found in VCF header (line " + i + " of report config file)");
@@ -218,7 +218,7 @@ public class VariantQC extends VariantWalker {
                         throw new UserException.BadInput("Stratifier not found " + strat + " (line " + i + " of report config file)");
                     }
                 }
-                
+
                 ret.add(new ReportConfig(stratList, rd));
             }
         }
