@@ -1,1 +1,2 @@
-By Sample	Purpose Report	Sample,Contig	PURPOSE
+By Sample	Purpose Report	Sample	PURPOSE
+By Contig	Purpose Report2	Sample,Contig	PURPOSE

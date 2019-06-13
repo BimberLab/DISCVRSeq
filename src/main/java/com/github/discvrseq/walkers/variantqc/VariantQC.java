@@ -44,11 +44,14 @@ import java.util.*;
  * This tool is analogous to FASTQC or MultiQC, which provide similar HTML summary reports for different types of sequence data.
  *
  * <h3>Usage examples:</h3>
+ *
+ *  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
+ *
  * <h4>Basic Usage, Without Pedigree:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
  *     -R Homo_sapiens_assembly38.fasta \
- *     -V input.vcf \
+ *     -V hapmap_3.3.hg38.vcf.gz \
  *     -O output.html
  * </pre>
  *
@@ -61,15 +64,62 @@ import java.util.*;
  *     -O output.html
  * </pre>
 
- * <h3>Example Report:</h3>
- * Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).  The report
- * contains a series of tables or graphs summarizing different aspects of the data.  A complete example HTML report can be <a href="resources/variantQCSampleReport.html">viewed here</a>
+ * <h3>Variant QC Output Report:</h3>
+ * Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).
+ * A complete example HTML report can be <a href="resources/variantQCSampleReport.html">viewed here</a>.  The report contains a series of tables or graphs summarizing different aspects of the data.  Below are the main types:
+ * <br>
+*  <ul>
+ *      <li>Variant Summary: A table displaying a summary of the total variants by type (SNP, insertion, deletion, MNP, etc.), </li>
+ *      <li>Variant Type: a bar plot summarizing variant by type (SNP, insertion, deletion, MNP, etc.)</li>
+ *      <li>Genotype Summary: A table summarizing the total called/non-called genotypes</li>
+ *      <li>SNP/Indel Summary:</li>
+ *      <li>Ti/Tv Data: A table displaying a summary of <a href="https://en.wikipedia.org/wiki/Transversion">transition and transversion</a> mutations in the dataset</li>
+ *      <li>Filter Type: A bar plot summarizing variants by filter</li>
+*  </ul>
  * <p></p>
  * <img src="images/variantQCSampleReport1.png" style="width: 75%"/>
  *
  * <h3>Advanced Usage:</h3>
  *
- * TODO
+ * VariantQC is designed to produce general-purpose reports applicable to a range of users; however, several mechanisms may make the output more useful to your data:
+ *
+ * <h4>Write the raw output data to a separate file as JSON, which can be parsed separately:</h4>
+ * <pre>
+ * java -jar DISCVRSeq.jar VariantQC \
+ *     -R Homo_sapiens_assembly38.fasta \
+ *     -V input.vcf \
+ *     -rd output.json \
+ *     -O output.html
+ * </pre>
+ *
+ * <h4>Define additional reports to be included in the HTML report:</h4>
+ * <pre>
+ * java -jar DISCVRSeq.jar VariantQC \
+ *     -R Homo_sapiens_assembly38.fasta \
+ *     -V input.vcf \
+ *     --additionalReportFile reports.txt \
+ *     -O output.html
+ * </pre>
+ *
+ * Where reports.txt is a tab-delimited file with one report per line and no header.  Comment lines can be included, beginning with '#'.  This file has 4 columns:
+ * <br>
+ * <ul>
+ * <li>Section label: Corresponds to the report group.  This is typically 'Entire VCF', 'By Contig', etc.; however, any value can be used.</li>
+ * <li>Report label: The title used for this report.  For example: 'Variant Summary'</li>
+ * <li>Stratifications: A comma-separated list of the stratifications to use when aggregating data.  Allowable values are: VCF, Sample, Contig, and Filter</li>
+ * <li>INFO field name: The name of the INFO field attribute to aggregate.  This field must be of type character, string or integer.  Note: this will produce a table summarizing the total variants for each level of this variable.  Therefore a field with a wide range of possible values may not be appropriate to summarize in this manner.  For example, while integer fields are support since in certain cases the value is bounded and will have a reasonable number of unique values.</li>
+ * </ul>
+ * <br>
+ * Example Report File:
+ * <pre>
+ * By Sample	Example Report	Sample	PURPOSE
+ * By Contig	Example Report2	Sample,Contig	PURPOSE
+ * </pre>
+ *
+ * <h4>Other Usage Suggestions:</h4>
+ * Upstream processing of your VCF can enhance the value of the VariantQC report for your data. Our group routinely performs quality filtering on our VCFs, which saves information about the filter type in the FILTER field (<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_filters_VariantFiltration.php"></a>see VariantFiltration</a>).  FilterType is used to stratify data in VariantQC, allowing us to view sample, VCF, or chromosome differences.
+ * <br><br>
+ * While VariantQC does not direct support automatic filtering/flagging of VCFs or samples based on thresholds, our group accomplishes this by writing a separate script to read the raw JSON output (see --rawData argument), and then applying our application-specific criteria.
  *
  * <h3>Authors:</h3>
  * <ul>
@@ -79,7 +129,7 @@ import java.util.*;
  *
  * <h3>Acknowledgements:</h3>
  * This tool internally uses <a href="https://github.com/broadinstitute/gatk">GATK4's VariantEval</a> to aggregate data, and borrows heavily from <a href="https://multiqc.info/">MultiQC</a> for the HTML in the final report.
- * We thank Philip Ewels for the use of MultiQC code, and Chris Norman of the Broad Institute for assistance with VariantEval.
+ * We thank Philip Ewels for the use of MultiQC HTML/CSS/JS templates, and Chris Norman of the Broad Institute for assistance with VariantEval.
  *
  */
 @DocumentedFeature
@@ -102,7 +152,7 @@ public class VariantQC extends VariantWalker {
     @Argument(doc="File to which the raw data will be written as JSON", fullName = "rawData", shortName = "rd", optional = true)
     public String jsonFile = null;
 
-    @Argument(fullName = "additionalReportFile", shortName = "arf", doc="A text file listing the set of reports to display.  See Advanced Usage in the tool documentation", optional=true)
+    @Argument(fullName = "additionalReportFile", shortName = "arf", doc="This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.", optional=true)
     public File additionalReportFile = null;
 
     private SampleDB sampleDB = null;
@@ -114,36 +164,36 @@ public class VariantQC extends VariantWalker {
         PivotingTransformer transformer4 = new PivotingTransformer("CountVariants", Arrays.asList("EvalFeatureInput"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nCalledLoci", null)));
 
         ReportConfig[] standardWrappers = new ReportConfig[]{
-            new ReportConfig(new String[]{"EvalFeatureInput"}, TableReportDescriptor.getCountVariantsTable("Entire VCF", true)),
-            new ReportConfig(new String[]{"EvalFeatureInput"}, BarPlotReportDescriptor.getVariantTypeBarPlot("Entire VCF")),
-            new ReportConfig(new String[]{"EvalFeatureInput"}, TableReportDescriptor.getIndelTable("Entire VCF")),
-            new ReportConfig(new String[]{"EvalFeatureInput"}, new TableReportDescriptor("Ti/Tv Data", "Entire VCF", "TiTvVariantEvaluator")),
-            new ReportConfig(new String[]{"EvalFeatureInput"}, new TableReportDescriptor("Genotype Summary", "Entire VCF", "GenotypeFilterSummary")),
+            new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getCountVariantsTable("Entire VCF", true)),
+            new ReportConfig(Arrays.asList("EvalFeatureInput"), BarPlotReportDescriptor.getVariantTypeBarPlot("Entire VCF")),
+            new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getIndelTable("Entire VCF")),
+            new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Ti/Tv Data", "Entire VCF", "TiTvVariantEvaluator")),
+            new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Genotype Summary", "Entire VCF", "GenotypeFilterSummary")),
 
-            new ReportConfig(new String[]{"Contig"}, TableReportDescriptor.getCountVariantsTable("By Contig", true)),
-            new ReportConfig(new String[]{"Contig"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Contig")),
-            new ReportConfig(new String[]{"Contig"}, TableReportDescriptor.getIndelTable("By Contig")),
-            new ReportConfig(new String[]{"Contig"}, new TableReportDescriptor("Genotype Summary", "By Contig", "GenotypeFilterSummary", Arrays.asList("all"))),
+            new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getCountVariantsTable("By Contig", true)),
+            new ReportConfig(Arrays.asList("Contig"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Contig")),
+            new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getIndelTable("By Contig")),
+            new ReportConfig(Arrays.asList("Contig"), new TableReportDescriptor("Genotype Summary", "By Contig", "GenotypeFilterSummary", Arrays.asList("all"))),
 
-            new ReportConfig(new String[]{"Sample"}, TableReportDescriptor.getCountVariantsTable("By Sample", true)),
-            new ReportConfig(new String[]{"Sample"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Sample")),
-            new ReportConfig(new String[]{"Sample"}, TableReportDescriptor.getIndelTable("By Sample")),
-            new ReportConfig(new String[]{"Sample"}, new TableReportDescriptor("Ti/Tv Data", "By Sample", "TiTvVariantEvaluator", Arrays.asList("all"))),
-            new ReportConfig(new String[]{"Sample"}, new TableReportDescriptor("Genotype Summary", "By Sample", "GenotypeFilterSummary", Arrays.asList("all"))),
+            new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getCountVariantsTable("By Sample", true)),
+            new ReportConfig(Arrays.asList("Sample"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Sample")),
+            new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getIndelTable("By Sample")),
+            new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Ti/Tv Data", "By Sample", "TiTvVariantEvaluator", Arrays.asList("all"))),
+            new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Genotype Summary", "By Sample", "GenotypeFilterSummary", Arrays.asList("all"))),
 
-            new ReportConfig(new String[]{"Sample", "FilterType"}, new TableReportDescriptor("Sites By Filter", "By Sample", "CountVariants", Arrays.asList("all"), transformer1)),
-            new ReportConfig(new String[]{"Sample", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Sample", transformer1)),
+            new ReportConfig(Arrays.asList("Sample", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Sample", "CountVariants", Arrays.asList("all"), transformer1)),
+            new ReportConfig(Arrays.asList("Sample", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Sample", transformer1)),
 
-            new ReportConfig(new String[]{"Sample", "Contig"}, new TableReportDescriptor("Variants Per Contig", "By Sample", "CountVariants", Arrays.asList("all"), transformer2)),
+            new ReportConfig(Arrays.asList("Sample", "Contig"), new TableReportDescriptor("Variants Per Contig", "By Sample", "CountVariants", Arrays.asList("all"), transformer2)),
 
-            new ReportConfig(new String[]{"Contig", "FilterType"}, new TableReportDescriptor("Sites By Filter", "By Contig", "CountVariants", Arrays.asList("all"), transformer3)),
-            new ReportConfig(new String[]{"Contig", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Contig", transformer3)),
+            new ReportConfig(Arrays.asList("Contig", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Contig", "CountVariants", Arrays.asList("all"), transformer3)),
+            new ReportConfig(Arrays.asList("Contig", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Contig", transformer3)),
 
-            new ReportConfig(new String[]{"FilterType"}, TableReportDescriptor.getCountVariantsTable("By Filter Type", true)),
-            new ReportConfig(new String[]{"FilterType"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Filter Type")),
+            new ReportConfig(Arrays.asList("FilterType"), TableReportDescriptor.getCountVariantsTable("By Filter Type", true)),
+            new ReportConfig(Arrays.asList("FilterType"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Filter Type")),
 
-            new ReportConfig(new String[]{"EvalFeatureInput", "FilterType"}, new TableReportDescriptor("Variant Summary By Filter", "Entire VCF", "CountVariants", Arrays.asList("all"), transformer4)),
-            new ReportConfig(new String[]{"EvalFeatureInput", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("Entire VCF", transformer4))
+            new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), new TableReportDescriptor("Variant Summary By Filter", "Entire VCF", "CountVariants", Arrays.asList("all"), transformer4)),
+            new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("Entire VCF", transformer4))
         };
 
         return standardWrappers;
@@ -212,10 +262,25 @@ public class VariantQC extends VariantWalker {
                 }
 
                 TableReportDescriptor rd = new TableReportDescriptor.InfoFieldTableReportDescriptor(reportLabel, sectionLabel, infoField);
-                String[] stratList = stratifiers.split(",");
+                List<String> stratList = new ArrayList<>(Arrays.asList(stratifiers.split(",")));
+
+                //allow user-friendly translation:
+                ListIterator<String> it = stratList.listIterator();
+                while (it.hasNext()) {
+                    String v = it.next();
+                    if ("VCF".equals(v)) {
+                        it.set("EvalFeatureInput");
+                    }
+                }
+
                 for (String strat : stratList) {
+
                     if (!classMap.containsKey(strat)) {
-                        throw new UserException.BadInput("Stratifier not found " + strat + " (line " + i + " of report config file)");
+                        Set<String> allowable = new TreeSet<>(classMap.keySet());
+                        allowable.add("VCF");
+                        allowable.remove("EvalFeatureInput");
+
+                        throw new UserException.BadInput("Stratifier not found " + strat + " (line " + i + " of report config file).  Allowable values are: " + StringUtils.join(allowable, ", "));
                     }
                 }
 
@@ -233,8 +298,8 @@ public class VariantQC extends VariantWalker {
         ArrayList<String> stratifiers;
         ReportDescriptor rd;
 
-        public ReportConfig(String[] stratifiers, ReportDescriptor rd) {
-            this.stratifiers = new ArrayList<>(Arrays.asList(stratifiers));
+        public ReportConfig(List<String> stratifiers, ReportDescriptor rd) {
+            this.stratifiers = new ArrayList<>(stratifiers);
             this.rd = rd;
         }
 
