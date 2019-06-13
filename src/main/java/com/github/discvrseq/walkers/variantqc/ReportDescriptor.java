@@ -6,14 +6,17 @@ import com.google.gson.JsonPrimitive;
 import htsjdk.samtools.util.StringUtil;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
+import org.broadinstitute.hellbender.utils.samples.SampleDB;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
  * Created by bimber on 5/22/2017.
  */
 abstract class ReportDescriptor {
-    protected final String label;
+    protected final String sectionLabel;
+    protected final String reportLabel;
     protected final SectionJsonDescriptor.PlotType plotType;
     protected final String evaluatorModuleName;
     protected Map<String, JsonObject> columnInfoMap;
@@ -21,19 +24,30 @@ abstract class ReportDescriptor {
     protected GATKReportTable table;
     protected Set<String> skippedSamples = new HashSet<>();
     protected Map<String, String> descriptionMap;
+    protected GATKReportTableTransformer transformer;
 
-    protected ReportDescriptor(String label, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName) {
-        this.label = label;
+    protected ReportDescriptor(String reportLabel, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, @Nullable GATKReportTableTransformer transformer) {
+        this.sectionLabel = sectionLabel;
+        this.reportLabel = reportLabel;
         this.plotType = plotType;
         this.evaluatorModuleName = evaluatorModuleName;
         this.columnInfoMap = new HashMap<>();
+        this.transformer = transformer;
+    }
+
+    public String getEvaluatorModuleName() {
+        return evaluatorModuleName;
     }
 
     public void addColumnInfo(String colName, JsonObject columnInfo) {
         this.columnInfoMap.put(colName, columnInfo);
     }
 
-    public void bindSection(SectionJsonDescriptor sectionConfig, GATKReportTable table, Map<String, String> descriptionMap){
+    public void bindSection(SectionJsonDescriptor sectionConfig, GATKReportTable table, Map<String, String> descriptionMap, SampleDB sampleDB){
+        if (transformer != null){
+            table = transformer.transform(table, sampleDB);
+        }
+
         this.sectionConfig = sectionConfig;
         this.table = table;
         this.descriptionMap = descriptionMap;

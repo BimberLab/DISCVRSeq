@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang.math.NumberUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
+import org.broadinstitute.hellbender.utils.report.GATKReportDataType;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
 
 import java.util.*;
@@ -17,8 +18,8 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
     private String[] columnsToPlot;
     private String yLabel;
 
-    public BarPlotReportDescriptor(String plotTitle, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, String[] columnsToPlot, String yLabel, Collection<String> skippedSamples) {
-        super(plotTitle, plotType, evaluatorModuleName);
+    public BarPlotReportDescriptor(String plotTitle, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, String[] columnsToPlot, String yLabel, Collection<String> skippedSamples, PivotingTransformer transformer) {
+        super(plotTitle, sectionLabel, plotType, evaluatorModuleName, transformer);
         this.columnsToPlot = columnsToPlot;
         this.yLabel = yLabel;
         if (skippedSamples != null){
@@ -30,18 +31,19 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
         return Arrays.asList(columnsToPlot);
     }
 
-    public static BarPlotReportDescriptor getVariantTypeBarPlot() {
-        return new BarPlotReportDescriptor("Variant Type", SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", new String[]{"nSNPs", "nMNPs", "nInsertions", "nDeletions", "nComplex", "nSymbolic", "nMixed"}, "# Variants", Arrays.asList("all"));
+    public static BarPlotReportDescriptor getVariantTypeBarPlot(String sectionLabel) {
+        return new BarPlotReportDescriptor("Variant Type", sectionLabel, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", new String[]{"nSNPs", "nMNPs", "nInsertions", "nDeletions", "nComplex", "nSymbolic", "nMixed"}, "# Variants", Arrays.asList("all"), null);
     }
 
-    public static BarPlotReportDescriptor getSiteFilterTypeBarPlot() {
-        return new BarPlotReportDescriptor("Filter Type", SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", null, "# Variants", Arrays.asList("all")){
+    public static BarPlotReportDescriptor getSiteFilterTypeBarPlot(String sectionLabel, PivotingTransformer transformer) {
+        return new BarPlotReportDescriptor("Filter Type", sectionLabel, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", null, "# Variants", Arrays.asList("all"), transformer){
             @Override
             public List<String> getColumnsToPlot(GATKReportTable table){
                 List<String> ret = new ArrayList<>();
                 for (GATKReportColumn col : table.getColumnInfo()){
-                    if (!sectionConfig.stratifications.contains(col.getColumnName())){
-                        ret.add(col.getColumnName());
+                    if (!sectionConfig.stratifications.contains(col.getColumnName()) && !evaluatorModuleName.equals(col.getColumnName())){
+                        if (GATKReportDataType.Decimal == col.getDataType() || GATKReportDataType.Integer == col.getDataType())
+                            ret.add(col.getColumnName());
                     }
                 }
 
@@ -53,7 +55,7 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
     @Override
     public JsonObject getReportJson(String sectionTitle) {
         JsonObject ret = new JsonObject();
-        ret.addProperty("label", label);
+        ret.addProperty("label", reportLabel);
 
         JsonObject dataObj = new JsonObject();
         ret.add("data", dataObj);
@@ -87,7 +89,7 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
 
         JsonObject configJson = new JsonObject();
         configJson.addProperty("ylab", this.yLabel);
-        configJson.addProperty("title", label);
+        configJson.addProperty("title", reportLabel);
 
         dataObj.add("config", configJson);
 

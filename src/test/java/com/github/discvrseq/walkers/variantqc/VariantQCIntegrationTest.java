@@ -117,6 +117,37 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         expected.delete();
     }
 
+    @Test
+    public void testExtendedReports() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testExtendedReports.html"));
+        ArgumentsBuilder args = new ArgumentsBuilder();
+        args.add("--variant");
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        args.add(normalizePath(input));
+
+        File fasta = getHg19Micro();
+        args.add("-R");
+        args.add(normalizePath(fasta));
+
+        args.add("-L");
+        args.add("1");
+
+        File extendedReports = getTestFile("extendedReports.txt");
+        args.add("-arf");
+        args.add(normalizePath(extendedReports));
+
+        args.add("-O");
+        args.add("%s");
+        args.add("--tmp-dir");
+        args.add(getTmpDir());
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testExtendedReports", this);
+        expected.delete();
+    }
+
     private File generateCompleteOutput(File input) throws IOException {
         File out = new File(getTmpDir(), input.getName() + ".complete.html");
         try (BufferedReader reader = IOUtil.openFileForBufferedUtf8Reading(input); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(out))) {

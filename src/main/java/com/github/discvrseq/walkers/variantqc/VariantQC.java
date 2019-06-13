@@ -1,8 +1,13 @@
 package com.github.discvrseq.walkers.variantqc;
 
+import au.com.bytecode.opencsv.CSVReader;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -12,11 +17,12 @@ import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.exceptions.GATKException;
-import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEval;
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.manager.Stratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
-import org.broadinstitute.hellbender.utils.SimpleInterval;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.util.VariantEvalUtils;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
@@ -61,6 +67,10 @@ import java.util.*;
  * <p></p>
  * <img src="images/variantQCSampleReport1.png" style="width: 75%"/>
  *
+ * <h3>Advanced Usage:</h3>
+ *
+ * TODO
+ *
  * <h3>Authors:</h3>
  * <ul>
  *  <li>Ben Bimber, Ph.D.</li>
@@ -92,63 +102,146 @@ public class VariantQC extends VariantWalker {
     @Argument(doc="File to which the raw data will be written as JSON", fullName = "rawData", shortName = "rd", optional = true)
     public String jsonFile = null;
 
+    @Argument(fullName = "additionalReportFile", shortName = "arf", doc="A text file listing the set of reports to display.  See Advanced Usage in the tool documentation", optional=true)
+    public File additionalReportFile = null;
+
     private SampleDB sampleDB = null;
 
-    protected VariantEvalWrapper[] wrappers = new VariantEvalWrapper[]{
-            // TODO: we need to add evaluators that track specific JEXL expressions, such as:
-            // # mendelian violations / site, which we plot as a histogram.  perhaps also AF, as histogram
-            // We should be able to implement this as either:
-            // a) some type of generic VariantEvaluator class accepting a JEXL expression that will return a number.  the problem here is we dont know the states upfront.
-            // b) an alternative could be to skip VariantEval and write a new standalone HistogramWalker class.  We would need to maintain a separate internal set of these; however, I could imagine this tool being generically useful.
+    protected ReportConfig[] getStandardWrappers() {
+        PivotingTransformer transformer1 = new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)));
+        PivotingTransformer transformer2 = new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(new PivotingTransformer.Pivot("Contig", "nVariantLoci", null)), true);
+        PivotingTransformer transformer3 = new PivotingTransformer("CountVariants", Arrays.asList("Contig"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)));
+        PivotingTransformer transformer4 = new PivotingTransformer("CountVariants", Arrays.asList("EvalFeatureInput"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nCalledLoci", null)));
 
-            new VariantEvalWrapper("Entire VCF", new String[]{"EvalFeatureInput"}, new String[]{"CountVariants", "IndelSummary", "TiTvVariantEvaluator", "GenotypeFilterSummary"}, new ReportDescriptor[]{
-                    TableReportDescriptor.getCountVariantsTable(true),
-                    BarPlotReportDescriptor.getVariantTypeBarPlot(),
-                    TableReportDescriptor.getIndelTable(),
-                    new TableReportDescriptor("Ti/Tv Data", "TiTvVariantEvaluator"),
-                    new TableReportDescriptor("Genotype Summary", "GenotypeFilterSummary")
-            }),
-            new VariantEvalWrapper("By Contig", new String[]{"Contig"}, new String[]{"CountVariants", "IndelSummary", "GenotypeFilterSummary"}, new ReportDescriptor[]{
-                    TableReportDescriptor.getCountVariantsTable(true),
-                    BarPlotReportDescriptor.getVariantTypeBarPlot(),
-                    TableReportDescriptor.getIndelTable(),
-                    new TableReportDescriptor("Genotype Summary", "GenotypeFilterSummary", Arrays.asList("all"))
-            }),
-            new VariantEvalWrapper("By Sample", new String[]{"Sample"}, new String[]{"CountVariants", "IndelSummary", "TiTvVariantEvaluator", "GenotypeFilterSummary"}, new ReportDescriptor[]{
-                    TableReportDescriptor.getCountVariantsTable(true),
-                    BarPlotReportDescriptor.getVariantTypeBarPlot(),
-                    TableReportDescriptor.getIndelTable(),
-                    new TableReportDescriptor("Ti/Tv Data", "TiTvVariantEvaluator", Arrays.asList("all")),
-                    new TableReportDescriptor("Genotype Summary", "GenotypeFilterSummary", Arrays.asList("all"))
-            }),
-            new VariantEvalWrapper("By Sample", new String[]{"Sample", "FilterType"}, new String[]{"CountVariants"}, new ReportDescriptor[]{
-                    new TableReportDescriptor("Sites By Filter", "CountVariants", Arrays.asList("all")),
-                    BarPlotReportDescriptor.getSiteFilterTypeBarPlot(),
-            }, Arrays.asList(new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(
-                    new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)
-            )))),
-            new VariantEvalWrapper("By Sample", new String[]{"Sample", "Contig"}, new String[]{"CountVariants"}, new ReportDescriptor[]{
-                    new TableReportDescriptor("Variants Per Contig", "CountVariants", Arrays.asList("all")),
-            }, Arrays.asList(new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(
-                    new PivotingTransformer.Pivot("Contig", "nVariantLoci", null)
-            ), true))),
-            new VariantEvalWrapper("By Contig", new String[]{"Contig", "FilterType"}, new String[]{"CountVariants"}, new ReportDescriptor[]{
-                    new TableReportDescriptor("Sites By Filter", "CountVariants", Arrays.asList("all")),
-                    BarPlotReportDescriptor.getSiteFilterTypeBarPlot(),
-            }, Arrays.asList(new PivotingTransformer("CountVariants", Arrays.asList("Contig"), Arrays.asList(
-                    new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)
-            )))),
-            new VariantEvalWrapper("By Filter Type", new String[]{"FilterType"}, new String[]{"CountVariants"}, new ReportDescriptor[]{
-                    TableReportDescriptor.getCountVariantsTable(true),
-                    BarPlotReportDescriptor.getVariantTypeBarPlot()
-            }),
-            new VariantEvalWrapper("Entire VCF", new String[]{"EvalFeatureInput", "FilterType"}, new String[]{"CountVariants"}, new ReportDescriptor[]{
-                    new TableReportDescriptor("Variant Summary By Filter", "CountVariants", Arrays.asList("all")),
-                    BarPlotReportDescriptor.getSiteFilterTypeBarPlot()
-            }, Arrays.asList(new PivotingTransformer("CountVariants", Arrays.asList("EvalFeatureInput"), Arrays.asList(
-                    new PivotingTransformer.Pivot("FilterType", "nCalledLoci", null)
-            ))))
-    };
+        ReportConfig[] standardWrappers = new ReportConfig[]{
+            new ReportConfig(new String[]{"EvalFeatureInput"}, TableReportDescriptor.getCountVariantsTable("Entire VCF", true)),
+            new ReportConfig(new String[]{"EvalFeatureInput"}, BarPlotReportDescriptor.getVariantTypeBarPlot("Entire VCF")),
+            new ReportConfig(new String[]{"EvalFeatureInput"}, TableReportDescriptor.getIndelTable("Entire VCF")),
+            new ReportConfig(new String[]{"EvalFeatureInput"}, new TableReportDescriptor("Ti/Tv Data", "Entire VCF", "TiTvVariantEvaluator")),
+            new ReportConfig(new String[]{"EvalFeatureInput"}, new TableReportDescriptor("Genotype Summary", "Entire VCF", "GenotypeFilterSummary")),
+
+            new ReportConfig(new String[]{"Contig"}, TableReportDescriptor.getCountVariantsTable("By Contig", true)),
+            new ReportConfig(new String[]{"Contig"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Contig")),
+            new ReportConfig(new String[]{"Contig"}, TableReportDescriptor.getIndelTable("By Contig")),
+            new ReportConfig(new String[]{"Contig"}, new TableReportDescriptor("Genotype Summary", "By Contig", "GenotypeFilterSummary", Arrays.asList("all"))),
+
+            new ReportConfig(new String[]{"Sample"}, TableReportDescriptor.getCountVariantsTable("By Sample", true)),
+            new ReportConfig(new String[]{"Sample"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Sample")),
+            new ReportConfig(new String[]{"Sample"}, TableReportDescriptor.getIndelTable("By Sample")),
+            new ReportConfig(new String[]{"Sample"}, new TableReportDescriptor("Ti/Tv Data", "By Sample", "TiTvVariantEvaluator", Arrays.asList("all"))),
+            new ReportConfig(new String[]{"Sample"}, new TableReportDescriptor("Genotype Summary", "By Sample", "GenotypeFilterSummary", Arrays.asList("all"))),
+
+            new ReportConfig(new String[]{"Sample", "FilterType"}, new TableReportDescriptor("Sites By Filter", "By Sample", "CountVariants", Arrays.asList("all"), transformer1)),
+            new ReportConfig(new String[]{"Sample", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Sample", transformer1)),
+
+            new ReportConfig(new String[]{"Sample", "Contig"}, new TableReportDescriptor("Variants Per Contig", "By Sample", "CountVariants", Arrays.asList("all"), transformer2)),
+
+            new ReportConfig(new String[]{"Contig", "FilterType"}, new TableReportDescriptor("Sites By Filter", "By Contig", "CountVariants", Arrays.asList("all"), transformer3)),
+            new ReportConfig(new String[]{"Contig", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Contig", transformer3)),
+
+            new ReportConfig(new String[]{"FilterType"}, TableReportDescriptor.getCountVariantsTable("By Filter Type", true)),
+            new ReportConfig(new String[]{"FilterType"}, BarPlotReportDescriptor.getVariantTypeBarPlot("By Filter Type")),
+
+            new ReportConfig(new String[]{"EvalFeatureInput", "FilterType"}, new TableReportDescriptor("Variant Summary By Filter", "Entire VCF", "CountVariants", Arrays.asList("all"), transformer4)),
+            new ReportConfig(new String[]{"EvalFeatureInput", "FilterType"}, BarPlotReportDescriptor.getSiteFilterTypeBarPlot("Entire VCF", transformer4))
+        };
+
+        return standardWrappers;
+    }
+
+    private Collection<VariantEvalWrapper> wrappers = new ArrayList<>();
+
+    private Collection<VariantEvalWrapper> initializeReports()  {
+        List<ReportConfig> configs = new ArrayList<>();
+        configs.addAll(Arrays.asList(getStandardWrappers()));
+
+        if (additionalReportFile != null) {
+            IOUtil.assertFileIsReadable(additionalReportFile);
+
+            configs.addAll(parseReportFile(additionalReportFile));
+        }
+
+        //preserve order to make resulting JSON consistent for test purposes
+        Map<String, VariantEvalWrapper> reports = new LinkedHashMap<>();
+        for (ReportConfig rc : configs) {
+            String key = rc.getWrapperKey();
+            VariantEvalWrapper wrapper = reports.getOrDefault(key, new VariantEvalWrapper(rc.stratifiers));
+            wrapper.addReport(rc.rd);
+
+            reports.put(key, wrapper);
+        }
+
+        return reports.values();
+    }
+
+    private List<ReportConfig> parseReportFile(File input) {
+        List<ReportConfig> ret = new ArrayList<>();
+
+        VCFHeader header = getHeaderForVariants();
+        Map<String, Class<? extends VariantStratifier>> classMap = getStratifierClassMap();
+
+        try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
+            String[] line;
+            int i = 0;
+            while ((line = reader.readNext()) != null) {
+                i++;
+                if (line[0].startsWith("#")) {
+                    continue;
+                }
+
+                if (line.length < 4) {
+                    throw new UserException.BadInput("Expected 4 columns on line: " + i + " of report config file");
+                }
+
+                String sectionLabel = StringUtils.trimToNull(line[0]);
+                String reportLabel = StringUtils.trimToNull(line[1]);
+                String stratifiers = StringUtils.trimToNull(line[2]);
+                String infoField = StringUtils.trimToNull(line[3]);
+
+                if (sectionLabel == null || reportLabel == null || stratifiers == null || infoField == null) {
+                    throw new UserException.BadInput("Field " + infoField + " not found: on line " + i + " of report config file");
+                }
+                
+                VCFInfoHeaderLine headerLine = header.getInfoHeaderLine(infoField);
+                if (headerLine == null) {
+                    throw new UserException.BadInput("INFO field " + infoField + " not found in VCF header (line " + i + " of report config file)");
+                }
+
+                if (headerLine.getType() != VCFHeaderLineType.Character && headerLine.getType() != VCFHeaderLineType.String && headerLine.getType() != VCFHeaderLineType.Integer) {
+                    throw new UserException.BadInput("Field " + infoField + " was not a supported type (line " + i + " of report config file).  Currently supported types are Character, String and Integer");
+                }
+
+                TableReportDescriptor rd = new TableReportDescriptor.InfoFieldTableReportDescriptor(reportLabel, sectionLabel, infoField);
+                String[] stratList = stratifiers.split(",");
+                for (String strat : stratList) {
+                    if (!classMap.containsKey(strat)) {
+                        throw new UserException.BadInput("Stratifier not found " + strat + " (line " + i + " of report config file)");
+                    }
+                }
+                
+                ret.add(new ReportConfig(stratList, rd));
+            }
+        }
+        catch (IOException e) {
+            throw new UserException.BadInput("Unable to parse report file", e);
+        }
+
+        return ret;
+    }
+
+    public class ReportConfig {
+        ArrayList<String> stratifiers;
+        ReportDescriptor rd;
+
+        public ReportConfig(String[] stratifiers, ReportDescriptor rd) {
+            this.stratifiers = new ArrayList<>(Arrays.asList(stratifiers));
+            this.rd = rd;
+        }
+
+        public String getWrapperKey() {
+            return StringUtils.join(this.stratifiers, ";");
+        }
+    }
 
     @Override
     public void onTraversalStart() {
@@ -162,6 +255,8 @@ public class VariantQC extends VariantWalker {
         }
 
         sampleDB = initializeSampleDB();
+
+        this.wrappers = initializeReports();
 
         //configure the child walkers
         for (VariantEvalWrapper wrapper : this.wrappers){
@@ -185,7 +280,7 @@ public class VariantQC extends VariantWalker {
         }
 
         Map<String, SectionJsonDescriptor> sectionMap = new LinkedHashMap<>();
-        Map<String, Class<? extends VariantStratifier>> classMap = getEvaluationClassMap();
+        Map<String, Class<? extends VariantStratifier>> classMap = getStratifierClassMap();
 
         for (VariantEvalWrapper wrapper : this.wrappers) {
             try (BufferedReader sampleReader = IOUtil.openFileForBufferedUtf8Reading(wrapper.outFile)) {
@@ -208,22 +303,19 @@ public class VariantQC extends VariantWalker {
                         throw new GATKException("No report registered for GATK table: " + table.getTableName());
                     }
 
-                    GATKReportTableTransformer transformer = wrapper.transformerMap.get(table.getTableName());
-                    if (transformer != null){
-                        table = transformer.transform(table, sampleDB);
-                    }
-
-                    if (!sectionMap.containsKey(wrapper.sectionLabel)){
-                        sectionMap.put(wrapper.sectionLabel, new SectionJsonDescriptor(wrapper.sectionLabel, wrapper.stratifications));
-                    }
-
                     for (ReportDescriptor rd : rds){
-                        sectionMap.get(wrapper.sectionLabel).addReportDescriptor(rd, table, descriptionMap);
+                        if (!sectionMap.containsKey(rd.sectionLabel)){
+                            sectionMap.put(rd.sectionLabel, new SectionJsonDescriptor(rd.sectionLabel, wrapper.stratifications));
+                        }
+
+                        sectionMap.get(rd.sectionLabel).addReportDescriptor(rd, table, descriptionMap, sampleDB);
                     }
                 }
             } catch (IOException e) {
                 throw new GATKException(e.getMessage(), e);
             }
+
+            wrapper.outFile.delete();
         }
 
         try {
@@ -243,66 +335,29 @@ public class VariantQC extends VariantWalker {
         return super.onTraversalSuccess();
     }
 
-
-    private static class VariantEvalChild extends VariantEval {
-        private final VariantQC variantQC;
-
-        public VariantEvalChild(VariantQC variantQC, VariantEvalWrapper wrapper){
-            this.variantQC = variantQC;
-            try
-            {
-                this.evals = Collections.singletonList(variantQC.getDrivingVariantsFeatureInput());
-                this.outFile = wrapper.outFile;
-
-                this.MODULES_TO_USE = wrapper.evaluationModules;
-                this.NO_STANDARD_MODULES = true;
-                this.STRATIFICATIONS_TO_USE = wrapper.stratifications;
-                this.NO_STANDARD_STRATIFICATIONS = true;
-
-                //TODO: set reference??
-
-                this.onStartup();
-            }
-            catch (Exception e)
-            {
-                throw new GATKException(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        public List<SimpleInterval> getTraversalIntervals() {
-            return variantQC.getTraversalIntervals();
-        }
-    }
-
-    private static class VariantEvalWrapper {
+    public static class VariantEvalWrapper {
         private VariantEvalChild walker;
         //private ByteArrayOutputStream out = new ByteArrayOutputStream();
         private File outFile = IOUtils.createTempFile("variantQC_data", ".txt");
         List<String> stratifications;
-        List<String> evaluationModules;
-        String sectionLabel;
-        ReportDescriptor[] reportDescriptors;
-        Map<String, GATKReportTableTransformer> transformerMap;
+        Set<String> evaluationModules = new HashSet<>();
+        List<String> infoFieldEvaluators = new ArrayList<>();
+        List<ReportDescriptor> reportDescriptors = new ArrayList<>();
 
-        public VariantEvalWrapper(String sectionLabel, String[] stratifications, String[] evaluationModules, ReportDescriptor[] reportDescriptors){
-            this(sectionLabel, stratifications, evaluationModules, reportDescriptors, null);
-        }
-
-        public VariantEvalWrapper(String sectionLabel, String[] stratifications, String[] evaluationModules, ReportDescriptor[] reportDescriptors, List<GATKReportTableTransformer> transformers) {
+        public VariantEvalWrapper(List<String> stratifications) {
             this.stratifications = new ArrayList<>();
             this.stratifications.add("Filter");
-            this.stratifications.addAll(Arrays.asList(stratifications));
+            this.stratifications.addAll(stratifications);
+        }
 
-            this.evaluationModules = Arrays.asList(evaluationModules);
-            this.sectionLabel = sectionLabel;
+        public void addReport(ReportDescriptor rd) {
+            this.reportDescriptors.add(rd);
 
-            this.reportDescriptors = reportDescriptors;
-            this.transformerMap = new HashMap<>();
-            if (transformers != null){
-                for (GATKReportTableTransformer t : transformers){
-                    this.transformerMap.put(t.getEvalModuleName(), t);
-                }
+            if (rd instanceof TableReportDescriptor.InfoFieldTableReportDescriptor) {
+                infoFieldEvaluators.add(((TableReportDescriptor.InfoFieldTableReportDescriptor)rd).getInfoFieldName());
+            }
+            else {
+                this.evaluationModules.add(rd.getEvaluatorModuleName());
             }
         }
 
@@ -317,8 +372,12 @@ public class VariantQC extends VariantWalker {
             return ret;
         }
 
+        public File getOutFile() {
+            return outFile;
+        }
+
         public void configureWalker(VariantQC variantQC) {
-            this.walker = new VariantEvalChild(variantQC, this);
+            this.walker = new VariantEvalChild(variantQC, this, variantQC.getDrivingVariantsFeatureInput(), infoFieldEvaluators);
         }
     }
 
@@ -336,7 +395,7 @@ public class VariantQC extends VariantWalker {
     }
 
     //TODO: add getter to VariantEvalUtils
-    private Map<String, Class<? extends VariantStratifier>> getEvaluationClassMap() {
+    private Map<String, Class<? extends VariantStratifier>> getStratifierClassMap() {
         Map<String, Class<? extends VariantStratifier>> stratifierClasses = new HashMap<>();
         Reflections reflectionsStrat = new Reflections("org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications");
         Set<Class<? extends VariantStratifier>> allClasses = reflectionsStrat.getSubTypesOf(VariantStratifier.class);

@@ -9,6 +9,7 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
 import org.broadinstitute.hellbender.utils.report.GATKReportDataType;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 
@@ -18,8 +19,8 @@ import java.util.*;
 public class TableReportDescriptor extends ReportDescriptor {
     private Set<String> skippedColNames = new HashSet<>();
 
-    public TableReportDescriptor(String label, String evaluatorModuleName, Collection<String> skippedSamples) {
-        super(label, SectionJsonDescriptor.PlotType.data_table, evaluatorModuleName);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName, Collection<String> skippedSamples, @Nullable PivotingTransformer transformer) {
+        super(reportLabel, sectionLabel, SectionJsonDescriptor.PlotType.data_table, evaluatorModuleName, transformer);
         skippedColNames.add(evaluatorModuleName);
         skippedColNames.add("EvalFeatureInput");
         skippedColNames.add("CompFeatureInput");
@@ -28,12 +29,16 @@ public class TableReportDescriptor extends ReportDescriptor {
         }
     }
 
-    public TableReportDescriptor(String label, String evaluatorModuleName) {
-        this(label, evaluatorModuleName, null);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName, Collection<String> skippedSamples) {
+        this(reportLabel, sectionLabel, evaluatorModuleName, skippedSamples, null);
     }
 
-    public static TableReportDescriptor getCountVariantsTable(boolean skipAll) {
-        TableReportDescriptor ret = new TableReportDescriptor("Variant Summary", "CountVariants", skipAll ? Arrays.asList("all") : null);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName) {
+        this(reportLabel, sectionLabel, evaluatorModuleName, null, null);
+    }
+
+    public static TableReportDescriptor getCountVariantsTable(String sectionLabel, boolean skipAll) {
+        TableReportDescriptor ret = new TableReportDescriptor("Variant Summary", sectionLabel, "CountVariants", skipAll ? Arrays.asList("all") : null, null);
 
         //JsonObject myColJson = new JsonObject();
         //myColJson.addProperty("dmin", 0);
@@ -43,8 +48,8 @@ public class TableReportDescriptor extends ReportDescriptor {
         return ret;
     }
 
-    public static TableReportDescriptor getIndelTable() {
-        TableReportDescriptor ret = new TableReportDescriptor("Indel Summary", "IndelSummary", Arrays.asList("all"));
+    public static TableReportDescriptor getIndelTable(String sectionLabel) {
+        TableReportDescriptor ret = new TableReportDescriptor("SNP/Indel Summary", sectionLabel, "IndelSummary", Arrays.asList("all"), null);
         ret.skippedColNames.add("n_indels_matching_gold_standard");
         ret.skippedColNames.add("gold_standard_matching_rate");
 
@@ -54,7 +59,7 @@ public class TableReportDescriptor extends ReportDescriptor {
     @Override
     public JsonObject getReportJson(String sectionTitle) {
         JsonObject ret = new JsonObject();
-        ret.addProperty("label", label);
+        ret.addProperty("label", reportLabel);
 
         JsonObject dataObj = new JsonObject();
         ret.add("data", dataObj);
@@ -153,5 +158,24 @@ public class TableReportDescriptor extends ReportDescriptor {
         Double belowTwoSd = mean - (2.0 * sd);
         colJson.addProperty("flagAbove", aboveTwoSd);
         colJson.addProperty("flagBelow", belowTwoSd);
+    }
+
+
+    public static class InfoFieldTableReportDescriptor extends TableReportDescriptor {
+        private final String infoFieldName;
+
+        public InfoFieldTableReportDescriptor(String reportLabel, String sectionLabel, String infoFieldName) {
+            super(reportLabel, sectionLabel, getEvalModuleSimpleName(infoFieldName), null, null);
+
+            this.infoFieldName = infoFieldName;
+        }
+
+        public String getInfoFieldName() {
+            return infoFieldName;
+        }
+
+        public static String getEvalModuleSimpleName(String infoFieldName) {
+            return VariantEvalChild.InfoFieldEvaluator.class.getSimpleName() + "-" + infoFieldName;
+        }
     }
 }

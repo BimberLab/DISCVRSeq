@@ -15,5 +15,8 @@ java -jar DISCVRseq.jar --list
 java -jar DISCVRseq.jar VariantQC --help
 
 ```
+
+Please note that any tool that uses a reference genome requires this genome to be indexed with samtools and to have a sequence dictionary created with Picard.  These requirements are identical to most tools from GATK or Picard.  [See here for more information](toolDoc/resources/genomeRequirements.html) 
+
 ## List of Tools
 [Our complete list of tools and arguments is available here](toolDoc/index.html). View each tool's page for more information about usage.
