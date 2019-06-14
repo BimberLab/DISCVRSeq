@@ -175,7 +175,7 @@ public class TableReportDescriptor extends ReportDescriptor {
         }
 
         public static String getEvalModuleSimpleName(String infoFieldName) {
-            return VariantEvalChild.InfoFieldEvaluator.class.getSimpleName() + "-" + infoFieldName;
+            return InfoFieldEvaluator.class.getSimpleName() + "-" + infoFieldName;
         }
     }
 }

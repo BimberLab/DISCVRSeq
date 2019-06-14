@@ -19,10 +19,8 @@ import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
-import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.manager.Stratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
-import org.broadinstitute.hellbender.tools.walkers.varianteval.util.VariantEvalUtils;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
@@ -351,7 +349,7 @@ public class VariantQC extends VariantWalker {
             try (BufferedReader sampleReader = IOUtil.openFileForBufferedUtf8Reading(wrapper.outFile)) {
                 sampleReader.readLine(); //read first GATKReport line
 
-                for (int i=0; i<wrapper.evaluationModules.size(); i++){
+                for (int i=0; i<wrapper.getEvaluationModules().size(); i++){
                     //NOTE: this output will have one table per eval module. Iterate
                     GATKReportTable table = new GATKReportTable(sampleReader, GATKReportVersion.V1_1);
                     List<ReportDescriptor> rds = wrapper.getReportsForModule(table.getTableName());
@@ -406,7 +404,7 @@ public class VariantQC extends VariantWalker {
         private File outFile = IOUtils.createTempFile("variantQC_data", ".txt");
         List<String> stratifications;
         Set<String> evaluationModules = new HashSet<>();
-        List<String> infoFieldEvaluators = new ArrayList<>();
+        List<String> infoFields = new ArrayList<>();
         List<ReportDescriptor> reportDescriptors = new ArrayList<>();
 
         public VariantEvalWrapper(List<String> stratifications) {
@@ -419,11 +417,18 @@ public class VariantQC extends VariantWalker {
             this.reportDescriptors.add(rd);
 
             if (rd instanceof TableReportDescriptor.InfoFieldTableReportDescriptor) {
-                infoFieldEvaluators.add(((TableReportDescriptor.InfoFieldTableReportDescriptor)rd).getInfoFieldName());
+                infoFields.add(((TableReportDescriptor.InfoFieldTableReportDescriptor)rd).getInfoFieldName());
             }
             else {
                 this.evaluationModules.add(rd.getEvaluatorModuleName());
             }
+        }
+
+        public Set<String> getEvaluationModules() {
+            Set<String> ret = new HashSet<>(evaluationModules);
+            infoFields.forEach(x -> ret.add(TableReportDescriptor.InfoFieldTableReportDescriptor.getEvalModuleSimpleName(x)));
+
+            return ret;
         }
 
         public List<ReportDescriptor> getReportsForModule(String evalModule){
@@ -442,7 +447,7 @@ public class VariantQC extends VariantWalker {
         }
 
         public void configureWalker(VariantQC variantQC) {
-            this.walker = new VariantEvalChild(variantQC, this, variantQC.getDrivingVariantsFeatureInput(), infoFieldEvaluators);
+            this.walker = new VariantEvalChild(variantQC, this, variantQC.getDrivingVariantsFeatureInput(), infoFields);
         }
     }
 
