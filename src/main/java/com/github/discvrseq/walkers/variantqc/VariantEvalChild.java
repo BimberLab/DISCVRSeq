@@ -47,7 +47,7 @@ public class VariantEvalChild extends VariantEval {
     }
 
     @Override
-    protected EvaluationContext getEvaluationContext(final Set<Class<? extends VariantEvaluator>> evaluationObjects) {
+    protected EvaluationContext createEvaluationContext(final Set<Class<? extends VariantEvaluator>> evaluationObjects) {
         return new ExtendedEvaluationContext(this, evaluationObjects, infoFields);
     }
 
@@ -60,7 +60,7 @@ public class VariantEvalChild extends VariantEval {
             this.infoFields = new ArrayList<>();
             this.infoFields.addAll(infoFields);
             for (String field : infoFields) {
-                evaluationInstances.add(new InfoFieldEvaluator(field));
+                getEvaluationInstances().add(new InfoFieldEvaluator(field));
             }
         }
     }
