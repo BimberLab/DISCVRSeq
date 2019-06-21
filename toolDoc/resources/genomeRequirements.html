@@ -1,0 +1,30 @@
+<link type='text/css' rel='stylesheet' href='../stylesheet.css'>
+<title>Genome Requirements</title>
+
+<section class="span4">
+    <a href="../index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
+</section>
+<hr>
+
+<div>
+<h2>DISCVR-Seq Genome Requirements:</h2>
+
+<span style="max-width: 60%">
+    Any genome FASTA files used with DISCVR-seq tools must be indexed with <a href="http://www.htslib.org/doc/samtools.html">samtools faidx</a>, and have a sequence dictionary created by <a href="https://broadinstitute.github.io/picard/command-line-overview.html#CreateSequenceDictionary">Picard's CreateSequenceDictionary</a>.  These requirements are identical to most tools from GATK and Picard.
+
+    <br><br>
+    <a href="https://software.broadinstitute.org/gatk/documentation/article?id=11013">See here for more information on the purpose of the index/dictionary files.</a>
+
+    <br><br>
+    <b>Below are example commands to create these files:</b>
+</span>
+
+<pre>
+    samtools faidx reference.fasta
+
+    java -jar picard.jar CreateSequenceDictionary \
+        R=reference.fasta \
+        O=reference.dict
+</pre>
+
+</div>

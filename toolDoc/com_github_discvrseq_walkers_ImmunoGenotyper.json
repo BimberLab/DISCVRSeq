@@ -711,7 +711,7 @@
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",
-      "type": "String",
+      "type": "GATKPathSpecifier",
       "required": "no",
       "fulltext": "",
       "defaultValue": "null",

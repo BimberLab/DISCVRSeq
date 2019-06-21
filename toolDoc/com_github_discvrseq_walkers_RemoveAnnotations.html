@@ -41,6 +41,17 @@
      -O output.vcf
  </pre>
 
+		<div>
+			Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a>
+		</div>
+				<hr>
+				<h2>Additional Information</h2>
+				<p></p>
+				<h3>Read filters</h3>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by RemoveAnnotations.</p>
+				<ul>
+						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
+				</ul>
 
 				<h3>RemoveAnnotations specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
@@ -411,7 +422,7 @@
 				<tr>
 					<td><a href="#--tmp-dir">--tmp-dir</a><br />
 					</td>
-					<!--<td>String</td> -->
+					<!--<td>GATKPathSpecifier</td> -->
 					<td>null</td>
 					<td>Temp directory to use.</td>
 				</tr>
@@ -1047,7 +1058,7 @@
 			
 		</p>
 		<p>
-		<span class="label label-info ">String</span>
+		<span class="label label-info ">GATKPathSpecifier</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -1134,7 +1145,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.04 built at 10-27-2019 01:27:55.
+        <p class="version">DISCVR-Seq version 1.05 built at 21-11-2019 05:11:04.
         </p>
 
 </div></div>
