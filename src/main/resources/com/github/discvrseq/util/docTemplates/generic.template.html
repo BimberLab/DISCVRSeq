@@ -109,15 +109,13 @@
 		<h2>Overview</h2>
 		${description}
 
-		<div>
-			Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a>
-		</div>
 		<#-- Create references to additional capabilities if appropriate -->
-			<#if readFilter?? && readFilter?size != 0>
-				<hr>
-				<h2>Additional Information</h2>
-				<p></p>
-			</#if>
+		<hr>
+			<h2>Additional Information</h2>
+			<p></p>
+			<h3>Genome/Reference Files</h3>
+				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
+
 			<#if readFilter?? && readFilter?size != 0>
 				<h3>Read filters</h3>
 				<#if readFilter?size = 1>
