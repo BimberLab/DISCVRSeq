@@ -136,6 +136,10 @@ public class TableReportDescriptor extends ReportDescriptor {
             rowValuesList.add(NumberUtils.createNumber(table.get(rowIdx, colName).toString()).doubleValue());
         }
 
+        if (rowValuesList.isEmpty()) {
+            return;
+        }
+
         Double min = Collections.min(rowValuesList) - Collections.min(rowValuesList) * 0.1;
         Double max = Collections.max(rowValuesList) + Collections.max(rowValuesList) * 0.1;
         colJson.addProperty("dmin", min);

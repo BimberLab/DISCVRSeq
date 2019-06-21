@@ -155,44 +155,46 @@ public class VariantQC extends VariantWalker {
 
     private SampleDB sampleDB = null;
 
-    protected ReportConfig[] getStandardWrappers() {
+    protected List<ReportConfig> getStandardWrappers(boolean hasSamples) {
         PivotingTransformer transformer1 = new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)));
         PivotingTransformer transformer2 = new PivotingTransformer("CountVariants", Arrays.asList("Sample"), Arrays.asList(new PivotingTransformer.Pivot("Contig", "nVariantLoci", null)), true);
         PivotingTransformer transformer3 = new PivotingTransformer("CountVariants", Arrays.asList("Contig"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nVariantLoci", null)));
         PivotingTransformer transformer4 = new PivotingTransformer("CountVariants", Arrays.asList("EvalFeatureInput"), Arrays.asList(new PivotingTransformer.Pivot("FilterType", "nCalledLoci", null)));
 
-        ReportConfig[] standardWrappers = new ReportConfig[]{
-            new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getCountVariantsTable("Entire VCF", true)),
-            new ReportConfig(Arrays.asList("EvalFeatureInput"), BarPlotReportDescriptor.getVariantTypeBarPlot("Entire VCF")),
-            new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getIndelTable("Entire VCF")),
-            new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Ti/Tv Data", "Entire VCF", "TiTvVariantEvaluator")),
-            new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Genotype Summary", "Entire VCF", "GenotypeFilterSummary")),
+        List<ReportConfig> standardWrappers = new ArrayList<>(Arrays.asList(
+                new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getCountVariantsTable("Entire VCF", true)),
+                new ReportConfig(Arrays.asList("EvalFeatureInput"), BarPlotReportDescriptor.getVariantTypeBarPlot("Entire VCF")),
+                new ReportConfig(Arrays.asList("EvalFeatureInput"), TableReportDescriptor.getIndelTable("Entire VCF")),
+                new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Ti/Tv Data", "Entire VCF", "TiTvVariantEvaluator")),
+                new ReportConfig(Arrays.asList("EvalFeatureInput"), new TableReportDescriptor("Genotype Summary", "Entire VCF", "GenotypeFilterSummary")),
 
-            new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getCountVariantsTable("By Contig", true)),
-            new ReportConfig(Arrays.asList("Contig"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Contig")),
-            new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getIndelTable("By Contig")),
-            new ReportConfig(Arrays.asList("Contig"), new TableReportDescriptor("Genotype Summary", "By Contig", "GenotypeFilterSummary", Arrays.asList("all"))),
+                new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getCountVariantsTable("By Contig", true)),
+                new ReportConfig(Arrays.asList("Contig"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Contig")),
+                new ReportConfig(Arrays.asList("Contig"), TableReportDescriptor.getIndelTable("By Contig")),
+                new ReportConfig(Arrays.asList("Contig"), new TableReportDescriptor("Genotype Summary", "By Contig", "GenotypeFilterSummary", Arrays.asList("all")))
+        ));
 
-            new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getCountVariantsTable("By Sample", true)),
-            new ReportConfig(Arrays.asList("Sample"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Sample")),
-            new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getIndelTable("By Sample")),
-            new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Ti/Tv Data", "By Sample", "TiTvVariantEvaluator", Arrays.asList("all"))),
-            new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Genotype Summary", "By Sample", "GenotypeFilterSummary", Arrays.asList("all"))),
+        if (hasSamples) {
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getCountVariantsTable("By Sample", true)));
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Sample")));
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample"), TableReportDescriptor.getIndelTable("By Sample")));
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Ti/Tv Data", "By Sample", "TiTvVariantEvaluator", Arrays.asList("all"))));
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample"), new TableReportDescriptor("Genotype Summary", "By Sample", "GenotypeFilterSummary", Arrays.asList("all"))));
 
-            new ReportConfig(Arrays.asList("Sample", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Sample", "CountVariants", Arrays.asList("all"), transformer1)),
-            new ReportConfig(Arrays.asList("Sample", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Sample", transformer1)),
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Sample", "CountVariants", Arrays.asList("all"), transformer1)));
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Sample", transformer1)));
 
-            new ReportConfig(Arrays.asList("Sample", "Contig"), new TableReportDescriptor("Variants Per Contig", "By Sample", "CountVariants", Arrays.asList("all"), transformer2)),
+            standardWrappers.add(new ReportConfig(Arrays.asList("Sample", "Contig"), new TableReportDescriptor("Variants Per Contig", "By Sample", "CountVariants", Arrays.asList("all"), transformer2)));
+        }
 
-            new ReportConfig(Arrays.asList("Contig", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Contig", "CountVariants", Arrays.asList("all"), transformer3)),
-            new ReportConfig(Arrays.asList("Contig", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Contig", transformer3)),
+        standardWrappers.add(new ReportConfig(Arrays.asList("Contig", "FilterType"), new TableReportDescriptor("Sites By Filter", "By Contig", "CountVariants", Arrays.asList("all"), transformer3)));
+        standardWrappers.add(new ReportConfig(Arrays.asList("Contig", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("By Contig", transformer3)));
 
-            new ReportConfig(Arrays.asList("FilterType"), TableReportDescriptor.getCountVariantsTable("By Filter Type", true)),
-            new ReportConfig(Arrays.asList("FilterType"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Filter Type")),
+        standardWrappers.add(new ReportConfig(Arrays.asList("FilterType"), TableReportDescriptor.getCountVariantsTable("By Filter Type", true)));
+        standardWrappers.add(new ReportConfig(Arrays.asList("FilterType"), BarPlotReportDescriptor.getVariantTypeBarPlot("By Filter Type")));
 
-            new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), new TableReportDescriptor("Variant Summary By Filter", "Entire VCF", "CountVariants", Arrays.asList("all"), transformer4)),
-            new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("Entire VCF", transformer4))
-        };
+        standardWrappers.add(new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), new TableReportDescriptor("Variant Summary By Filter", "Entire VCF", "CountVariants", Arrays.asList("all"), transformer4)));
+        standardWrappers.add(new ReportConfig(Arrays.asList("EvalFeatureInput", "FilterType"), BarPlotReportDescriptor.getSiteFilterTypeBarPlot("Entire VCF", transformer4)));
 
         return standardWrappers;
     }
@@ -201,7 +203,7 @@ public class VariantQC extends VariantWalker {
 
     private Collection<VariantEvalWrapper> initializeReports()  {
         List<ReportConfig> configs = new ArrayList<>();
-        configs.addAll(Arrays.asList(getStandardWrappers()));
+        configs.addAll(getStandardWrappers(!getHeaderForVariants().getSampleNamesInOrder().isEmpty()));
 
         if (additionalReportFile != null) {
             IOUtil.assertFileIsReadable(additionalReportFile);
