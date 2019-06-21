@@ -3,6 +3,7 @@ package com.github.discvrseq.walkers.variantqc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
+import org.broadinstitute.hellbender.utils.samples.SampleDB;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,8 +30,8 @@ public class SectionJsonDescriptor {
         this.stratifications = stratifications;
     }
 
-    public void addReportDescriptor(ReportDescriptor rd, GATKReportTable table, Map<String, String> descriptionMap){
-        rd.bindSection(this, table, descriptionMap);
+    public void addReportDescriptor(ReportDescriptor rd, GATKReportTable table, Map<String, String> descriptionMap, SampleDB sampleDB){
+        rd.bindSection(this, table, descriptionMap, sampleDB);
         rds.add(rd);
     }
 

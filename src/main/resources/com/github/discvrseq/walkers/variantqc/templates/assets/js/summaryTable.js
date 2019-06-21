@@ -4,6 +4,7 @@ function generateTableHtml(config){
     var colCount = config.data.columns.length + 1;
 
     var html = '<h3 id="' + config.id + '_div">' + config.label + '</h3>' +
+        '<h5>Section: ' + config.sectionLabel + '</h5>'+
         '<button type="button" class="mqc_table_copy_btn btn btn-default btn-sm" data-clipboard-target="#' + config.id + '">' +
         '<span class="glyphicon glyphicon-copy"></span> Copy table' +
         '</button>' +

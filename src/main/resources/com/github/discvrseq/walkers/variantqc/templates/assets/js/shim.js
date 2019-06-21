@@ -19,6 +19,7 @@ function processPlots(config){
             r.id = uniqID.get(r.label.toLowerCase());
             r.id = r.id.replace(/ /g, '_');
             r.plotDivId = r.id + '_plot';
+            r.sectionLabel = section.label;
 
             //add to NavPanel
             navConfig[section.label].children.push({
@@ -110,6 +111,7 @@ function buildReportDiv(parentDiv, config) {
 
 function buildPlotDiv(parentDiv, config, plotType, buttonCfg){
     var html = '<hr><h3 id="' + config.id + '_div">' + config.label + '</h3>' +
+        '<h5>Section: ' + config.sectionLabel + '</h5>'+
         '<div class="mqc_hcplot_plotgroup">' +
         '<div class="btn-group hc_switch_group">' + buttonCfg + '</div>' +
         '<div class="hc-plot-wrapper">' +

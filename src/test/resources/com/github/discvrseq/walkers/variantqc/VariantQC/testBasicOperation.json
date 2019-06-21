@@ -449,8 +449,8 @@
         ]
       }
     },
-    "Indel Summary": {
-      "label": "Indel Summary",
+    "SNP/Indel Summary": {
+      "label": "SNP/Indel Summary",
       "data": {
         "plot_type": "data_table",
         "samples": [
@@ -1581,8 +1581,8 @@
         ]
       }
     },
-    "Indel Summary": {
-      "label": "Indel Summary",
+    "SNP/Indel Summary": {
+      "label": "SNP/Indel Summary",
       "data": {
         "plot_type": "data_table",
         "samples": [
@@ -2767,8 +2767,8 @@
         ]
       }
     },
-    "Indel Summary": {
-      "label": "Indel Summary",
+    "SNP/Indel Summary": {
+      "label": "SNP/Indel Summary",
       "data": {
         "plot_type": "data_table",
         "samples": [

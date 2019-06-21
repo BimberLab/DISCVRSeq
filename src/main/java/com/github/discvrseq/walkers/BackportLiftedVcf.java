@@ -217,7 +217,7 @@ public class BackportLiftedVcf extends VariantWalker {
         }
 
         final VariantContextWriter out = GATKVariantContextUtils.createVCFWriter(
-                new File(outFile),
+                new File(outFile).toPath(),
                 outputHeader.getSequenceDictionary(),
                 createOutputVariantMD5,
                 options.toArray(new Options[options.size()]));
