@@ -44,18 +44,6 @@ public class VariantEvalChild extends VariantEval {
     }
 
     @Override
-    public Set<String> getContigNames() {
-        if (variantQC.hasCustomIntervalsForVariantEval) {
-            Set<String> ret = new HashSet<>();
-            variantQC.getTraversalIntervals().forEach(i -> ret.add(i.getContig()));
-
-            return ret;
-        }
-
-        return super.getContigNames();
-    }
-
-    @Override
     protected EvaluationContext createEvaluationContext(final Set<Class<? extends VariantEvaluator>> evaluationObjects) {
         return new ExtendedEvaluationContext(this, evaluationObjects, infoFields);
     }

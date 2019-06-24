@@ -41,33 +41,6 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testMaxContigs() throws Exception {
-        File expected = generateCompleteOutput(getTestFile("testMaxContigs.html"));
-        ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
-        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.add(normalizePath(input));
-
-        File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
-
-        args.add("-maxContigs");
-        args.add("1");
-
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
-
-        IntegrationTestSpec spec = new IntegrationTestSpec(
-                args.getString(), Arrays.asList(expected.getPath()));
-
-        spec.executeTest("testMaxContigs", this);
-        expected.delete();
-    }
-
-    @Test
     public void testBasicOperationWithRawData() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();

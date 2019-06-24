@@ -49,12 +49,12 @@ import java.util.*;
  *
  *  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
  *
- *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>.
+ *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>, with can be used with the <a href="ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/b37/">human_g1k_v37 genome</a>.
  *
  * <h4>Basic Usage, Without Pedigree:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V SimpleExample.vcf.gz \
  *     -O output.html
  * </pre>
@@ -62,7 +62,7 @@ import java.util.*;
  * <h4>Report With Pedigree (required for gender information to display):</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -ped myPedigree.ped \
  *     -V input.vcf \
  *     -O output.html
@@ -90,7 +90,7 @@ import java.util.*;
  * <h4>Write the raw output data to a separate file as JSON, which can be parsed separately:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V input.vcf \
  *     -rd output.json \
  *     -O output.html
@@ -99,7 +99,7 @@ import java.util.*;
  * <h4>Define additional reports to be included in the HTML report:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V input.vcf \
  *     --additionalReportFile reports.txt \
  *     -O output.html
@@ -158,9 +158,6 @@ public class VariantQC extends VariantWalker {
 
     @Argument(fullName = "additionalReportFile", shortName = "arf", doc="This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.", optional=true)
     public File additionalReportFile = null;
-
-    @Argument(fullName = "maxContigs", shortName = "maxContigs", doc="Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.", optional=true)
-    public int maxContigs = 40;
 
     private SampleDB sampleDB = null;
 
@@ -333,35 +330,11 @@ public class VariantQC extends VariantWalker {
         this.wrappers = initializeReports();
 
         //configure the child walkers
-        this.getTraversalIntervals(); //initialize potential contig override
         for (VariantEvalWrapper wrapper : this.wrappers){
             wrapper.configureWalker(this);
 
             wrapper.walker.onTraversalStart();
         }
-    }
-
-    protected boolean hasCustomIntervalsForVariantEval = false;
-
-    @Override
-    public List<SimpleInterval> getTraversalIntervals() {
-        if (!hasUserSuppliedIntervals()) {
-            SAMSequenceDictionary dict = getBestAvailableSequenceDictionary();
-            if (dict.size() > maxContigs) {
-                logger.info("Reference has too many contigs, subsetting to the first " + maxContigs);
-                List<SAMSequenceRecord> sequences = dict.getSequences().subList(0, maxContigs);
-                List<SimpleInterval> ret = new ArrayList<>();
-                sequences.forEach(s -> {
-                    ret.add(new SimpleInterval(s.getSequenceName()));
-                });
-
-                hasCustomIntervalsForVariantEval = true;
-
-                return ret;
-            }
-        }
-
-        return super.getTraversalIntervals();
     }
 
     @Override
