@@ -194,6 +194,12 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
             into toolDocDir
         }
         copy {
+            from('src/test/resources/com/github/discvrseq/TestData')
+            include 'SimpleExample.vcf.gz'
+            include 'SimpleExample.vcf.gz.tbi'
+            into toolDocDir
+        }
+        copy {
             from('src/main/resources/com/github/discvrseq/util/docTemplates')
             include 'index.md'
             include 'README.md'

@@ -18,6 +18,7 @@ import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.VariantEvaluator;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
@@ -45,11 +46,13 @@ import java.util.*;
  *
  *  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
  *
+ *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>
+ *
  * <h4>Basic Usage, Without Pedigree:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
  *     -R Homo_sapiens_assembly38.fasta \
- *     -V hapmap_3.3.hg38.vcf.gz \
+ *     -V SimpleExample.vcf.gz \
  *     -O output.html
  * </pre>
  *
@@ -345,7 +348,7 @@ public class VariantQC extends VariantWalker {
         }
 
         Map<String, SectionJsonDescriptor> sectionMap = new LinkedHashMap<>();
-        Map<String, Class<? extends VariantStratifier>> classMap = getStratifierClassMap();
+        Map<String, Class<? extends VariantEvaluator>> classMap = getEvaluatorClassMap();
 
         for (VariantEvalWrapper wrapper : this.wrappers) {
             try (BufferedReader sampleReader = IOUtil.openFileForBufferedUtf8Reading(wrapper.outFile)) {
@@ -356,7 +359,13 @@ public class VariantQC extends VariantWalker {
                     GATKReportTable table = new GATKReportTable(sampleReader, GATKReportVersion.V1_1);
                     List<ReportDescriptor> rds = wrapper.getReportsForModule(table.getTableName());
                     Map<String, String> descriptionMap = new HashMap<>();
-                    Class<? extends VariantStratifier> evalClass = classMap.get(table.getTableName());
+                    Class<? extends VariantEvaluator> evalClass = classMap.get(table.getTableName());
+
+                    //TODO improve this when refactoring VariantEvalEngine
+                    if (evalClass == null && table.getTableName().startsWith(InfoFieldEvaluator.class.getSimpleName() + "-")) {
+                        evalClass = InfoFieldEvaluator.class;
+                    }
+
                     if (evalClass != null){
                         AnalysisModuleScanner scanner = new AnalysisModuleScanner(evalClass);
                         Map<Field, DataPoint> fieldDataPointMap = scanner.getData();
@@ -427,7 +436,7 @@ public class VariantQC extends VariantWalker {
         }
 
         public Set<String> getEvaluationModules() {
-            Set<String> ret = new HashSet<>(evaluationModules);
+            Set<String> ret = new TreeSet<>(evaluationModules);
             infoFields.forEach(x -> ret.add(TableReportDescriptor.InfoFieldTableReportDescriptor.getEvalModuleSimpleName(x)));
 
             return ret;
@@ -436,7 +445,7 @@ public class VariantQC extends VariantWalker {
         public List<ReportDescriptor> getReportsForModule(String evalModule){
             List<ReportDescriptor> ret = new ArrayList<>();
             for (ReportDescriptor rd : reportDescriptors){
-                if (rd.evaluatorModuleName.equals(evalModule)){
+                if (rd.getEvaluatorModuleName().equals(evalModule)){
                     ret.add(rd);
                 }
             }
@@ -476,6 +485,17 @@ public class VariantQC extends VariantWalker {
         }
 
         return stratifierClasses;
+    }
+
+    private Map<String, Class<? extends VariantEvaluator>> getEvaluatorClassMap() {
+        Map<String, Class<? extends VariantEvaluator>> evalClasses = new HashMap<>();
+        Reflections reflectionsEval = new Reflections("org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators");
+        Set<Class<? extends VariantEvaluator>> allClasses = reflectionsEval.getSubTypesOf(VariantEvaluator.class);
+        for (Class<? extends VariantEvaluator> clazz : allClasses) {
+            evalClasses.put(clazz.getSimpleName(), clazz);
+        }
+
+        return evalClasses;
     }
 
     @Override
