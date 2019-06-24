@@ -2,6 +2,8 @@ package com.github.discvrseq.walkers.variantqc;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -22,6 +24,7 @@ import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.Varian
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
+import org.broadinstitute.hellbender.utils.SimpleInterval;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
@@ -155,6 +158,9 @@ public class VariantQC extends VariantWalker {
 
     @Argument(fullName = "additionalReportFile", shortName = "arf", doc="This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.", optional=true)
     public File additionalReportFile = null;
+
+    @Argument(fullName = "maxContigs", shortName = "maxContigs", doc="Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.", optional=true)
+    public int maxContigs = 40;
 
     private SampleDB sampleDB = null;
 
@@ -327,11 +333,35 @@ public class VariantQC extends VariantWalker {
         this.wrappers = initializeReports();
 
         //configure the child walkers
+        this.getTraversalIntervals(); //initialize potential contig override
         for (VariantEvalWrapper wrapper : this.wrappers){
             wrapper.configureWalker(this);
 
             wrapper.walker.onTraversalStart();
         }
+    }
+
+    protected boolean hasCustomIntervalsForVariantEval = false;
+
+    @Override
+    public List<SimpleInterval> getTraversalIntervals() {
+        if (!hasUserSuppliedIntervals()) {
+            SAMSequenceDictionary dict = getBestAvailableSequenceDictionary();
+            if (dict.size() > maxContigs) {
+                logger.info("Reference has too many contigs, subsetting to the first " + maxContigs);
+                List<SAMSequenceRecord> sequences = dict.getSequences().subList(0, maxContigs);
+                List<SimpleInterval> ret = new ArrayList<>();
+                sequences.forEach(s -> {
+                    ret.add(new SimpleInterval(s.getSequenceName()));
+                });
+
+                hasCustomIntervalsForVariantEval = true;
+
+                return ret;
+            }
+        }
+
+        return super.getTraversalIntervals();
     }
 
     @Override

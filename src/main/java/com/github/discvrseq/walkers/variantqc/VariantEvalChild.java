@@ -8,10 +8,7 @@ import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.Varian
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.EvaluationContext;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class VariantEvalChild extends VariantEval {
     private final VariantQC variantQC;
@@ -44,6 +41,18 @@ public class VariantEvalChild extends VariantEval {
     @Override
     public List<SimpleInterval> getTraversalIntervals() {
         return variantQC.getTraversalIntervals();
+    }
+
+    @Override
+    public Set<String> getContigNames() {
+        if (variantQC.hasCustomIntervalsForVariantEval) {
+            Set<String> ret = new HashSet<>();
+            variantQC.getTraversalIntervals().forEach(i -> ret.add(i.getContig()));
+
+            return ret;
+        }
+
+        return super.getContigNames();
     }
 
     @Override
