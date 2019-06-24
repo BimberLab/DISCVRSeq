@@ -56,6 +56,7 @@ abstract class ReportDescriptor {
     abstract JsonObject getReportJson(String sectionTitle);
 
     protected List<String> columnsInSampleName = null;
+
     /**
      * This provides the opportunity for subclasses to supply custom logic to parse the sampleName from rows.
      * This can return null, in which case that row will be ignored, for example if specific states should not be included.
@@ -82,12 +83,48 @@ abstract class ReportDescriptor {
         return StringUtil.join(" / ", tokens);
     }
 
+    protected boolean shouldSkipRow(int rowIdx) {
+        if (skippedSamples.isEmpty()) {
+            return false;
+        }
+
+        String sn = getSampleNameForRow(rowIdx);
+        if (sn != null && skippedSamples.contains(sn)) {
+            return true;
+        }
+
+        //Note: check both the Sample Name column (which will be a concatenation of sample and stratifiers, and also the simple 'Sample' column, if present.
+        if (hasSampleColumn()) {
+            sn = (String) table.get(rowIdx, "Sample");
+            if (sn != null && skippedSamples.contains(sn)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected Boolean hasSampleColumn = null;
+
+    private boolean hasSampleColumn() {
+        if (hasSampleColumn == null) {
+            hasSampleColumn = false;
+            for (GATKReportColumn col : table.getColumnInfo()){
+                if ("Sample".equals(col.getColumnName())){
+                    hasSampleColumn = true;
+                    break;
+                }
+            }
+        }
+
+        return hasSampleColumn;
+    }
+
     protected JsonArray getSampleNames(){
         Set<String> sampleNames = new LinkedHashSet<>();
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
-            String sn = getSampleNameForRow(rowIdx);
-            if (sn != null && !skippedSamples.contains(sn)){
-                sampleNames.add(sn);
+            if (!shouldSkipRow(rowIdx)){
+                sampleNames.add(getSampleNameForRow(rowIdx));
             }
         }
 

@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
@@ -68,11 +69,10 @@ public class TableReportDescriptor extends ReportDescriptor {
 
         dataObj.add("samples", getSampleNames());//Ordering of sample names must correspond with dataset order
 
-        JsonArray datasetsJson = new JsonArray();
+        List<JsonArray> datasetsJson = new ArrayList<>();
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             List<Object> rowList = new ArrayList<>();
-            String sampleName = getSampleNameForRow(rowIdx);
-            if (skippedSamples.contains(sampleName)) {
+            if (shouldSkipRow(rowIdx)){
                 continue;
             }
 
@@ -87,7 +87,12 @@ public class TableReportDescriptor extends ReportDescriptor {
             datasetsJson.add(new GsonBuilder().create().toJsonTree(rowList).getAsJsonArray());
         }
 
-        dataObj.add("datasets", datasetsJson);
+        //natural sort order:
+        datasetsJson.sort((o1, o2) -> {
+            return ComparatorUtils.<String>naturalComparator().compare(o1.get(0).getAsString(), o2.get(0).getAsString());
+        });
+
+        dataObj.add("datasets", new GsonBuilder().create().toJsonTree(datasetsJson).getAsJsonArray());
 
         dataObj.add("columns", new JsonArray());
         for (GATKReportColumn col : table.getColumnInfo()) {
@@ -129,7 +134,7 @@ public class TableReportDescriptor extends ReportDescriptor {
     private void inferMinMax(JsonObject colJson, String colName) {
         List<Double> rowValuesList = new ArrayList<>();
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
-            if (skippedSamples.contains(getSampleNameForRow(rowIdx))) {
+            if (shouldSkipRow(rowIdx)){
                 continue;
             }
 
@@ -149,7 +154,7 @@ public class TableReportDescriptor extends ReportDescriptor {
     private void flagValueByTwoStandardDeviation(JsonObject colJson, String colName){
         DescriptiveStatistics stats = new DescriptiveStatistics();
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
-            if (skippedSamples.contains(getSampleNameForRow(rowIdx))) {
+            if (shouldSkipRow(rowIdx)){
                 continue;
             }
 
