@@ -49,12 +49,12 @@ import java.util.*;
  *
  *  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
  *
- *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>.
+ *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>, with can be used with the <a href="ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/b37/">human_g1k_v37 genome</a>.
  *
  * <h4>Basic Usage, Without Pedigree:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V SimpleExample.vcf.gz \
  *     -O output.html
  * </pre>
@@ -62,7 +62,7 @@ import java.util.*;
  * <h4>Report With Pedigree (required for gender information to display):</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -ped myPedigree.ped \
  *     -V input.vcf \
  *     -O output.html
@@ -90,7 +90,7 @@ import java.util.*;
  * <h4>Write the raw output data to a separate file as JSON, which can be parsed separately:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V input.vcf \
  *     -rd output.json \
  *     -O output.html
@@ -99,7 +99,7 @@ import java.util.*;
  * <h4>Define additional reports to be included in the HTML report:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
- *     -R Homo_sapiens_assembly38.fasta \
+ *     -R human_g1k_v37.fasta \
  *     -V input.vcf \
  *     --additionalReportFile reports.txt \
  *     -O output.html
