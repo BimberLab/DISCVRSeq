@@ -255,6 +255,13 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
+					<td><a href="#--maxContigs">--maxContigs</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>40</td>
+					<td>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</td>
+				</tr>
+				<tr>
 					<td><a href="#--pedigree">--pedigree</a><br />
 								&nbsp;<em>-ped</em>
 					</td>
@@ -856,6 +863,20 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--maxContigs">--maxContigs </a>
+			 / <small>-maxContigs</small>
+		</h3>
+		<p class="args">
+			<b>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">40</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
@@ -1131,7 +1152,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.05 built at 24-01-2019 07:01:39.
+        <p class="version">DISCVR-Seq version 1.05 built at 24-03-2019 08:03:31.
         </p>
 
 </div></div>

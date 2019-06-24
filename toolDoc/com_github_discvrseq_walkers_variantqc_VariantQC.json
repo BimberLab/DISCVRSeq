@@ -410,6 +410,21 @@
       "options": []
     },
     {
+      "summary": "Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.",
+      "name": "--maxContigs",
+      "synonyms": "-maxContigs",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "40",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "File to which the report should be written",
       "name": "--output",
       "synonyms": "-O",
