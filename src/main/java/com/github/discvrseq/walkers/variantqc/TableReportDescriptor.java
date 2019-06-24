@@ -87,10 +87,11 @@ public class TableReportDescriptor extends ReportDescriptor {
             datasetsJson.add(new GsonBuilder().create().toJsonTree(rowList).getAsJsonArray());
         }
 
+        //Note: this needs more testing and better example data.  By sorting, we also potentially place the 'all' item behind numeric contigs, which is not ideal
         //natural sort order:
-        datasetsJson.sort((o1, o2) -> {
-            return ComparatorUtils.<String>naturalComparator().compare(o1.get(0).getAsString(), o2.get(0).getAsString());
-        });
+        //datasetsJson.sort((o1, o2) -> {
+        //    return ComparatorUtils.<String>naturalComparator().compare(o1.get(0).getAsString(), o2.get(0).getAsString());
+        //});
 
         dataObj.add("datasets", new GsonBuilder().create().toJsonTree(datasetsJson).getAsJsonArray());
 
