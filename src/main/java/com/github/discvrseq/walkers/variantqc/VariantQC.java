@@ -46,7 +46,7 @@ import java.util.*;
  *
  *  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
  *
- *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>
+ *  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>.
  *
  * <h4>Basic Usage, Without Pedigree:</h4>
  * <pre>
