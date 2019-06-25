@@ -81,7 +81,7 @@ import java.util.*;
  *      <li>Filter Type: A bar plot summarizing variants by filter</li>
 *  </ul>
  * <p></p>
- * <img src="images/VariantQC_ExampleReport.jpg" style="width: 75%"/>
+ * <a href="resources/variantQCSampleReport.html"><img src="images/variantQC_ExampleReport.jpg" style="width: 75%" title="Click to view a sample report"/></a>
  *
  * <h3>Advanced Usage:</h3>
  *
