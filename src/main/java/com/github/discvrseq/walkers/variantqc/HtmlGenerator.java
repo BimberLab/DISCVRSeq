@@ -5,15 +5,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.apache.commons.compress.utils.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.broadinstitute.hellbender.utils.io.Resource;
-import org.json.simple.JSONObject;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
@@ -63,13 +62,13 @@ public class HtmlGenerator {
     public static void printStaticContent(PrintWriter out) throws IOException {
         //append header
         Resource header = new Resource("templates/template1.html", VariantQC.class);
-        IOUtils.copy(header.getResourceContentsAsStream(), out, Charsets.UTF_8);
+        IOUtils.copy(header.getResourceContentsAsStream(), out, StandardCharsets.UTF_8);
 
         //scripts:
         for (String script : CSS_FILES){
             Resource r = new Resource(script, VariantQC.class);
             out.println("<style>");
-            IOUtils.copy(r.getResourceContentsAsStream(), out, Charsets.UTF_8);
+            IOUtils.copy(r.getResourceContentsAsStream(), out, StandardCharsets.UTF_8);
             out.println("</style>");
         }
 
@@ -121,7 +120,7 @@ public class HtmlGenerator {
         Resource header2 = new Resource("templates/template2.html", VariantQC.class);
 
         try (StringWriter writer = new StringWriter()) {
-            IOUtils.copy(header2.getResourceContentsAsStream(), writer, Charsets.UTF_8);
+            IOUtils.copy(header2.getResourceContentsAsStream(), writer, StandardCharsets.UTF_8);
 
             String toWrite = writer.getBuffer().toString().replaceAll("\\{version}", getVersion());
             IOUtils.write(toWrite, out);
@@ -157,7 +156,7 @@ public class HtmlGenerator {
     private static void appendScript(String script, PrintWriter out) throws IOException{
         Resource r = new Resource(script, VariantQC.class);
         out.println("<script type=\"text/javascript\">");
-        IOUtils.copy(r.getResourceContentsAsStream(), out, Charsets.UTF_8);
+        IOUtils.copy(r.getResourceContentsAsStream(), out, StandardCharsets.UTF_8);
         out.println("</script>");
     }
 }
