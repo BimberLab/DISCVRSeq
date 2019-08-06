@@ -110,6 +110,8 @@ dependencies {
     // should we want to)
     compile 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
 
+    compile group: 'com.milaboratory', name: 'milib', version: '1.11'
+    
     // compilation for testing
     testCompile 'org.testng:testng:' + testNGVersion
 }
