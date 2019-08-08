@@ -228,16 +228,18 @@ public class PrintReadsContaining extends GATKTool {
 
         Map<String, Long> matchCount = new HashMap<>();
 
+        long totalReads = 0L;
         long written = 0L;
         try (FastqReader reader1 = fileToFastqReader(FASTQ); FastqReader reader2 = FASTQ2 == null ? null : fileToFastqReader(FASTQ2); FastqWriter writer1 = fact.newWriter(outputFile1); FastqWriter writer2 = FASTQ2 == null ? null : fact.newWriter(outputFile2); CSVWriter csvWriter = SUMMARY_FILE == null ? null : new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(SUMMARY_FILE), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
             if (csvWriter != null) {
-                csvWriter.writeNext(new String[]{"ReadName", "ReadType", "ExpressionName", "Start", "End"});
+                csvWriter.writeNext(new String[]{"ReadName", "ReadType", "ExpressionName", "Start", "End", "TotalHitsForPair"});
             }
 
             while(reader1.hasNext())
             {
                 FastqRecord fq1 = reader1.next();
                 FastqRecord fq2 = reader2 == null ? null : reader2.next();
+                totalReads++;
 
                 SeqPairMatch matches = findMatches(fq1, fq2);
                 if (matches != null) {
@@ -259,7 +261,8 @@ public class PrintReadsContaining extends GATKTool {
             throw new GATKException("There was an error writing data", e);
         }
 
-        logger.info("total reads written: " + written);
+        logger.info("total reads inspected: " + totalReads);
+        logger.info("total reads accepted: " + written);
         logger.info("the following counts were identified per expression.  note: each read pair can match multiple expressions, and these values represent the total matches, not total reads that were matched:");
         for (String name : matchCount.keySet()) {
             logger.info(name + ": " + matchCount.get(name));
@@ -269,7 +272,7 @@ public class PrintReadsContaining extends GATKTool {
     private void writeMatchSummary(SeqPairMatch matches, FastqRecord fq1, FastqRecord fq2, CSVWriter csvWriter) {
         for (SeqMatch m : matches.matches) {
             String readType = m.read.equals(fq1) ? "Forward" : "Reverse";
-            csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start), String.valueOf(m.end)});
+            csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start), String.valueOf(m.end), String.valueOf(matches.matches.size())});
         }
     }
 
