@@ -167,6 +167,14 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--expressionNames">--expressionNames</a><br />
+								&nbsp;<em>-en</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each expression.  If used, the number of expression names (-en) must be equal to the number of expressions (-e).  If not provided, the expression itself will be used.</td>
+				</tr>
+				<tr>
 					<td><a href="#--expressions">--expressions</a><br />
 								&nbsp;<em>-e</em>
 					</td>
@@ -236,12 +244,28 @@
 					<td>The output file for the second FASTQ file.  Required if -FQ2 is used.</td>
 				</tr>
 				<tr>
+					<td><a href="#--read1ExpressionNames">--read1ExpressionNames</a><br />
+								&nbsp;<em>-e1n</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each read1 expression.  If used, the number of read1 expression names (-e1n) must be equal to the number of read1 expressions (-e1).  If not provided, the expression itself will be used.</td>
+				</tr>
+				<tr>
 					<td><a href="#--read1Expressions">--read1Expressions</a><br />
 								&nbsp;<em>-e1</em>
 					</td>
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read2ExpressionNames">--read2ExpressionNames</a><br />
+								&nbsp;<em>-e2n</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each read2 expression.  If used, the number of read2 expression names (-e2n) must be equal to the number of read2 expressions (-e2).  If not provided, the expression itself will be used.</td>
 				</tr>
 				<tr>
 					<td><a href="#--read2Expressions">--read2Expressions</a><br />
@@ -265,6 +289,13 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>If true, don't emit genotype fields when writing vcf file output.</td>
+				</tr>
+				<tr>
+					<td><a href="#--summaryFile">--summaryFile</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>If provided, a TSV summary of matches will be written here.</td>
 				</tr>
 				<tr>
 					<td><a href="#--version">--version</a><br />
@@ -657,6 +688,18 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--expressionNames">--expressionNames </a>
+			 / <small>-en</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each expression.  If used, the number of expression names (-en) must be equal to the number of expressions (-e).  If not provided, the expression itself will be used.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--expressions">--expressions </a>
 			 / <small>-e</small>
 		</h3>
@@ -958,11 +1001,35 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read1ExpressionNames">--read1ExpressionNames </a>
+			 / <small>-e1n</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each read1 expression.  If used, the number of read1 expression names (-e1n) must be equal to the number of read1 expressions (-e1).  If not provided, the expression itself will be used.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--read1Expressions">--read1Expressions </a>
 			 / <small>-e1</small>
 		</h3>
 		<p class="args">
 			<b>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read2ExpressionNames">--read2ExpressionNames </a>
+			 / <small>-e2n</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each read2 expression.  If used, the number of read2 expression names (-e2n) must be equal to the number of read2 expressions (-e2).  If not provided, the expression itself will be used.</b><br />
 			
 		</p>
 		<p>
@@ -1042,6 +1109,18 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--summaryFile">--summaryFile </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If provided, a TSV summary of matches will be written here.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
@@ -1126,7 +1205,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.06 built at 06-44-2019 10:44:43.
+        <p class="version">DISCVR-Seq version 1.07 built at 08-24-2019 04:24:46.
         </p>
 
 </div></div>
