@@ -89,9 +89,82 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
         args.add("--tmp-dir");
         args.add(getTmpDir());
 
-
-
-
         return args;
+    }
+
+    @Test(dataProvider = "testExpressionsData")
+    public void testExpressionsPairedWithSummary(String testName, String[] exprs, String[] r1Exprs, String[] r2Exprs, boolean matchAllExpressions, boolean paired) throws IOException {
+        _testExpressionsPairedWithSummaryAndNames(testName, exprs, r1Exprs, r2Exprs, matchAllExpressions, paired, false);
+    }
+
+    @Test(dataProvider = "testExpressionsData")
+    public void testExpressionsPairedWithSummaryAndNames(String testName, String[] exprs, String[] r1Exprs, String[] r2Exprs, boolean matchAllExpressions, boolean paired) throws IOException {
+        _testExpressionsPairedWithSummaryAndNames(testName, exprs, r1Exprs, r2Exprs, matchAllExpressions, paired, true);
+    }
+
+    public void _testExpressionsPairedWithSummaryAndNames(String testName, String[] exprs, String[] r1Exprs, String[] r2Exprs, boolean matchAllExpressions, boolean paired, boolean addNames) throws IOException {
+        ArgumentsBuilder args = getBaseArgs(paired);
+
+        if (exprs != null) {
+            Arrays.stream(exprs).forEach(x -> {
+                args.add("-e");
+                args.add(x);
+
+                if (addNames) {
+                    args.add("-en");
+                    args.add("Name1");
+                }
+            });
+        }
+
+        if (r1Exprs != null) {
+            Arrays.stream(r1Exprs).forEach(x -> {
+                args.add("-e1");
+                args.add(x);
+
+                if (addNames) {
+                    args.add("-e1n");
+                    args.add("FName1");
+                }
+            });
+        }
+
+        if (r2Exprs != null) {
+            Arrays.stream(r2Exprs).forEach(x -> {
+                args.add("-e2");
+                args.add(x);
+
+                if (addNames) {
+                    args.add("-e2n");
+                    args.add("RName1");
+                }
+            });
+        }
+
+        if (matchAllExpressions) {
+            args.add("-ma");
+        }
+
+        List<String> expected = new ArrayList<>();
+        expected.add(getTestFile(testName + "_R1.fastq").getPath());
+        if (paired) {
+            expected.add(getTestFile(testName + "_R2.fastq").getPath());
+        }
+
+        expected.add(getTestFile(testName + ".summary" + (addNames ? ".names" + (r1Exprs == null ? "" : "2") : "") + ".txt").getPath());
+
+        args.add("--summaryFile");
+        args.add("%s");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                expected);
+
+        try {
+            spec.executeTest(testName, this);
+        }
+        catch (AssertionError e) {
+            throw e;
+        }
     }
 }

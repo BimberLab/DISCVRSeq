@@ -385,7 +385,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
                 }
             }
             catch (IOException e) {
-                throw new GATKException("Unable to reference file: " + e.getMessage());
+                throw new GATKException("Unable to reference file: " + e.getMessage(), e);
             }
 
             outputStream.println("");

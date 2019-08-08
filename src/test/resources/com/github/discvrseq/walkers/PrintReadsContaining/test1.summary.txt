@@ -1,0 +1,2 @@
+ReadName	ReadType	ExpressionName	Start	End	TotalHitsForPair
+M00370:382:000000000-G3228:1:1101:13693:2188 1:N:0:2	Reverse	TGGTGAAACCCTGTCTCT	0	18	1
