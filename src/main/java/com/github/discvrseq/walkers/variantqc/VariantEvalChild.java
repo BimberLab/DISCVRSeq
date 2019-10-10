@@ -31,6 +31,9 @@ public class VariantEvalChild extends VariantEval {
             //TODO: set reference??
 
             this.onStartup();
+
+            //NOTE: force tools to share FeatureManager so caches are shared
+            this.features = variantQC.features;
         }
         catch (Exception e)
         {
