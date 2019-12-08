@@ -16,7 +16,6 @@ import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
-import org.broadinstitute.hellbender.utils.io.IOUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +28,8 @@ import java.util.*;
  * <h3>Usage example:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar VariantConcordanceScore \
- *     --ref-sites:set1 ref1.vcf \
- *     --ref-sites:set2 ref2.vcf.gz \
+ *     --ref-sites:SET1 ref1.vcf \
+ *     --ref-sites:SET2 ref2.vcf.gz \
  *     -V myVCF.vcf.gz \
  *     -O output.txt
  * </pre>
