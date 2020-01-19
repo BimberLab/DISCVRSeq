@@ -42,13 +42,13 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
 
-    @Argument(doc="Clinvar Annotated VCF", fullName = "clinvar", shortName = "cv", optional = false)
+    @Argument(doc="Clinvar Annotated VCF", fullName = "clinvar", shortName = "cv", optional = true)
     public FeatureInput<VariantContext> clinvarVariants = null;
 
-    @Argument(doc="Liftover Reject VCF", fullName = "liftoverReject", shortName = "lr", optional = false)
+    @Argument(doc="Liftover Reject VCF", fullName = "liftoverReject", shortName = "lr", optional = true)
     public FeatureInput<VariantContext> liftoverRejectVariants = null;
 
-    @Argument(doc="Cassandra Annotated VCF", fullName = "cassandra", shortName = "c", optional = false)
+    @Argument(doc="Cassandra Annotated VCF", fullName = "cassandra", shortName = "c", optional = true)
     public FeatureInput<VariantContext> cassandraVariants = null;
 
     private VariantContextWriter writer;
@@ -200,22 +200,26 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         VCFHeader header = new VCFHeader(getHeaderForVariants());
 
-        VCFHeader clinvarHeader = (VCFHeader)getHeaderForFeatures(clinvarVariants);
-        for (String id : CLINVAR_INFO){
-            VCFInfoHeaderLine line = clinvarHeader.getInfoHeaderLine(id);
-            if (line == null){
-                throw new GATKException("Clinvar missing expected header line: " + id);
+        if (clinvarVariants != null) {
+            VCFHeader clinvarHeader = (VCFHeader) getHeaderForFeatures(clinvarVariants);
+            for (String id : CLINVAR_INFO) {
+                VCFInfoHeaderLine line = clinvarHeader.getInfoHeaderLine(id);
+                if (line == null) {
+                    throw new GATKException("Clinvar missing expected header line: " + id);
+                }
+                header.addMetaDataLine(line);
             }
-            header.addMetaDataLine(line);
         }
 
-        VCFHeader cassandraHeader = (VCFHeader)getHeaderForFeatures(cassandraVariants);
-        for (String id : CASSENDRA_INFO){
-            VCFInfoHeaderLine line = cassandraHeader.getInfoHeaderLine(id);
-            if (line == null){
-                throw new GATKException("Cassandra missing expected header line: " + id);
+        if (cassandraVariants != null) {
+            VCFHeader cassandraHeader = (VCFHeader) getHeaderForFeatures(cassandraVariants);
+            for (String id : CASSENDRA_INFO) {
+                VCFInfoHeaderLine line = cassandraHeader.getInfoHeaderLine(id);
+                if (line == null) {
+                    throw new GATKException("Cassandra missing expected header line: " + id);
+                }
+                header.addMetaDataLine(line);
             }
-            header.addMetaDataLine(line);
         }
 
         //TODO: annotation source versions?
@@ -231,33 +235,39 @@ public class MultiSourceAnnotator extends VariantWalker {
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
 
-        for (VariantContext vc : featureContext.getValues(clinvarVariants)){
-            if (!matches(variant, vc)){
-                continue;
-            }
+        if (clinvarVariants != null) {
+            for (VariantContext vc : featureContext.getValues(clinvarVariants)) {
+                if (!matches(variant, vc)) {
+                    continue;
+                }
 
-            clinvar++;
-            transferInfoData(vcb, vc, CLINVAR_INFO);
+                clinvar++;
+                transferInfoData(vcb, vc, CLINVAR_INFO);
+            }
         }
 
-        for (VariantContext vc : featureContext.getValues(cassandraVariants)){
-            if (!matches(variant, vc)){
-                continue;
-            }
+        if (cassandraVariants != null) {
+            for (VariantContext vc : featureContext.getValues(cassandraVariants)) {
+                if (!matches(variant, vc)) {
+                    continue;
+                }
 
-            cassandra++;
-            transferInfoData(vcb, vc, CASSENDRA_INFO);
+                cassandra++;
+                transferInfoData(vcb, vc, CASSENDRA_INFO);
+            }
         }
 
-        for (VariantContext vc : featureContext.getValues(liftoverRejectVariants)){
-            if (!matches(variant, vc)){
-                continue;
-            }
+        if (liftoverRejectVariants != null) {
+            for (VariantContext vc : featureContext.getValues(liftoverRejectVariants)) {
+                if (!matches(variant, vc)) {
+                    continue;
+                }
 
-            rejectedLiftover++;
-            Set<String> filters = new HashSet<>(vc.getFilters());
-            filters.retainAll(ALLOWABLE_FILTERS);
-            vcb.attribute(UNABLE_TO_LIFT.getID(), StringUtils.join(filters, ","));
+                rejectedLiftover++;
+                Set<String> filters = new HashSet<>(vc.getFilters());
+                filters.retainAll(ALLOWABLE_FILTERS);
+                vcb.attribute(UNABLE_TO_LIFT.getID(), StringUtils.join(filters, ","));
+            }
         }
 
         writer.add(vcb.make());
