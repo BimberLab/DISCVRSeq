@@ -61,30 +61,6 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--cassandra">--cassandra</a><br />
-								&nbsp;<em>-c</em>
-					</td>
-					<!--<td>FeatureInput[VariantContext]</td> -->
-					<td>null</td>
-					<td>Cassandra Annotated VCF</td>
-				</tr>
-				<tr>
-					<td><a href="#--clinvar">--clinvar</a><br />
-								&nbsp;<em>-cv</em>
-					</td>
-					<!--<td>FeatureInput[VariantContext]</td> -->
-					<td>null</td>
-					<td>Clinvar Annotated VCF</td>
-				</tr>
-				<tr>
-					<td><a href="#--liftoverReject">--liftoverReject</a><br />
-								&nbsp;<em>-lr</em>
-					</td>
-					<!--<td>FeatureInput[VariantContext]</td> -->
-					<td>null</td>
-					<td>Liftover Reject VCF</td>
-				</tr>
-				<tr>
 					<td><a href="#--output">--output</a><br />
 								&nbsp;<em>-O</em>
 					</td>
@@ -109,6 +85,22 @@
 					<!--<td>List[File]</td> -->
 					<td>[]</td>
 					<td>read one or more arguments files and add them to the command line</td>
+				</tr>
+				<tr>
+					<td><a href="#--cassandra">--cassandra</a><br />
+								&nbsp;<em>-c</em>
+					</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Cassandra Annotated VCF</td>
+				</tr>
+				<tr>
+					<td><a href="#--clinvar">--clinvar</a><br />
+								&nbsp;<em>-cv</em>
+					</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Clinvar Annotated VCF</td>
 				</tr>
 				<tr>
 					<td><a href="#--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer</a><br />
@@ -179,6 +171,14 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>One or more genomic intervals over which to operate</td>
+				</tr>
+				<tr>
+					<td><a href="#--liftoverReject">--liftoverReject</a><br />
+								&nbsp;<em>-lr</em>
+					</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Liftover Reject VCF</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -455,7 +455,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">FeatureInput[VariantContext]</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -468,7 +467,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">FeatureInput[VariantContext]</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -788,7 +786,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">FeatureInput[VariantContext]</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -1022,7 +1019,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.09 built at 15-59-2020 07:59:51.
+        <p class="version">DISCVR-Seq version 1.10 built at 19-38-2020 04:38:06.
         </p>
 
 </div></div>
