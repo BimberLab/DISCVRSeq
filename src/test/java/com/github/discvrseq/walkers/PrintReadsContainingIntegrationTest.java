@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers;
 
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.DataProvider;
@@ -90,6 +91,74 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
         args.add(getTmpDir());
 
         return args;
+    }
+
+
+    @Test
+    public void testEditDistanceBadInput() throws IOException {
+        ArgumentsBuilder args = getBaseArgs(true);
+
+        args.add("-e1");
+        args.add("BADVALUES");
+
+        args.add("--editDistance");
+        args.add("1");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                2,
+                UserException.BadInput.class);
+
+        spec.executeTest("testEditDistance", this);
+
+    }
+
+    @Test
+    public void testEditDistance() throws IOException {
+        //Edit distance 1
+        ArgumentsBuilder args = getBaseArgs(true);
+
+        List<String> expected = new ArrayList<>();
+        expected.add(getTestFile("ED1_R1.fastq").getPath());
+        expected.add(getTestFile("ED1_R2.fastq").getPath());
+
+        //One hit, ed=1
+        args.add("-e1");
+        args.add("TCTGCCTCTTG");
+
+        args.add("-e");
+        args.add("ACTGCTGCTTATT");
+
+        args.add("--editDistance");
+        args.add("1");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                expected);
+
+        spec.executeTest("testEditDistance1", this);
+
+        //Edit distance 1
+        args = getBaseArgs(true);
+
+        expected = new ArrayList<>();
+        expected.add(getTestFile("ED2_R1.fastq").getPath());
+        expected.add(getTestFile("ED2_R2.fastq").getPath());
+
+        args.add("-e1");
+        args.add("TCTGCCTCTTG");
+
+        args.add("-e");
+        args.add("ACTGCTGCTTATT");
+
+        args.add("--editDistance");
+        args.add("2");
+
+        spec = new IntegrationTestSpec(
+                args.getString(),
+                expected);
+
+        spec.executeTest("testEditDistance2", this);
     }
 
     @Test(dataProvider = "testExpressionsData")
