@@ -14,7 +14,6 @@ import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.engine.GATKTool;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
-import org.broadinstitute.hellbender.utils.BaseUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -153,23 +152,23 @@ public class PrintReadsContaining extends GATKTool {
         int start0;
         int end0;
         String exprName;
-        FastqRecord read;
+        ReadType rt;
 
-        public SeqMatch(Matcher m, String name, FastqRecord read) {
+        public SeqMatch(Matcher m, String name, ReadType rt) {
             this.start0 = m.start();
             this.end0 = m.end();
 
             this.exprName = name;
-            this.read = read;
+            this.rt = rt;
         }
 
         //0-based indexes
-        public SeqMatch(int start, int end, String name, FastqRecord read) {
+        public SeqMatch(int start, int end, String name, ReadType rt) {
             this.start0 = start;
             this.end0 = end;
 
             this.exprName = name;
-            this.read = read;
+            this.rt = rt;
         }
     }
 
@@ -180,10 +179,11 @@ public class PrintReadsContaining extends GATKTool {
             this.matches = matches;
         }
 
-        public Set<String> getUniqueHitNames() {
+        public Set<String> getUniqueHitNames(ReadType rt) {
             Set<String> ret = new HashSet<>();
             for (SeqMatch m : matches) {
-                ret.add(m.exprName);
+                if (m.rt == rt || rt == ReadType.Any)
+                    ret.add(m.exprName);
             }
 
             return ret;
@@ -253,6 +253,8 @@ public class PrintReadsContaining extends GATKTool {
         fact.setUseAsyncIo(true);
 
         Map<String, Long> matchCount = new HashMap<>();
+        Map<String, Long> matchCountR1 = new HashMap<>();
+        Map<String, Long> matchCountR2 = new HashMap<>();
 
         long totalReads = 0L;
         long written = 0L;
@@ -275,7 +277,9 @@ public class PrintReadsContaining extends GATKTool {
                     }
                     written++;
 
-                    appendCounts(matchCount, matches);
+                    appendCounts(matchCount, matches, ReadType.Any);
+                    appendCounts(matchCountR1, matches, ReadType.Forward);
+                    appendCounts(matchCountR2, matches, ReadType.Reverse);
 
                     if (csvWriter != null) {
                         writeMatchSummary(matches, fq1, fq2, csvWriter);
@@ -291,13 +295,14 @@ public class PrintReadsContaining extends GATKTool {
         logger.info("total reads accepted: " + written);
         logger.info("the following counts were identified per expression.  note: each read pair can match multiple expressions, and these values represent the total matches, not total reads that were matched:");
         for (String name : matchCount.keySet()) {
-            logger.info(name + ": " + matchCount.get(name));
+            String perBase = " (R1: " + matchCountR1.getOrDefault(name, 0L) + " / R2: " + matchCountR2.getOrDefault(name, 0L) + ")";
+            logger.info(name + ": " + matchCount.get(name) + perBase);
         }
     }
 
     private void writeMatchSummary(SeqPairMatch matches, FastqRecord fq1, FastqRecord fq2, CSVWriter csvWriter) {
         for (SeqMatch m : matches.matches) {
-            String readType = m.read.equals(fq1) ? "Forward" : "Reverse";
+            String readType = m.rt.name();
             csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start0), String.valueOf(m.end0), String.valueOf(matches.matches.size())});
         }
     }
@@ -306,8 +311,8 @@ public class PrintReadsContaining extends GATKTool {
         return new FastqReader(file, true);
     }
 
-    private void appendCounts(Map<String, Long> counts, SeqPairMatch match) {
-        for (String name : match.getUniqueHitNames()){
+    private void appendCounts(Map<String, Long> counts, SeqPairMatch match, ReadType rt) {
+        for (String name : match.getUniqueHitNames(rt)){
             long val = counts.getOrDefault(name, 0L);
             val++;
             counts.put(name, val);
@@ -318,7 +323,10 @@ public class PrintReadsContaining extends GATKTool {
         Set<SeqMatch> matches = new HashSet<>();
 
         if (!eitherReadPatterns.isEmpty()) {
-            List<SeqMatch> matchesPair = inspect(eitherReadPatterns, read1, read2);
+            Map<ReadType, FastqRecord> map = new HashMap<>();
+            map.put(ReadType.Forward, read1);
+            map.put(ReadType.Reverse, read2);
+            List<SeqMatch> matchesPair = inspect(eitherReadPatterns, map);
             if (!isPassing(matchesPair, eitherReadPatterns)) {
                 //NOTE: even if this fails, we might want to inspect the other expressions:
                 if (matchAllExpressions) {
@@ -331,7 +339,9 @@ public class PrintReadsContaining extends GATKTool {
         }
 
         if (!read1Patterns.isEmpty()) {
-            List<SeqMatch> matches1 = inspect(read1Patterns, read1);
+            Map<ReadType, FastqRecord> map = new HashMap<>();
+            map.put(ReadType.Forward, read1);
+            List<SeqMatch> matches1 = inspect(read1Patterns, map);
             if (!isPassing(matches1, read1Patterns)) {
                 if (matchAllExpressions) {
                     return null;
@@ -347,7 +357,9 @@ public class PrintReadsContaining extends GATKTool {
                 throw new UserException.BadInput("Specified read2 expressions, but read2 not found");
             }
             else {
-                List<SeqMatch> matches2 = inspect(read2Patterns, read2);
+                Map<ReadType, FastqRecord> map = new HashMap<>();
+                map.put(ReadType.Reverse, read2);
+                List<SeqMatch> matches2 = inspect(read2Patterns, map);
                 if (!isPassing(matches2, read2Patterns)) {
                     if (matchAllExpressions) {
                         return null;
@@ -366,20 +378,20 @@ public class PrintReadsContaining extends GATKTool {
         return matchAllExpressions ? matches.size() == expressions.size() : !matches.isEmpty();
     }
 
-    private List<SeqMatch> inspect(List<SeqPattern> exprs, FastqRecord... reads) {
+    private List<SeqMatch> inspect(List<SeqPattern> exprs, Map<ReadType, FastqRecord> reads) {
         List<SeqMatch> matching = new ArrayList<>();
         for (SeqPattern expr : exprs) {
-            for (FastqRecord read : reads) {
+            for (ReadType rt : reads.keySet()) {
                 if (editDistance > 0) {
-                    SeqMatch match = fuzzyMatch(expr.pattern.pattern(), read, expr);
+                    SeqMatch match = fuzzyMatch(expr.pattern.pattern(), reads.get(rt), expr, rt);
                     if (match != null) {
                         matching.add(match);
                     }
                 }
                 else {
-                    Matcher m = expr.pattern.matcher(read.getReadString());
+                    Matcher m = expr.pattern.matcher(reads.get(rt).getReadString());
                     if (m.find()) {
-                        matching.add(new SeqMatch(m, expr.name, read));
+                        matching.add(new SeqMatch(m, expr.name, rt));
                         //break;  //NOTE: inspect both reads in case we have more than one hit
                     }
                 }
@@ -391,7 +403,7 @@ public class PrintReadsContaining extends GATKTool {
 
     final LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
 
-    private SeqMatch fuzzyMatch(String query, FastqRecord read, SeqPattern expr) {
+    private SeqMatch fuzzyMatch(String query, FastqRecord read, SeqPattern expr, ReadType rt) {
         String readSeq = read.getReadString().toUpperCase();
         int windows = readSeq.length() - query.length();
 
@@ -399,12 +411,18 @@ public class PrintReadsContaining extends GATKTool {
         while (i < windows) {
             CharSequence test = readSeq.subSequence(i, i + query.length());
             if (levenshteinDistance.apply(query, test) <= editDistance) {
-                return new SeqMatch(i, query.length(), expr.name, read);
+                return new SeqMatch(i, query.length(), expr.name, rt);
             }
 
             i++;
         }
 
         return null;
+    }
+
+    private static enum ReadType {
+        Forward(),
+        Reverse(),
+        Any();
     }
 }
