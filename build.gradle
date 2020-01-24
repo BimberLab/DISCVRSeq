@@ -114,6 +114,9 @@ dependencies {
     
     // compilation for testing
     testCompile 'org.testng:testng:' + testNGVersion
+
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
+    compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
 }
 
 task wrapper(type: Wrapper) {

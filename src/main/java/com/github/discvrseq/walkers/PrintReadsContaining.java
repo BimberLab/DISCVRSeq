@@ -7,12 +7,14 @@ import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.fastq.FastqWriter;
 import htsjdk.samtools.fastq.FastqWriterFactory;
 import htsjdk.samtools.util.IOUtil;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.engine.GATKTool;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
+import org.broadinstitute.hellbender.utils.BaseUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -129,6 +131,9 @@ public class PrintReadsContaining extends GATKTool {
     @Argument(fullName = "read2ExpressionNames", shortName = "e2n", doc = "A mechanism to allow names for each read2 expression.  If used, the number of read2 expression names (-e2n) must be equal to the number of read2 expressions (-e2).  If not provided, the expression itself will be used.", optional = true)
     private List<String> read2ExpressionNames = new ArrayList<>();
 
+    @Argument(fullName = "editDistance", shortName = "ed", doc = "If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.", optional = true)
+    private int editDistance = 0;
+
     private List<SeqPattern> eitherReadPatterns = new ArrayList<>();
     private List<SeqPattern> read1Patterns = new ArrayList<>();
     private List<SeqPattern> read2Patterns = new ArrayList<>();
@@ -145,14 +150,23 @@ public class PrintReadsContaining extends GATKTool {
     }
 
     public class SeqMatch {
-        int start;
-        int end;
+        int start0;
+        int end0;
         String exprName;
         FastqRecord read;
 
         public SeqMatch(Matcher m, String name, FastqRecord read) {
-            this.start = m.start();
-            this.end = m.end();
+            this.start0 = m.start();
+            this.end0 = m.end();
+
+            this.exprName = name;
+            this.read = read;
+        }
+
+        //0-based indexes
+        public SeqMatch(int start, int end, String name, FastqRecord read) {
+            this.start0 = start;
+            this.end0 = end;
 
             this.exprName = name;
             this.read = read;
@@ -214,10 +228,22 @@ public class PrintReadsContaining extends GATKTool {
         initializeExpressions(read2Expressions, read2ExpressionNames, read2Patterns);
     }
 
+    final Pattern ntMatch = Pattern.compile("^[ATGC]+$");
+
     private void initializeExpressions(List<String> expressions, List<String> names, List<SeqPattern> target) {
         for (int i=0;i<expressions.size();i++) {
             String name = names.isEmpty() ? expressions.get(i) : names.get(i);
-            target.add(new SeqPattern(Pattern.compile(expressions.get(i)), name));
+            String expr = expressions.get(i);
+            //validate queries are ATGC only:
+            if (editDistance > 0) {
+                if (!ntMatch.matcher(expr).matches()) {
+                    throw new UserException.BadInput("Expression must used only bases (ATGC) when edit distance is used: " + expr);
+                }
+
+                expr = expr.toUpperCase();
+            }
+
+            target.add(new SeqPattern(Pattern.compile(expr), name));
         };
     }
 
@@ -272,7 +298,7 @@ public class PrintReadsContaining extends GATKTool {
     private void writeMatchSummary(SeqPairMatch matches, FastqRecord fq1, FastqRecord fq2, CSVWriter csvWriter) {
         for (SeqMatch m : matches.matches) {
             String readType = m.read.equals(fq1) ? "Forward" : "Reverse";
-            csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start), String.valueOf(m.end), String.valueOf(matches.matches.size())});
+            csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start0), String.valueOf(m.end0), String.valueOf(matches.matches.size())});
         }
     }
 
@@ -344,14 +370,41 @@ public class PrintReadsContaining extends GATKTool {
         List<SeqMatch> matching = new ArrayList<>();
         for (SeqPattern expr : exprs) {
             for (FastqRecord read : reads) {
-                Matcher m = expr.pattern.matcher(read.getReadString());
-                if (m.find()) {
-                    matching.add(new SeqMatch(m, expr.name, read));
-                    //break;  //NOTE: inspect both reads in case we have more than one hit
+                if (editDistance > 0) {
+                    SeqMatch match = fuzzyMatch(expr.pattern.pattern(), read, expr);
+                    if (match != null) {
+                        matching.add(match);
+                    }
+                }
+                else {
+                    Matcher m = expr.pattern.matcher(read.getReadString());
+                    if (m.find()) {
+                        matching.add(new SeqMatch(m, expr.name, read));
+                        //break;  //NOTE: inspect both reads in case we have more than one hit
+                    }
                 }
             }
         }
 
         return matching;
+    }
+
+    final LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
+
+    private SeqMatch fuzzyMatch(String query, FastqRecord read, SeqPattern expr) {
+        String readSeq = read.getReadString().toUpperCase();
+        int windows = readSeq.length() - query.length();
+
+        int i = 0;
+        while (i < windows) {
+            CharSequence test = readSeq.subSequence(i, i + query.length());
+            if (levenshteinDistance.apply(query, test) <= editDistance) {
+                return new SeqMatch(i, query.length(), expr.name, read);
+            }
+
+            i++;
+        }
+
+        return null;
     }
 }
