@@ -197,6 +197,21 @@
       "options": []
     },
     {
+      "summary": "If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.",
+      "name": "--editDistance",
+      "synonyms": "-ed",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "One or more genomic intervals to exclude from processing",
       "name": "--exclude-intervals",
       "synonyms": "-XL",

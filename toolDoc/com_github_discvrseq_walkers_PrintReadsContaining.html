@@ -167,6 +167,14 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--editDistance">--editDistance</a><br />
+								&nbsp;<em>-ed</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.</td>
+				</tr>
+				<tr>
 					<td><a href="#--expressionNames">--expressionNames</a><br />
 								&nbsp;<em>-en</em>
 					</td>
@@ -671,6 +679,20 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--editDistance">--editDistance </a>
+			 / <small>-ed</small>
+		</h3>
+		<p class="args">
+			<b>If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--exclude-intervals">--exclude-intervals </a>
@@ -1205,7 +1227,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.10 built at 19-38-2020 04:38:06.
+        <p class="version">DISCVR-Seq version 1.11 built at 24-13-2020 02:13:13.
         </p>
 
 </div></div>
