@@ -325,7 +325,9 @@ public class PrintReadsContaining extends GATKTool {
         if (!eitherReadPatterns.isEmpty()) {
             Map<ReadType, FastqRecord> map = new HashMap<>();
             map.put(ReadType.Forward, read1);
-            map.put(ReadType.Reverse, read2);
+            if (read2 != null)
+                map.put(ReadType.Reverse, read2);
+
             List<SeqMatch> matchesPair = inspect(eitherReadPatterns, map);
             if (!isPassing(matchesPair, eitherReadPatterns)) {
                 //NOTE: even if this fails, we might want to inspect the other expressions:
