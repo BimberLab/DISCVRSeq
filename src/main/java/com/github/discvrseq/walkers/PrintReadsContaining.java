@@ -323,12 +323,7 @@ public class PrintReadsContaining extends GATKTool {
         Set<SeqMatch> matches = new HashSet<>();
 
         if (!eitherReadPatterns.isEmpty()) {
-            Map<ReadType, FastqRecord> map = new HashMap<>();
-            map.put(ReadType.Forward, read1);
-            if (read2 != null)
-                map.put(ReadType.Reverse, read2);
-
-            List<SeqMatch> matchesPair = inspect(eitherReadPatterns, map);
+            List<SeqMatch> matchesPair = inspect(eitherReadPatterns, read1, read2);
             if (!isPassing(matchesPair, eitherReadPatterns)) {
                 //NOTE: even if this fails, we might want to inspect the other expressions:
                 if (matchAllExpressions) {
@@ -341,9 +336,7 @@ public class PrintReadsContaining extends GATKTool {
         }
 
         if (!read1Patterns.isEmpty()) {
-            Map<ReadType, FastqRecord> map = new HashMap<>();
-            map.put(ReadType.Forward, read1);
-            List<SeqMatch> matches1 = inspect(read1Patterns, map);
+            List<SeqMatch> matches1 = inspect(read1Patterns, read1, null);
             if (!isPassing(matches1, read1Patterns)) {
                 if (matchAllExpressions) {
                     return null;
@@ -359,9 +352,7 @@ public class PrintReadsContaining extends GATKTool {
                 throw new UserException.BadInput("Specified read2 expressions, but read2 not found");
             }
             else {
-                Map<ReadType, FastqRecord> map = new HashMap<>();
-                map.put(ReadType.Reverse, read2);
-                List<SeqMatch> matches2 = inspect(read2Patterns, map);
+                List<SeqMatch> matches2 = inspect(read2Patterns, null, read2);
                 if (!isPassing(matches2, read2Patterns)) {
                     if (matchAllExpressions) {
                         return null;
@@ -380,27 +371,33 @@ public class PrintReadsContaining extends GATKTool {
         return matchAllExpressions ? matches.size() == expressions.size() : !matches.isEmpty();
     }
 
-    private List<SeqMatch> inspect(List<SeqPattern> exprs, Map<ReadType, FastqRecord> reads) {
+    private List<SeqMatch> inspect(List<SeqPattern> exprs, @Nullable FastqRecord read1, @Nullable FastqRecord read2) {
         List<SeqMatch> matching = new ArrayList<>();
         for (SeqPattern expr : exprs) {
-            for (ReadType rt : reads.keySet()) {
-                if (editDistance > 0) {
-                    SeqMatch match = fuzzyMatch(expr.pattern.pattern(), reads.get(rt), expr, rt);
-                    if (match != null) {
-                        matching.add(match);
-                    }
-                }
-                else {
-                    Matcher m = expr.pattern.matcher(reads.get(rt).getReadString());
-                    if (m.find()) {
-                        matching.add(new SeqMatch(m, expr.name, rt));
-                        //break;  //NOTE: inspect both reads in case we have more than one hit
-                    }
-                }
-            }
+            if (read1 != null)
+                inspectRead(expr, read1, ReadType.Forward, matching);
+
+            if (read2 != null)
+                inspectRead(expr, read2, ReadType.Reverse, matching);
         }
 
         return matching;
+    }
+
+    private void inspectRead(SeqPattern expr, FastqRecord read, ReadType rt, List<SeqMatch> matching) {
+        if (editDistance > 0) {
+            SeqMatch match = fuzzyMatch(expr.pattern.pattern(), read, expr, rt);
+            if (match != null) {
+                matching.add(match);
+            }
+        }
+        else {
+            Matcher m = expr.pattern.matcher(read.getReadString());
+            if (m.find()) {
+                matching.add(new SeqMatch(m, expr.name, rt));
+                //break;  //NOTE: inspect both reads in case we have more than one hit
+            }
+        }
     }
 
     final LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
