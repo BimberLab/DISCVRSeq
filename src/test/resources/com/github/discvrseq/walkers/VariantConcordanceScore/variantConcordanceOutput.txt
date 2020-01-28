@@ -1,3 +1,5 @@
-SampleName	ReferenceName	MarkersMatched	FractionMatched	TotalMarkersForSet
-sample2	REF2	2	0.06	35
-sample1	REF2	1	0.03	35
+SampleName	ReferenceName	MarkersMatched	MarkersMismatched	FractionMatched	TotalMarkersForSet	FractionWithData
+sample1	REF1	0	0	0	2	0
+sample1	REF2	1	10	0.09	35	0.31
+sample2	REF1	0	0	0	2	0
+sample2	REF2	2	18	0.1	35	0.57

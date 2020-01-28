@@ -8,7 +8,6 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFFileReader;
-import org.apache.commons.collections.map.HashedMap;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -21,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
+
 
 /**
  * THIS WILL GET PARSED TO MAKE THE HTML DOCS.  Update with a short description and relevant information about the tool
@@ -36,7 +36,7 @@ import java.util.*;
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "WRITE A SUMMARY",
+        summary = "This tool compares an input VCF against a series of reference VCFs, reporting concordance between them",
         oneLineSummary = "WRITE A ONE LINE SUMMARY",
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
@@ -49,7 +49,7 @@ public class VariantConcordanceScore extends VariantWalker {
     public String outFile = null;
 
     private Map<SimpleInterval, Map<Allele, Set<String>>> refMap = null;
-    private Map<String, Long> totalMarkerByRef = new HashedMap();
+    private Map<String, Long> totalMarkerByRef = new HashMap<>();
 
     @Override
     public List<SimpleInterval> getTraversalIntervals() {
@@ -123,21 +123,12 @@ public class VariantConcordanceScore extends VariantWalker {
         refMap = ret;
     }
 
-    Map<String, SampleStats> sampleMap = new HashedMap();
+    Map<String, SampleStats> sampleMap = new HashMap<>();
 
     private class SampleStats {
         long totalNoCall = 0;
-        Map<String, Long> hits = new HashedMap();
-
-        private Map<String, Double> reportFinalCalls() {
-            Map<String, Double> ret = new HashedMap();
-            for (String ref : hits.keySet()) {
-                double fraction = (double)hits.get(ref) / totalMarkerByRef.get(ref);
-                ret.put(ref, fraction);
-            }
-
-            return ret;
-        }
+        Map<String, Long> hits = new HashMap<>();
+        Map<String, Long> misses = new HashMap<>();
     }
 
     @Override
@@ -165,6 +156,13 @@ public class VariantConcordanceScore extends VariantWalker {
                             ss.hits.put(refHit, total);
                         }
                     }
+                    else {
+                        for (String refHit : map.get(a)) {
+                            long total = ss.misses.getOrDefault(refHit, 0L);
+                            total++;
+                            ss.misses.put(refHit, total);
+                        }
+                    }
                 }
 
                 sampleMap.put(g.getSampleName(), ss);
@@ -179,13 +177,16 @@ public class VariantConcordanceScore extends VariantWalker {
         format.setMaximumFractionDigits(2);
 
         try (CSVWriter output = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
-            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersMatched", "FractionMatched", "TotalMarkersForSet"});
+            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersMatched", "MarkersMismatched", "FractionMatched", "TotalMarkersForSet", "FractionWithData"});
 
             for (String sample : sampleMap.keySet()) {
                 SampleStats ss = sampleMap.get(sample);
-                Map<String, Double> refs = ss.reportFinalCalls();
-                for (String ref : refs.keySet()) {
-                    output.writeNext(new String[]{sample, ref, String.valueOf(ss.hits.get(ref)), format.format(refs.get(ref)), String.valueOf(totalMarkerByRef.get(ref))});
+                for (String ref : totalMarkerByRef.keySet()) {
+                    long totalWithData = ss.hits.getOrDefault(ref, 0L) + ss.misses.getOrDefault(ref, 0L);
+                    double fractionCalled = totalWithData == 0 ? 0 : (double)ss.hits.getOrDefault(ref, 0L) / totalWithData;
+                    double fractionWithData = totalMarkerByRef.get(ref) == 0 ? 0 : (double)totalWithData /  totalMarkerByRef.get(ref);
+
+                    output.writeNext(new String[]{sample, ref, String.valueOf(ss.hits.getOrDefault(ref, 0L)), String.valueOf(ss.misses.getOrDefault(ref, 0L)), format.format(fractionCalled), String.valueOf(totalMarkerByRef.get(ref)), format.format(fractionWithData)});
                 }
             }
 
@@ -193,8 +194,6 @@ public class VariantConcordanceScore extends VariantWalker {
         catch (IOException e) {
             throw new GATKException(e.getMessage());
         }
-
-        //TODO: Consider also tracking stats on specific markers?
 
         return super.getTraversalIntervals();
     }
