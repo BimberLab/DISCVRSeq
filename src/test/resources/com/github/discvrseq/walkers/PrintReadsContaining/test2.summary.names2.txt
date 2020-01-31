@@ -1,2 +1,0 @@
-ReadName	ReadType	ExpressionName	Start	End	TotalHitsForPair
-M00370:382:000000000-G3228:1:1101:11916:2315 1:N:0:2	Forward	FName1	0	20	1
