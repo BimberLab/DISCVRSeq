@@ -43,13 +43,15 @@ import java.util.*;
  * </pre>
  *
  * This will output a table with one row for each sample/reference pair, with the following data:
- *  - SampleName: name of sample
- *  - ReferenceName: name of the reference, as given on the command line ("i.e. --ref-sites:SET1 ref1.vcf)
- *  - MarkersMatched: The number of sites from this sample where an allele matched the allele from this reference
- *  - MarkersMismatched: The number of sites from this sample where there was callable data but no alleles matched the allele from this reference
- *  - FractionMatched: The fraction of markers that matched (which does not count without callable data in this sample)
- *  - TotalMarkersForSet: The total markers in this reference set
- *  - FractionWithData: The fraction of markers from this reference set that had callable genotypes in this sample
+ * <ul>
+ *  <li>SampleName: name of sample</li>
+ *  <li>ReferenceName: name of the reference, as given on the command line ("i.e. --ref-sites:SET1 ref1.vcf)</li>
+ *  <li>MarkersMatched: The number of sites from this sample where an allele matched the allele from this reference</li>
+ *  <li>MarkersMismatched: The number of sites from this sample where there was callable data but no alleles matched the allele from this reference</li>
+ *  <li>FractionMatched: The fraction of markers that matched (which does not count without callable data in this sample)</li>
+ *  <li>TotalMarkersForSet: The total markers in this reference set</li>
+ *  <li>FractionWithData: The fraction of markers from this reference set that had callable genotypes in this sample</li>
+ * </ul>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(

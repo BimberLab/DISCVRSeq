@@ -9,7 +9,7 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.github.johnrengelman.shadow" version "1.2.3"    //used to build the shadow and sparkJars
+    id "com.github.johnrengelman.shadow" version "5.0.0"    //used to build the shadow and sparkJars
     id 'com.palantir.git-version' version '0.5.1' //version helper
 }
 
@@ -116,8 +116,8 @@ dependencies {
     testCompile 'org.testng:testng:' + testNGVersion
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.1'
+wrapper {
+    gradleVersion = '5.6'
 }
 
 tasks.withType(Jar) {
