@@ -1,9 +1,9 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.Main;
+import htsjdk.samtools.util.FileExtensions;
 import htsjdk.tribble.Feature;
 import htsjdk.tribble.FeatureCodec;
-import htsjdk.tribble.Tribble;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
 import htsjdk.variant.vcf.VCFCodec;
@@ -33,7 +33,7 @@ public class BaseIntegrationTest extends BaseTest implements CommandLineProgramT
     }
 
     protected <FEATURE_TYPE extends Feature, SOURCE_TYPE> void ensureIndex(File input, FeatureCodec<FEATURE_TYPE, SOURCE_TYPE> codec){
-        File expected = new File(input.getParent(), input.getName() + Tribble.STANDARD_INDEX_EXTENSION);
+        File expected = new File(input.getParent(), input.getName() + FileExtensions.TRIBBLE_INDEX);
         if (expected.exists()){
             return;
         }
