@@ -53,11 +53,11 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.1.2.0-34-gf7d6876-SNAPSHOT'
-final htsjdkVersion = System.getProperty('htsjdk.version','2.18.0')
+final gatkVersion = '4.1.4.1'
+final htsjdkVersion = System.getProperty('htsjdk.version','2.21.1')
 final barclayVersion = System.getProperty('barclay.version','2.1.0')
-final testNGVersion = '6.11'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.62.0-alpha:shaded'
+final testNGVersion = '7.0.0'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.107.0-alpha:shaded'
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)

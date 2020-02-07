@@ -23,9 +23,17 @@ import java.util.*;
 
 
 /**
- * THIS WILL GET PARSED TO MAKE THE HTML DOCS.  Update with a short description and relevant information about the tool
+ * This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets
+ * One possible use of this tool is to compare VCF samples against reference panels of alleles, such as alleles unique to different ethnicities or populations.
  *
- * <h3>Usage example:</h3>
+ * The format of the reference VCF(s) needs to be somewhat specific.  Each site must be either:
+ *  - A single allele, in which case it will score any sample containing that allele
+ *  - Two alleles, in which case it will score any sample containing the ALT allele
+ *
+ *  Filtered sites on the reference VCFs are not allowed.  Also be aware that this tools assumes the size of the reference files is
+ *  relatively small (though in theory 100Ks might work), since the intervals are read into memory.
+ *
+ * <h3>Usage example (note naming of the --ref-sites files):</h3>
  * <pre>
  *  java -jar DISCVRseq.jar VariantConcordanceScore \
  *     --ref-sites:SET1 ref1.vcf \
@@ -33,11 +41,20 @@ import java.util.*;
  *     -V myVCF.vcf.gz \
  *     -O output.txt
  * </pre>
+ *
+ * This will output a table with one row for each sample/reference pair, with the following data:
+ *  - SampleName: name of sample
+ *  - ReferenceName: name of the reference, as given on the command line ("i.e. --ref-sites:SET1 ref1.vcf)
+ *  - MarkersMatched: The number of sites from this sample where an allele matched the allele from this reference
+ *  - MarkersMismatched: The number of sites from this sample where there was callable data but no alleles matched the allele from this reference
+ *  - FractionMatched: The fraction of markers that matched (which does not count without callable data in this sample)
+ *  - TotalMarkersForSet: The total markers in this reference set
+ *  - FractionWithData: The fraction of markers from this reference set that had callable genotypes in this sample
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "This tool compares an input VCF against a series of reference VCFs, reporting concordance between them",
-        oneLineSummary = "WRITE A ONE LINE SUMMARY",
+        summary = "This tool compares an input VCF against a set of reference VCFs, reporting concordance between them",
+        oneLineSummary = "Summarize allele-level concordance between a VCF and reference VCFs",
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class VariantConcordanceScore extends VariantWalker {
@@ -92,32 +109,32 @@ public class VariantConcordanceScore extends VariantWalker {
         Map<SimpleInterval, Map<Allele, Set<String>>> ret = new HashMap<>();
 
         referenceFiles.stream().forEach(
-                f -> {
-                    try (VCFFileReader reader = new VCFFileReader(f.toPath()); CloseableIterator<VariantContext> it = reader.iterator()) {
-                        while (it.hasNext()) {
-                            VariantContext vc = it.next();
-                            if (vc.isFiltered()) {
-                                throw new IllegalStateException("Reference VCFs should not have filtered variants: " + vc.toStringWithoutGenotypes());
-                            }
-
-                            if (vc.getAlternateAlleles().size() > 1) {
-                                throw new IllegalStateException("Reference has site with multiple alternates.  Must have either zero or one ALT: " + vc.toStringWithoutGenotypes());
-                            }
-
-                            SimpleInterval i = new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd());
-                            Allele a = vc.isVariant() ? vc.getAlternateAllele(0) : vc.getReference();
-                            Map<Allele, Set<String>> map = ret.getOrDefault(i, new HashMap<>());
-                            Set<String> sources = map.getOrDefault(a, new HashSet<>());
-
-                            //NOTE: should we throw warning or error if this is >1, indicating references are not mutually exclusive?
-                            sources.add(f.getName());
-                            map.put(a, sources);
-                            ret.put(i, map);
-
-                            totalMarkerByRef.put(f.getName(), totalMarkerByRef.getOrDefault(f.getName(), 0L) + 1);
+            f -> {
+                try (VCFFileReader reader = new VCFFileReader(f.toPath()); CloseableIterator<VariantContext> it = reader.iterator()) {
+                    while (it.hasNext()) {
+                        VariantContext vc = it.next();
+                        if (vc.isFiltered()) {
+                            throw new IllegalStateException("Reference VCFs should not have filtered variants: " + vc.toStringWithoutGenotypes());
                         }
+
+                        if (vc.getAlternateAlleles().size() > 1) {
+                            throw new IllegalStateException("Reference has site with multiple alternates.  Must have either zero or one ALT: " + vc.toStringWithoutGenotypes());
+                        }
+
+                        SimpleInterval i = new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd());
+                        Allele a = vc.isVariant() ? vc.getAlternateAllele(0) : vc.getReference();
+                        Map<Allele, Set<String>> map = ret.getOrDefault(i, new HashMap<>());
+                        Set<String> sources = map.getOrDefault(a, new HashSet<>());
+
+                        //NOTE: should we throw warning or error if this is >1, indicating references are not mutually exclusive?
+                        sources.add(f.getName());
+                        map.put(a, sources);
+                        ret.put(i, map);
+
+                        totalMarkerByRef.put(f.getName(), totalMarkerByRef.getOrDefault(f.getName(), 0L) + 1);
                     }
                 }
+            }
         );
 
         refMap = ret;
@@ -172,7 +189,7 @@ public class VariantConcordanceScore extends VariantWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        //TODO: need to implement some kind of logic to make actual calls per reference
+        //Note: need should consider implementing some kind of logic to make actual calls per reference
         NumberFormat format = NumberFormat.getInstance();
         format.setMaximumFractionDigits(2);
 

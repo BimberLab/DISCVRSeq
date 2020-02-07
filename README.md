@@ -20,3 +20,9 @@ java -jar DISCVRseq.jar --list
 java -jar DISCVRseq.jar VariantQC --help
 
 ```
+
+## Docker
+
+By popular demand, DISCVR-seq releases  [will now be pushed to Docker Hub](https://hub.docker.com/repository/docker/bbimber/discvrseq).  We recommend using a specific release, which you can do using tags:
+
+docker pull bbimber/discvrseq:release1.11
