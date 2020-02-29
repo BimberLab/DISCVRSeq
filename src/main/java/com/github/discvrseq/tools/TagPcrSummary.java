@@ -34,23 +34,34 @@ import java.text.NumberFormat;
 import java.util.*;
 
 /**
- * This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated
- * in those coordinates. Lifeover must be performed using Picard Tools LiftoverVcf, which annotates lifted variants with the values for ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE.  This tool
- * reads one of these lifted VCFs, and writes a new sorted VCF in which the original coordinates are restored.
+ * This tool is designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
+ * providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
+ *
+ * <ul>
+ *     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is comprised of the organism plus one additional contig representing the delivery vector</li>
+ *     <li>Each alignment is inspected (including cropped bases) for the presence of a short sequence expected to be at the insert/genome junction</li>
+ *     <li>*IMPORTANT* The orientation of each hit is used to determine the orientation of the transgene in the genome.  Each query sequence is associated with one end of the transgene</li>
+ *     <li>The hits are summarized based on the number of reads per genomic position (junction border)</li>
+ *     <li>If --primer3-path and --primer-pair-table are provided, the tool will iterate each passing integration site, extract the upstream and downstream region (+/- 1000bp), and design primer pairs that site inside the transgene and flanking genomic region.</li>
+ *     <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
+ * </ul>
  *
  * <h3>Usage example:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar TagPcrSummary \
  *     -R currentGenome.fasta \
- *     -I myBam.bam \
- *     -O output.txt
+ *     -b myBam.bam \
+ *     --output-table output.txt \
+ *     --primer-pair-table primer_summary.txt \
+ *     --prime3-path /usr/bin/primer3_core \
+ *     --genbank-output output.gb
  * </pre>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "",
-        oneLineSummary = "",
-        programGroup = DiscvrSeqInternalProgramGroup.class
+        summary = "The is a specialist tool designed to summarize and interpret integration sites of a transgene into a genome",
+        oneLineSummary = "Detect and summarize transgene integration",
+        programGroup = DiscvrSeqDevProgramGroup.class
 )
 public class TagPcrSummary extends GATKTool {
     @Argument(fullName = "bam", shortName = "b", doc = "A BAM file with alignments to be inspected", common = false, optional = false)
@@ -143,9 +154,9 @@ public class TagPcrSummary extends GATKTool {
         int totalReverse = 0;
         if (!totalMatches.isEmpty()) {
             try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(outputTsv), '\t', CSVWriter.NO_QUOTE_CHARACTER); CSVWriter primerWriter = primerPairTable == null ? null : new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primerPairTable), '\t', CSVWriter.NO_QUOTE_CHARACTER);ReferenceSequenceFile refSeq = ReferenceSequenceFileFactory.getReferenceSequenceFile(referenceArguments.getReferencePath())) {
-                writer.writeNext(new String[]{"SiteName", "JunctionName", "Chr", "Position", "Strand", "Total"});
+                writer.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Chr", "Position", "Strand", "Total"});
                 if (primerWriter != null) {
-                    primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Primer-F", "Primer-F-Start", "Primer-R", "Primer-R-Start"});
+                    primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start"});
                 }
                 Map<String, ReferenceSequence> refMap = new HashMap<>();
                 List<String> sortedKeys = new ArrayList<>(totalMatches.keySet());
@@ -172,7 +183,7 @@ public class TagPcrSummary extends GATKTool {
                         }
 
                         String siteName = "Site" + totalOutput;
-                        writer.writeNext(new String[]{siteName, jm.jd.junctionName, jm.contigName, String.valueOf(jm.alignmentStart), (jm.matchIsNegativeStrand ? "-" : "+"), String.valueOf(jm.totalReads)});
+                        writer.writeNext(new String[]{siteName, jm.jd.junctionName, (jm.matchIsNegativeStrand ? "Minus" : "Plus"), jm.contigName, String.valueOf(jm.alignmentStart), (jm.matchIsNegativeStrand ? "-" : "+"), String.valueOf(jm.totalReads)});
 
                         Pair<DNASequence, DNASequence> ampliconPair = jm.getAmplicons(refSeq, refMap, siteName, primerWriter);
                         amplicons.add(ampliconPair.getKey());
@@ -401,10 +412,10 @@ public class TagPcrSummary extends GATKTool {
                 ReferenceSequence insertRef = refMap.get(jd.insertRegionProximal.getContig());
                 if (insertRef == null) {
                     insertRef = refSeq.getSequence(jd.insertRegionProximal.getContig());
-                    refMap.put(insertRef.getName(), ref);
+                    refMap.put(insertRef.getName(), insertRef);
                 }
 
-                insertRegionProximal = ref.getBaseString().substring(jd.insertRegionProximal.getStart() - 1, jd.insertRegionProximal.getEnd());
+                insertRegionProximal = insertRef.getBaseString().substring(jd.insertRegionProximal.getStart() - 1, jd.insertRegionProximal.getEnd());
             }
 
             String insertRegionDistal = "";
@@ -412,10 +423,10 @@ public class TagPcrSummary extends GATKTool {
                 ReferenceSequence insertRef = refMap.get(jd.insertRegionDistal.getContig());
                 if (insertRef == null) {
                     insertRef = refSeq.getSequence(jd.insertRegionDistal.getContig());
-                    refMap.put(insertRef.getName(), ref);
+                    refMap.put(insertRef.getName(), insertRef);
                 }
 
-                insertRegionDistal = ref.getBaseString().substring(jd.insertRegionDistal.getStart() - 1, jd.insertRegionDistal.getEnd());
+                insertRegionDistal = insertRef.getBaseString().substring(jd.insertRegionDistal.getStart() - 1, jd.insertRegionDistal.getEnd());
             }
 
             DNASequence seq1;
@@ -424,52 +435,67 @@ public class TagPcrSummary extends GATKTool {
                 String id = siteName;
                 String idFull = contigName + ":" + alignmentStart + ":" + (matchIsNegativeStrand ? "Minus" : "Plus");
 
-                //TODO: fix limitation
+                //Note: this is a limitation in biojava
                 if (id.length() > 16) {
+                    logger.error("A site name greater than 16 characters was passed: " + id + ".  This will be truncated to comply with genbank format");
                     id = id.substring(0, 16);
                 }
 
+                String orientationSuffix = matchIsNegativeStrand ? "(-)" : "";
                 if (matchIsNegativeStrand) {
                     seq1 = new DNASequence(SequenceUtil.reverseComplement(insertRegionDistal) + after);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq1.setAccession(new AccessionID(ampliconName));
+                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
                     seq1.setDescription(idFull);
 
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal) + "-RC", "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq1, Strand.NEGATIVE));
                     seq1.addFeature(tf);
-                    runPrimer3(ampliconName, jd.getFeatureLabel(END_TYPE.distal), seq1, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
+                    runPrimer3(siteName, jd.getFeatureLabel(END_TYPE.distal), seq1, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
 
-                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(afterInterval.toString(), "Genome", afterInterval.toString(), afterInterval.toString());
-                    tfG.setLocation(new SequenceLocation<>(insertRegionDistal.length() + 1, seq1.getBioEnd(), seq1, Strand.NEGATIVE));
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(afterInterval.getContig() + ":" + afterInterval.getStart(), "Genome", afterInterval.toString(), afterInterval.toString());
+                    tfG.setLocation(new SequenceLocation<>(insertRegionDistal.length() + 1, seq1.getBioEnd(), seq1, Strand.POSITIVE));
                     seq1.addFeature(tfG);
 
                     seq2 = new DNASequence(before + SequenceUtil.reverseComplement(insertRegionProximal));
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq2.setAccession(new AccessionID(ampliconName2));
+                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
                     seq2.setDescription(idFull);
+
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal) + "-RC", "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf2.setLocation(new SequenceLocation<>(before.length() + 1, seq2.getBioEnd(), seq2, Strand.NEGATIVE));
                     seq2.addFeature(tf2);
-                    runPrimer3(ampliconName2, jd.getFeatureLabel(END_TYPE.promimal), seq2, before.length(), outputTsv.getParentFile(), primerWriter);
+                    runPrimer3(siteName, jd.getFeatureLabel(END_TYPE.promimal), seq2, before.length(), outputTsv.getParentFile(), primerWriter);
+
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG2 = new TextFeature<>(beforeInterval.getContig() + ":" + beforeInterval.getStart(), "Genome", beforeInterval.toString(), beforeInterval.toString());
+                    tfG2.setLocation(new SequenceLocation<>(1, before.length(), seq2, Strand.POSITIVE));
+                    seq2.addFeature(tfG2);
                 } else {
                     seq1 = new DNASequence(before + insertRegionProximal);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq1.setAccession(new AccessionID(ampliconName));
+                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
                     seq1.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal), "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf.setLocation(new SequenceLocation<>( before.length() + 1, seq1.getBioEnd(), seq1, Strand.POSITIVE));
                     seq1.addFeature(tf);
-                    runPrimer3(ampliconName, jd.getFeatureLabel(END_TYPE.promimal), seq1, before.length(), outputTsv.getParentFile(), primerWriter);
+                    runPrimer3(siteName, jd.getFeatureLabel(END_TYPE.promimal), seq1, before.length(), outputTsv.getParentFile(), primerWriter);
+
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(afterInterval.getContig() + ":" + afterInterval.getStart(), "Genome", afterInterval.toString(), afterInterval.toString());
+                    tfG.setLocation(new SequenceLocation<>(1, before.length(), seq1, Strand.POSITIVE));
+                    seq1.addFeature(tfG);
 
                     seq2 = new DNASequence(insertRegionDistal + after);
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq2.setAccession(new AccessionID(ampliconName2));
+                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
                     seq2.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal), "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf2.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq2, Strand.POSITIVE));
                     seq2.addFeature(tf2);
-                    runPrimer3(ampliconName2, jd.getFeatureLabel(END_TYPE.distal), seq2, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
+                    runPrimer3(siteName, jd.getFeatureLabel(END_TYPE.distal), seq2, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
+
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG2 = new TextFeature<>(beforeInterval.getContig() + ":" + beforeInterval.getStart(), "Genome", beforeInterval.toString(), beforeInterval.toString());
+                    tfG2.setLocation(new SequenceLocation<>(insertRegionDistal.length() + 1, seq2.getBioEnd(), seq2, Strand.POSITIVE));
+                    seq2.addFeature(tfG2);
                 }
             }
             catch (CompoundNotFoundException e) {
@@ -563,16 +589,16 @@ public class TagPcrSummary extends GATKTool {
                 String primer2Seq = outputMap.get("PRIMER_RIGHT_" + i + "_SEQUENCE");
                 int primer2Loc = Integer.parseInt(outputMap.get("PRIMER_RIGHT_" + i).split(",")[0]) + 1;
 
-                String pairName = "Pair" + (i+1);
+                String pairName = siteName + "-" + junctionName + "-" + (i+1);
                 if (primerWriter != null) {
-                    primerWriter.writeNext(new String[]{siteName, junctionName, pairName, primer1Seq, String.valueOf(primer1Loc), primer2Seq, String.valueOf(primer2Loc)});
+                    primerWriter.writeNext(new String[]{siteName, junctionName, (matchIsNegativeStrand ? "Minus" : "Plus"), pairName + "F", primer1Seq, String.valueOf(primer1Loc), pairName + "R", primer2Seq, String.valueOf(primer2Loc)});
                 }
 
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairName + "-F", "Primer3", pairName + "-F", pairName + "-F");
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairName + "F", "Primer3", pairName + "F", pairName + "F");
                 tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length(), sequence, Strand.POSITIVE));
                 sequence.addFeature(tf);
 
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(pairName + "-R", "Primer3", pairName + "-R", pairName + "-R");
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(pairName + "R", "Primer3", pairName + "R", pairName + "R");
                 tf2.setLocation(new SequenceLocation<>(primer2Loc, primer2Loc + primer2Seq.length(), sequence, Strand.NEGATIVE));
                 sequence.addFeature(tf2);
             }
