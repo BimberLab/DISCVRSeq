@@ -117,6 +117,8 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
     compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
+
+    compile 'org.biojava:biojava-core:5.3.0'
 }
 
 wrapper {
