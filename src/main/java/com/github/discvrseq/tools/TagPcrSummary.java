@@ -8,7 +8,6 @@ import htsjdk.samtools.reference.ReferenceSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Interval;
-import htsjdk.samtools.util.IntervalUtil;
 import htsjdk.samtools.util.SequenceUtil;
 import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,6 +20,7 @@ import org.biojava.nbio.core.sequence.features.TextFeature;
 import org.biojava.nbio.core.sequence.io.GenbankWriter;
 import org.biojava.nbio.core.sequence.io.GenericGenbankHeaderFormat;
 import org.biojava.nbio.core.sequence.location.SequenceLocation;
+import org.biojava.nbio.core.sequence.template.AbstractSequence;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -435,12 +435,12 @@ public class TagPcrSummary extends GATKTool {
                     seq1.setAccession(new AccessionID(ampliconName));
                     seq1.setDescription(idFull);
 
-                    TextFeature tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal) + "-RC", "Vector", jd.junctionName, jd.insertRegionDistal.toString());
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal) + "-RC", "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq1, Strand.NEGATIVE));
                     seq1.addFeature(tf);
                     runPrimer3(ampliconName, jd.getFeatureLabel(END_TYPE.distal), seq1, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
 
-                    TextFeature tfG = new TextFeature<>(afterInterval.toString(), "Genome", afterInterval.toString(), afterInterval.toString());
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(afterInterval.toString(), "Genome", afterInterval.toString(), afterInterval.toString());
                     tfG.setLocation(new SequenceLocation<>(insertRegionDistal.length() + 1, seq1.getBioEnd(), seq1, Strand.NEGATIVE));
                     seq1.addFeature(tfG);
 
@@ -448,7 +448,7 @@ public class TagPcrSummary extends GATKTool {
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
                     seq2.setAccession(new AccessionID(ampliconName2));
                     seq2.setDescription(idFull);
-                    TextFeature tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal) + "-RC", "Vector", jd.junctionName, jd.insertRegionProximal.toString());
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal) + "-RC", "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf2.setLocation(new SequenceLocation<>(before.length() + 1, seq2.getBioEnd(), seq2, Strand.NEGATIVE));
                     seq2.addFeature(tf2);
                     runPrimer3(ampliconName2, jd.getFeatureLabel(END_TYPE.promimal), seq2, before.length(), outputTsv.getParentFile(), primerWriter);
@@ -457,7 +457,7 @@ public class TagPcrSummary extends GATKTool {
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
                     seq1.setAccession(new AccessionID(ampliconName));
                     seq1.setDescription(idFull);
-                    TextFeature tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal), "Vector", jd.junctionName, jd.insertRegionProximal.toString());
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal), "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf.setLocation(new SequenceLocation<>( before.length() + 1, seq1.getBioEnd(), seq1, Strand.POSITIVE));
                     seq1.addFeature(tf);
                     runPrimer3(ampliconName, jd.getFeatureLabel(END_TYPE.promimal), seq1, before.length(), outputTsv.getParentFile(), primerWriter);
@@ -466,7 +466,7 @@ public class TagPcrSummary extends GATKTool {
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
                     seq2.setAccession(new AccessionID(ampliconName2));
                     seq2.setDescription(idFull);
-                    TextFeature tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal), "Vector", jd.junctionName, jd.insertRegionDistal.toString());
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal), "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf2.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq2, Strand.POSITIVE));
                     seq2.addFeature(tf2);
                     runPrimer3(ampliconName2, jd.getFeatureLabel(END_TYPE.distal), seq2, insertRegionDistal.length(), outputTsv.getParentFile(), primerWriter);
@@ -568,11 +568,11 @@ public class TagPcrSummary extends GATKTool {
                     primerWriter.writeNext(new String[]{siteName, junctionName, pairName, primer1Seq, String.valueOf(primer1Loc), primer2Seq, String.valueOf(primer2Loc)});
                 }
 
-                TextFeature tf = new TextFeature<>(pairName + "-F", "Primer3", pairName + "-F", pairName + "-F");
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairName + "-F", "Primer3", pairName + "-F", pairName + "-F");
                 tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length(), sequence, Strand.POSITIVE));
                 sequence.addFeature(tf);
 
-                TextFeature tf2 = new TextFeature<>(pairName + "-R", "Primer3", pairName + "-R", pairName + "-R");
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(pairName + "-R", "Primer3", pairName + "-R", pairName + "-R");
                 tf2.setLocation(new SequenceLocation<>(primer2Loc, primer2Loc + primer2Seq.length(), sequence, Strand.NEGATIVE));
                 sequence.addFeature(tf2);
             }
