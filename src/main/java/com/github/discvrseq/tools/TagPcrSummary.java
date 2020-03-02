@@ -97,6 +97,9 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided", fullName = "blast-db-path", shortName = "bdb", optional = true)
     public String blastDatabase = null;
 
+    @Argument(doc="If BLAST will be used, this value is passed to the -num_threads argument of blastn.", fullName = "blast-threads", shortName = "bt", optional = true)
+    public Integer blastThreads = null;
+
     @Override
     public boolean requiresReference() {
         return true;
@@ -773,18 +776,18 @@ public class TagPcrSummary extends GATKTool {
         args.add("-num_alignments");
         args.add("5");
 
+        if (blastThreads != null) {
+            args.add("-num_threads");
+            args.add(blastThreads.toString());
+        }
+
         args.add("-outfmt");
         args.add("6 qseqid sallseqid qstart qend sstart send evalue bitscore length nident sstrand");
 
-        if (blastOutput.exists()) {
-
-        }
-        else {
-            final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
-            prs.getStderrSettings().printStandard(true);
-            prs.getStdoutSettings().printStandard(true);
-            ProcessController.getThreadLocal().exec(prs);
-        }
+        final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
+        prs.getStderrSettings().printStandard(true);
+        prs.getStdoutSettings().printStandard(true);
+        ProcessController.getThreadLocal().exec(prs);
 
         if (!blastOutput.exists()) {
             throw new GATKException("BLASTn did not produce an output, expected: " + blastOutput.getPath());
