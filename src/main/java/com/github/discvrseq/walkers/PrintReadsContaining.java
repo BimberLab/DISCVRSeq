@@ -2,6 +2,7 @@ package com.github.discvrseq.walkers;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.SequenceMatcher;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.fastq.FastqWriter;
@@ -400,20 +401,10 @@ public class PrintReadsContaining extends GATKTool {
         }
     }
 
-    final LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
-
     private SeqMatch fuzzyMatch(String query, FastqRecord read, SeqPattern expr, ReadType rt) {
-        String readSeq = read.getReadString().toUpperCase();
-        int windows = readSeq.length() - query.length();
-
-        int i = 0;
-        while (i < windows) {
-            CharSequence test = readSeq.subSequence(i, i + query.length());
-            if (levenshteinDistance.apply(query, test) <= editDistance) {
-                return new SeqMatch(i, query.length(), expr.name, rt);
-            }
-
-            i++;
+        Integer match = SequenceMatcher.fuzzyMatch(query, read.getReadString().toUpperCase(), editDistance);
+        if (match != null) {
+            return new PrintReadsContaining.SeqMatch(match, query.length(), expr.name, rt);
         }
 
         return null;
