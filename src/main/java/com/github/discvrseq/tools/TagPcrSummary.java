@@ -30,6 +30,7 @@ import org.broadinstitute.hellbender.engine.GATKTool;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.runtime.ProcessController;
+import org.broadinstitute.hellbender.utils.runtime.ProcessOutput;
 import org.broadinstitute.hellbender.utils.runtime.ProcessSettings;
 
 import java.io.*;
@@ -244,8 +245,6 @@ public class TagPcrSummary extends GATKTool {
                         amplicons.add(ampliconPair.getKey());
                         amplicons.add(ampliconPair.getValue());
 
-                    } else {
-                        logger.info("Skipping position: " + key + ", " + jm.totalReads + " reads");
                     }
                 }
 
@@ -292,8 +291,6 @@ public class TagPcrSummary extends GATKTool {
         Map<String, JunctionMatch> matches = new HashMap<>();
         alignmentsForRead.forEach(rec -> {
             if (rec.isSecondaryOrSupplementary()) {
-                logger.info(rec.getReferenceName());
-
                 INSERT_DESCRIPTORS.forEach(id -> {
                     if (rec.getContig().equals(id.contigName)) {
                         int total = secondaryAlignmentsToInsert.getOrDefault(id.displayName, 0);
@@ -606,7 +603,7 @@ public class TagPcrSummary extends GATKTool {
             List<String> args = new ArrayList<>();
             args.add(primer3ExePath);
 
-            File output = new File(outDir, "p3.output.txt");
+            File output = new File(outDir, siteName + "-" + junctionName + ".p3.output.txt");
             args.add("--output=" + output.getPath());
 
             args.add("--default_version=2");
@@ -616,7 +613,7 @@ public class TagPcrSummary extends GATKTool {
             args.add("--error=" + errorFile.getPath());
 
             int start = junctionSite - 50;
-            File input = new File(outDir, "p3.input.txt");
+            File input = new File(outDir, siteName + "-" + junctionName + ".p3.input.txt");
             try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(input)) {
                 writer.write(
                         "SEQUENCE_ID=" + sequence.getAccession().getID() + "\n" +
@@ -643,7 +640,10 @@ public class TagPcrSummary extends GATKTool {
             final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
             prs.getStderrSettings().printStandard(true);
             prs.getStdoutSettings().printStandard(true);
-            ProcessController.getThreadLocal().exec(prs);
+            ProcessOutput po = ProcessController.getThreadLocal().exec(prs);
+            if (po.getExitValue() != 0) {
+                logger.info("primer3 had a non-zero exit");
+            }
 
             if (!output.exists()) {
                 throw new GATKException("Error running primer3");
@@ -665,14 +665,22 @@ public class TagPcrSummary extends GATKTool {
             }
 
             input.delete();
-            output.delete();
             errorFile.delete();
+
+            if (!outputMap.containsKey("PRIMER_ERROR")) {
+                logger.info("primer3 error: " + outputMap.get("PRIMER_ERROR"));
+            }
 
             if (!outputMap.containsKey("PRIMER_PAIR_NUM_RETURNED")) {
                 logger.info("primer3 returned no pairs");
+                return;
             }
 
+            output.delete();
+
             int numPairs = Integer.parseInt(outputMap.get("PRIMER_PAIR_NUM_RETURNED"));
+            logger.info("total candidate pairs: " + numPairs);
+
             for (int i = 0; i < numPairs; i++) {
                 String primer1Seq = outputMap.get("PRIMER_LEFT_" + i + "_SEQUENCE");
                 int primer1Loc = Integer.parseInt(outputMap.get("PRIMER_LEFT_" + i).split(",")[0]) + 1;
@@ -745,12 +753,16 @@ public class TagPcrSummary extends GATKTool {
                 }
             }
 
-            logger.info("Redundant primers removed before BLAST: " + primersSkipped);
+            logger.info("Duplicate primers collapsed before BLAST: " + primersSkipped + " of " + (idx *2));
         }
         catch (IOException e) {
             throw new GATKException(e.getMessage(), e);
         }
 
+        if (idxToPrimer.isEmpty()) {
+            logger.info("No primers returned, skipping BLAST");
+            return;
+        }
 
         List<String> args = new ArrayList<>();
         args.add(blastnPath);
@@ -862,7 +874,7 @@ public class TagPcrSummary extends GATKTool {
             throw new GATKException(e.getMessage(), e);
         }
 
-        logger.info("Total primer paired removed by BLAST results: " + (primersToRemove.size() / 2) + " of " + primerLines.size());
+        logger.info("Total primer paired discarded due to multiple BLAST hits: " + (primersToRemove.size() / 2) + " of " + primerLines.size());
 
         //prune failed from genbank output:
         if (!primersToRemove.isEmpty()) {
