@@ -532,11 +532,16 @@ public class TagPcrSummary extends GATKTool {
                     id = id.substring(0, 16);
                 }
 
-                String orientationSuffix = matchIsNegativeStrand ? "(-)" : "";
+                String orientationSuffix = matchIsNegativeStrand ? "m" : "";
                 if (matchIsNegativeStrand) {
                     seq1 = new DNASequence(SequenceUtil.reverseComplement(insertRegionDistal) + after);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
+                    String accession = ampliconName + orientationSuffix;
+                    if (accession.length() > 15) {
+                        //a limitation of BioJava
+                        accession = accession.substring(0, 15);
+                    }
+                    seq1.setAccession(new AccessionID(accession));
                     seq1.setDescription(idFull);
 
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal) + "-RC", "Vector", jd.junctionName, jd.insertRegionDistal.toString());
@@ -550,7 +555,12 @@ public class TagPcrSummary extends GATKTool {
 
                     seq2 = new DNASequence(before + SequenceUtil.reverseComplement(insertRegionProximal));
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
+                    String accession2 = ampliconName2 + orientationSuffix;
+                    if (accession2.length() > 15) {
+                        //a limitation of BioJava
+                        accession2 = accession2.substring(0, 15);
+                    }
+                    seq2.setAccession(new AccessionID(accession2));
                     seq2.setDescription(idFull);
 
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal) + "-RC", "Vector", jd.junctionName, jd.insertRegionProximal.toString());
@@ -564,7 +574,12 @@ public class TagPcrSummary extends GATKTool {
                 } else {
                     seq1 = new DNASequence(before + insertRegionProximal);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
+                    String accession = ampliconName + orientationSuffix;
+                    if (accession.length() > 15) {
+                        //a limitation of BioJava
+                        accession = accession.substring(0, 15);
+                    }
+                    seq1.setAccession(new AccessionID(accession));
                     seq1.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal), "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf.setLocation(new SequenceLocation<>(before.length() + 1, seq1.getBioEnd(), seq1, Strand.POSITIVE));
@@ -577,7 +592,12 @@ public class TagPcrSummary extends GATKTool {
 
                     seq2 = new DNASequence(insertRegionDistal + after);
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
+                    String accession2 = ampliconName2 + orientationSuffix;
+                    if (accession2.length() > 15) {
+                        //a limitation of BioJava
+                        accession2 = accession2.substring(0, 15);
+                    }
+                    seq2.setAccession(new AccessionID(accession2));
                     seq2.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal), "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf2.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq2, Strand.POSITIVE));
@@ -616,6 +636,7 @@ public class TagPcrSummary extends GATKTool {
             File input = new File(outDir, siteName + "-" + junctionName + ".p3.input.txt");
             try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(input)) {
                 writer.write(
+                        //TODO: SEQUENCE_EXCLUDED_REGION 10,20 50,10
                         "SEQUENCE_ID=" + sequence.getAccession().getID() + "\n" +
                                 "SEQUENCE_TEMPLATE=" + seqString + "\n" +
                                 "SEQUENCE_TARGET=" + start + ",100" + "\n" +
