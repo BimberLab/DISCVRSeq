@@ -249,7 +249,7 @@ public class TagPcrSummary extends GATKTool {
                 }
 
                 logger.info("Total junctions output: " + totalOutput);
-                logger.info("Forward / Reverse: " + (totalOutput - totalReverse) + " / " + totalReverse);
+                logger.info("Forward: " + (totalOutput - totalReverse) + " / Reverse: " + totalReverse);
 
                 metricsMap.put("TotalIntegrationSitesOutput", totalOutput);
                 metricsMap.put("IntegrationSitesOutputMinusStrand", totalReverse);
@@ -688,7 +688,7 @@ public class TagPcrSummary extends GATKTool {
             input.delete();
             errorFile.delete();
 
-            if (!outputMap.containsKey("PRIMER_ERROR")) {
+            if (outputMap.containsKey("PRIMER_ERROR")) {
                 logger.info("primer3 error: " + outputMap.get("PRIMER_ERROR"));
             }
 
@@ -716,11 +716,11 @@ public class TagPcrSummary extends GATKTool {
                 }
 
                 TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairNameShort + "F", "Primer3", pairName + "F", pairName + "F");
-                tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length(), sequence, Strand.POSITIVE));
+                tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length() - 1, sequence, Strand.POSITIVE));
                 sequence.addFeature(tf);
 
                 TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(pairNameShort + "R", "Primer3", pairName + "R", pairName + "R");
-                tf2.setLocation(new SequenceLocation<>(primer2Loc, primer2Loc + primer2Seq.length(), sequence, Strand.NEGATIVE));
+                tf2.setLocation(new SequenceLocation<>(primer2Loc - primer2Seq.length() + 1, primer2Loc, sequence, Strand.NEGATIVE));
                 sequence.addFeature(tf2);
             }
         }
@@ -774,7 +774,7 @@ public class TagPcrSummary extends GATKTool {
                 }
             }
 
-            logger.info("Duplicate primers collapsed before BLAST: " + primersSkipped + " of " + (idx *2));
+            logger.info("Duplicate primers collapsed before BLAST: " + primersSkipped + " of " + (idx *2) + ".  Unique primers to BLAST: " + idxToPrimer.size());
         }
         catch (IOException e) {
             throw new GATKException(e.getMessage(), e);
@@ -867,7 +867,6 @@ public class TagPcrSummary extends GATKTool {
                 }
             });
 
-            blastOutput.delete();
             blastInput.delete();
         }
         catch (IOException e) {
@@ -875,19 +874,24 @@ public class TagPcrSummary extends GATKTool {
         }
 
         //Now write updated output:
-        Set<String> primersToRemove = new HashSet<>();
+        Set<String> primerNamesToFlag = new HashSet<>();
         try (CSVWriter primerWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primer3Table), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
-            primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start", "PassedBlast"});
+            primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start", "ForwardPassedBlast", "ReversePassedBlast", "BothPassedBlast"});
             for (String[] line : primerLines) {
                 boolean forwardPass = !failedPrimers.containsKey(line[4].toUpperCase());
                 boolean reversePass = !failedPrimers.containsKey(line[7].toUpperCase());
                 List<String> toWrite = new ArrayList<>(Arrays.asList(line));
+                toWrite.add(forwardPass ? "Y" : "");
+                toWrite.add(reversePass ? "Y" : "");
                 toWrite.add((forwardPass && reversePass) ? "Y" : "");
                 primerWriter.writeNext(toWrite.toArray(new String[toWrite.size()]));
 
-                if (!forwardPass || !reversePass) {
-                    primersToRemove.add(line[3]);
-                    primersToRemove.add(line[6]);
+                if (!forwardPass) {
+                    primerNamesToFlag.add(line[3]);
+                }
+                
+                if (!reversePass) {
+                    primerNamesToFlag.add(line[6]);
                 }
             }
         }
@@ -895,14 +899,14 @@ public class TagPcrSummary extends GATKTool {
             throw new GATKException(e.getMessage(), e);
         }
 
-        logger.info("Total primer paired discarded due to multiple BLAST hits: " + (primersToRemove.size() / 2) + " of " + primerLines.size());
+        logger.info("Total primer paired discarded due to multiple BLAST hits: " + (primerNamesToFlag.size() / 2) + " of " + primerLines.size());
 
         //prune failed from genbank output:
-        if (!primersToRemove.isEmpty()) {
+        if (!primerNamesToFlag.isEmpty()) {
             amplicons.listIterator().forEachRemaining(seq -> {
                 List<FeatureInterface<AbstractSequence<NucleotideCompound>, NucleotideCompound>> features = new ArrayList<>(seq.getFeatures());
                 features.listIterator().forEachRemaining(feature -> {
-                    if (primersToRemove.contains(feature.getDescription())) {
+                    if (primerNamesToFlag.contains(feature.getDescription())) {
                         feature.setType("Fail:" + feature.getType());
                     }
                 });
