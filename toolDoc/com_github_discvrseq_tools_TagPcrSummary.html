@@ -116,6 +116,14 @@
 					<td>In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided</td>
 				</tr>
 				<tr>
+					<td><a href="#--blast-threads">--blast-threads</a><br />
+								&nbsp;<em>-bt</em>
+					</td>
+					<!--<td>Integer</td> -->
+					<td>null</td>
+					<td>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</td>
+				</tr>
+				<tr>
 					<td><a href="#--blastn-path">--blastn-path</a><br />
 								&nbsp;<em>-bn</em>
 					</td>
@@ -514,6 +522,18 @@
 		</p>
 		<p>
 		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--blast-threads">--blast-threads </a>
+			 / <small>-bt</small>
+		</h3>
+		<p class="args">
+			<b>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Integer</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -1115,7 +1135,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.13 built at 02-19-2020 01:19:42.
+        <p class="version">DISCVR-Seq version 1.13 built at 06-22-2020 07:22:49.
         </p>
 
 </div></div>

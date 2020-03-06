@@ -77,6 +77,21 @@
       "options": []
     },
     {
+      "summary": "If BLAST will be used, this value is passed to the -num_threads argument of blastn.",
+      "name": "--blast-threads",
+      "synonyms": "-bt",
+      "type": "Integer",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.",
       "name": "--blastn-path",
       "synonyms": "-bn",
