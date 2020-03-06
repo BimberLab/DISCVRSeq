@@ -258,23 +258,24 @@ public class TagPcrSummary extends GATKTool {
                 throw new GATKException(e.getMessage(), e);
             }
 
-        }
-
-        if (blastDatabase != null && primerPairTable != null) {
-            runBlastN(primerPairTable, amplicons);
-        }
-
-            //Now make genbank output:
-            if (outputGenbank != null) {
-                try (BufferedOutputStream os = new BufferedOutputStream(IOUtil.openFileForWriting(outputGenbank))) {
-                    GenbankWriter<DNASequence, NucleotideCompound> genbankWriter = new GenbankWriter<>(os, amplicons, new GenericGenbankHeaderFormat<>("LINEAR"));
-                    genbankWriter.process();
-                }
-                catch (Exception e) {
-                    throw new GATKException(e.getMessage(), e);
-                }
+            if (blastDatabase != null && primerPairTable != null) {
+                runBlastN(primerPairTable, amplicons);
             }
+        }
+        else {
+            logger.info("there were no passing alignments");
+        }
 
+        //Now make genbank output:
+        if (outputGenbank != null && !amplicons.isEmpty()) {
+            try (BufferedOutputStream os = new BufferedOutputStream(IOUtil.openFileForWriting(outputGenbank))) {
+                GenbankWriter<DNASequence, NucleotideCompound> genbankWriter = new GenbankWriter<>(os, amplicons, new GenericGenbankHeaderFormat<>("LINEAR"));
+                genbankWriter.process();
+            }
+            catch (Exception e) {
+                throw new GATKException(e.getMessage(), e);
+            }
+        }
 
         if (metricsFile != null && !metricsMap.isEmpty()) {
             try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(metricsFile), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
@@ -349,6 +350,7 @@ public class TagPcrSummary extends GATKTool {
             reader.getFileHeader().setSortOrder(SAMFileHeader.SortOrder.queryname);
 
             File querySorted = File.createTempFile(bam.getName(), ".querySorted.bam").toPath().normalize().toFile();
+            logger.info("writing to file: " + querySorted.getPath());
 
             try (SAMFileWriter writer = new SAMFileWriterFactory().makeSAMOrBAMWriter(reader.getFileHeader(), false, querySorted)) {
                 for (final SAMRecord rec : reader) {
