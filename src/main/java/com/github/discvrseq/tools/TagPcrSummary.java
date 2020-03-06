@@ -30,6 +30,7 @@ import org.broadinstitute.hellbender.engine.GATKTool;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.runtime.ProcessController;
+import org.broadinstitute.hellbender.utils.runtime.ProcessOutput;
 import org.broadinstitute.hellbender.utils.runtime.ProcessSettings;
 
 import java.io.*;
@@ -96,6 +97,9 @@ public class TagPcrSummary extends GATKTool {
 
     @Argument(doc="In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided", fullName = "blast-db-path", shortName = "bdb", optional = true)
     public String blastDatabase = null;
+
+    @Argument(doc="If BLAST will be used, this value is passed to the -num_threads argument of blastn.", fullName = "blast-threads", shortName = "bt", optional = true)
+    public Integer blastThreads = null;
 
     @Override
     public boolean requiresReference() {
@@ -241,13 +245,11 @@ public class TagPcrSummary extends GATKTool {
                         amplicons.add(ampliconPair.getKey());
                         amplicons.add(ampliconPair.getValue());
 
-                    } else {
-                        logger.info("Skipping position: " + key + ", " + jm.totalReads + " reads");
                     }
                 }
 
                 logger.info("Total junctions output: " + totalOutput);
-                logger.info("Forward / Reverse: " + (totalOutput - totalReverse) + " / " + totalReverse);
+                logger.info("Forward: " + (totalOutput - totalReverse) + " / Reverse: " + totalReverse);
 
                 metricsMap.put("TotalIntegrationSitesOutput", totalOutput);
                 metricsMap.put("IntegrationSitesOutputMinusStrand", totalReverse);
@@ -256,23 +258,24 @@ public class TagPcrSummary extends GATKTool {
                 throw new GATKException(e.getMessage(), e);
             }
 
-        }
-
-        if (blastDatabase != null && primerPairTable != null) {
-            runBlastN(primerPairTable, amplicons);
-        }
-
-            //Now make genbank output:
-            if (outputGenbank != null) {
-                try (BufferedOutputStream os = new BufferedOutputStream(IOUtil.openFileForWriting(outputGenbank))) {
-                    GenbankWriter<DNASequence, NucleotideCompound> genbankWriter = new GenbankWriter<>(os, amplicons, new GenericGenbankHeaderFormat<>("LINEAR"));
-                    genbankWriter.process();
-                }
-                catch (Exception e) {
-                    throw new GATKException(e.getMessage(), e);
-                }
+            if (blastDatabase != null && primerPairTable != null) {
+                runBlastN(primerPairTable, amplicons);
             }
+        }
+        else {
+            logger.info("there were no passing alignments");
+        }
 
+        //Now make genbank output:
+        if (outputGenbank != null && !amplicons.isEmpty()) {
+            try (BufferedOutputStream os = new BufferedOutputStream(IOUtil.openFileForWriting(outputGenbank))) {
+                GenbankWriter<DNASequence, NucleotideCompound> genbankWriter = new GenbankWriter<>(os, amplicons, new GenericGenbankHeaderFormat<>("LINEAR"));
+                genbankWriter.process();
+            }
+            catch (Exception e) {
+                throw new GATKException(e.getMessage(), e);
+            }
+        }
 
         if (metricsFile != null && !metricsMap.isEmpty()) {
             try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(metricsFile), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
@@ -289,8 +292,6 @@ public class TagPcrSummary extends GATKTool {
         Map<String, JunctionMatch> matches = new HashMap<>();
         alignmentsForRead.forEach(rec -> {
             if (rec.isSecondaryOrSupplementary()) {
-                logger.info(rec.getReferenceName());
-
                 INSERT_DESCRIPTORS.forEach(id -> {
                     if (rec.getContig().equals(id.contigName)) {
                         int total = secondaryAlignmentsToInsert.getOrDefault(id.displayName, 0);
@@ -349,6 +350,7 @@ public class TagPcrSummary extends GATKTool {
             reader.getFileHeader().setSortOrder(SAMFileHeader.SortOrder.queryname);
 
             File querySorted = File.createTempFile(bam.getName(), ".querySorted.bam").toPath().normalize().toFile();
+            logger.info("writing to file: " + querySorted.getPath());
 
             try (SAMFileWriter writer = new SAMFileWriterFactory().makeSAMOrBAMWriter(reader.getFileHeader(), false, querySorted)) {
                 for (final SAMRecord rec : reader) {
@@ -532,11 +534,16 @@ public class TagPcrSummary extends GATKTool {
                     id = id.substring(0, 16);
                 }
 
-                String orientationSuffix = matchIsNegativeStrand ? "(-)" : "";
+                String orientationSuffix = matchIsNegativeStrand ? "m" : "";
                 if (matchIsNegativeStrand) {
                     seq1 = new DNASequence(SequenceUtil.reverseComplement(insertRegionDistal) + after);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
+                    String accession = ampliconName + orientationSuffix;
+                    if (accession.length() > 15) {
+                        //a limitation of BioJava
+                        accession = accession.substring(0, 15);
+                    }
+                    seq1.setAccession(new AccessionID(accession));
                     seq1.setDescription(idFull);
 
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal) + "-RC", "Vector", jd.junctionName, jd.insertRegionDistal.toString());
@@ -550,7 +557,12 @@ public class TagPcrSummary extends GATKTool {
 
                     seq2 = new DNASequence(before + SequenceUtil.reverseComplement(insertRegionProximal));
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
+                    String accession2 = ampliconName2 + orientationSuffix;
+                    if (accession2.length() > 15) {
+                        //a limitation of BioJava
+                        accession2 = accession2.substring(0, 15);
+                    }
+                    seq2.setAccession(new AccessionID(accession2));
                     seq2.setDescription(idFull);
 
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal) + "-RC", "Vector", jd.junctionName, jd.insertRegionProximal.toString());
@@ -564,7 +576,12 @@ public class TagPcrSummary extends GATKTool {
                 } else {
                     seq1 = new DNASequence(before + insertRegionProximal);
                     String ampliconName = id + "-" + jd.getFeatureLabel(END_TYPE.promimal);
-                    seq1.setAccession(new AccessionID(ampliconName + orientationSuffix));
+                    String accession = ampliconName + orientationSuffix;
+                    if (accession.length() > 15) {
+                        //a limitation of BioJava
+                        accession = accession.substring(0, 15);
+                    }
+                    seq1.setAccession(new AccessionID(accession));
                     seq1.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(jd.getFeatureLabel(END_TYPE.promimal), "Vector", jd.junctionName, jd.insertRegionProximal.toString());
                     tf.setLocation(new SequenceLocation<>(before.length() + 1, seq1.getBioEnd(), seq1, Strand.POSITIVE));
@@ -577,7 +594,12 @@ public class TagPcrSummary extends GATKTool {
 
                     seq2 = new DNASequence(insertRegionDistal + after);
                     String ampliconName2 = id + "-" + jd.getFeatureLabel(END_TYPE.distal);
-                    seq2.setAccession(new AccessionID(ampliconName2 + orientationSuffix));
+                    String accession2 = ampliconName2 + orientationSuffix;
+                    if (accession2.length() > 15) {
+                        //a limitation of BioJava
+                        accession2 = accession2.substring(0, 15);
+                    }
+                    seq2.setAccession(new AccessionID(accession2));
                     seq2.setDescription(idFull);
                     TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(jd.getFeatureLabel(END_TYPE.distal), "Vector", jd.junctionName, jd.insertRegionDistal.toString());
                     tf2.setLocation(new SequenceLocation<>(1, insertRegionDistal.length(), seq2, Strand.POSITIVE));
@@ -603,7 +625,7 @@ public class TagPcrSummary extends GATKTool {
             List<String> args = new ArrayList<>();
             args.add(primer3ExePath);
 
-            File output = new File(outDir, "p3.output.txt");
+            File output = new File(outDir, siteName + "-" + junctionName + ".p3.output.txt");
             args.add("--output=" + output.getPath());
 
             args.add("--default_version=2");
@@ -613,9 +635,10 @@ public class TagPcrSummary extends GATKTool {
             args.add("--error=" + errorFile.getPath());
 
             int start = junctionSite - 50;
-            File input = new File(outDir, "p3.input.txt");
+            File input = new File(outDir, siteName + "-" + junctionName + ".p3.input.txt");
             try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(input)) {
                 writer.write(
+                        //TODO: SEQUENCE_EXCLUDED_REGION 10,20 50,10
                         "SEQUENCE_ID=" + sequence.getAccession().getID() + "\n" +
                                 "SEQUENCE_TEMPLATE=" + seqString + "\n" +
                                 "SEQUENCE_TARGET=" + start + ",100" + "\n" +
@@ -640,7 +663,10 @@ public class TagPcrSummary extends GATKTool {
             final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
             prs.getStderrSettings().printStandard(true);
             prs.getStdoutSettings().printStandard(true);
-            ProcessController.getThreadLocal().exec(prs);
+            ProcessOutput po = ProcessController.getThreadLocal().exec(prs);
+            if (po.getExitValue() != 0) {
+                logger.info("primer3 had a non-zero exit");
+            }
 
             if (!output.exists()) {
                 throw new GATKException("Error running primer3");
@@ -662,14 +688,22 @@ public class TagPcrSummary extends GATKTool {
             }
 
             input.delete();
-            output.delete();
             errorFile.delete();
+
+            if (outputMap.containsKey("PRIMER_ERROR")) {
+                logger.info("primer3 error: " + outputMap.get("PRIMER_ERROR"));
+            }
 
             if (!outputMap.containsKey("PRIMER_PAIR_NUM_RETURNED")) {
                 logger.info("primer3 returned no pairs");
+                return;
             }
 
+            output.delete();
+
             int numPairs = Integer.parseInt(outputMap.get("PRIMER_PAIR_NUM_RETURNED"));
+            logger.info("total candidate pairs: " + numPairs);
+
             for (int i = 0; i < numPairs; i++) {
                 String primer1Seq = outputMap.get("PRIMER_LEFT_" + i + "_SEQUENCE");
                 int primer1Loc = Integer.parseInt(outputMap.get("PRIMER_LEFT_" + i).split(",")[0]) + 1;
@@ -684,11 +718,11 @@ public class TagPcrSummary extends GATKTool {
                 }
 
                 TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairNameShort + "F", "Primer3", pairName + "F", pairName + "F");
-                tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length(), sequence, Strand.POSITIVE));
+                tf.setLocation(new SequenceLocation<>(primer1Loc, primer1Loc + primer1Seq.length() - 1, sequence, Strand.POSITIVE));
                 sequence.addFeature(tf);
 
                 TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(pairNameShort + "R", "Primer3", pairName + "R", pairName + "R");
-                tf2.setLocation(new SequenceLocation<>(primer2Loc, primer2Loc + primer2Seq.length(), sequence, Strand.NEGATIVE));
+                tf2.setLocation(new SequenceLocation<>(primer2Loc - primer2Seq.length() + 1, primer2Loc, sequence, Strand.NEGATIVE));
                 sequence.addFeature(tf2);
             }
         }
@@ -742,12 +776,16 @@ public class TagPcrSummary extends GATKTool {
                 }
             }
 
-            logger.info("Redundant primers removed before BLAST: " + primersSkipped);
+            logger.info("Duplicate primers collapsed before BLAST: " + primersSkipped + " of " + (idx *2) + ".  Unique primers to BLAST: " + idxToPrimer.size());
         }
         catch (IOException e) {
             throw new GATKException(e.getMessage(), e);
         }
 
+        if (idxToPrimer.isEmpty()) {
+            logger.info("No primers returned, skipping BLAST");
+            return;
+        }
 
         List<String> args = new ArrayList<>();
         args.add(blastnPath);
@@ -773,18 +811,18 @@ public class TagPcrSummary extends GATKTool {
         args.add("-num_alignments");
         args.add("5");
 
+        if (blastThreads != null) {
+            args.add("-num_threads");
+            args.add(blastThreads.toString());
+        }
+
         args.add("-outfmt");
         args.add("6 qseqid sallseqid qstart qend sstart send evalue bitscore length nident sstrand");
 
-        if (blastOutput.exists()) {
-
-        }
-        else {
-            final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
-            prs.getStderrSettings().printStandard(true);
-            prs.getStdoutSettings().printStandard(true);
-            ProcessController.getThreadLocal().exec(prs);
-        }
+        final ProcessSettings prs = new ProcessSettings(args.toArray(new String[args.size()]));
+        prs.getStderrSettings().printStandard(true);
+        prs.getStdoutSettings().printStandard(true);
+        ProcessController.getThreadLocal().exec(prs);
 
         if (!blastOutput.exists()) {
             throw new GATKException("BLASTn did not produce an output, expected: " + blastOutput.getPath());
@@ -831,7 +869,6 @@ public class TagPcrSummary extends GATKTool {
                 }
             });
 
-            blastOutput.delete();
             blastInput.delete();
         }
         catch (IOException e) {
@@ -839,19 +876,24 @@ public class TagPcrSummary extends GATKTool {
         }
 
         //Now write updated output:
-        Set<String> primersToRemove = new HashSet<>();
+        Set<String> primerNamesToFlag = new HashSet<>();
         try (CSVWriter primerWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primer3Table), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
-            primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start", "PassedBlast"});
+            primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start", "ForwardPassedBlast", "ReversePassedBlast", "BothPassedBlast"});
             for (String[] line : primerLines) {
                 boolean forwardPass = !failedPrimers.containsKey(line[4].toUpperCase());
                 boolean reversePass = !failedPrimers.containsKey(line[7].toUpperCase());
                 List<String> toWrite = new ArrayList<>(Arrays.asList(line));
+                toWrite.add(forwardPass ? "Y" : "");
+                toWrite.add(reversePass ? "Y" : "");
                 toWrite.add((forwardPass && reversePass) ? "Y" : "");
                 primerWriter.writeNext(toWrite.toArray(new String[toWrite.size()]));
 
-                if (!forwardPass || !reversePass) {
-                    primersToRemove.add(line[3]);
-                    primersToRemove.add(line[6]);
+                if (!forwardPass) {
+                    primerNamesToFlag.add(line[3]);
+                }
+                
+                if (!reversePass) {
+                    primerNamesToFlag.add(line[6]);
                 }
             }
         }
@@ -859,14 +901,14 @@ public class TagPcrSummary extends GATKTool {
             throw new GATKException(e.getMessage(), e);
         }
 
-        logger.info("Total primer paired removed by BLAST results: " + (primersToRemove.size() / 2) + " of " + primerLines.size());
+        logger.info("Total primer paired discarded due to multiple BLAST hits: " + (primerNamesToFlag.size() / 2) + " of " + primerLines.size());
 
         //prune failed from genbank output:
-        if (!primersToRemove.isEmpty()) {
+        if (!primerNamesToFlag.isEmpty()) {
             amplicons.listIterator().forEachRemaining(seq -> {
                 List<FeatureInterface<AbstractSequence<NucleotideCompound>, NucleotideCompound>> features = new ArrayList<>(seq.getFeatures());
                 features.listIterator().forEachRemaining(feature -> {
-                    if (primersToRemove.contains(feature.getDescription())) {
+                    if (primerNamesToFlag.contains(feature.getDescription())) {
                         feature.setType("Fail:" + feature.getType());
                     }
                 });
