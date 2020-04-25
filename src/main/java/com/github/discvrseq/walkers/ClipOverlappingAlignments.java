@@ -9,7 +9,6 @@ import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.index.Index;
 import htsjdk.tribble.index.IndexFactory;
-import org.apache.logging.log4j.core.util.Assert;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -24,12 +23,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- *
+ * This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
  *
  * <h3>Usage example:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar ClipOverlappingAlignments \
- *     -R currentGenome.fasta \
+ *     -R genome.fasta \
  *     -I input.bam \
  *     --clipIntervals blacklist.bed \
  *     -O output.bam
@@ -37,8 +36,8 @@ import java.util.List;
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "",
-        oneLineSummary = "",
+        summary = "This tool can be used to soft-clip alignments overlapping the specified intervals, such as a BED file of primer binding sites",
+        oneLineSummary = "Clip alignments overlapping the specified intervals",
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class ClipOverlappingAlignments extends ReadWalker {
