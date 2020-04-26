@@ -16,11 +16,13 @@ public class ClipOverlappingAlignmentsIntegrationTest extends BaseIntegrationTes
         File bed = getTestFile("SIVmac239-overlap.bed");
 
         File outFile = IOUtils.createTempFile("clipOverlappingAlignmentsIntegrationTest", ".sam");
+        File outReport = IOUtils.createTempFile("clipOverlappingAlignmentsIntegrationTest", ".txt");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 " -R " + normalizePath(fasta) +
                         " -I " + normalizePath(bam) +
                         " --clipIntervals " + normalizePath(bed) +
+                        " -rf " + normalizePath(outReport) +
                         " -O " + normalizePath(outFile) +
                         " --tmp-dir " + getTmpDir(),
                 Collections.emptyList());
@@ -29,6 +31,11 @@ public class ClipOverlappingAlignmentsIntegrationTest extends BaseIntegrationTes
 
         File expectedOutput = getTestFile("expectedOutput.sam");
         SamAssertionUtils.assertSamsEqual(outFile, expectedOutput);
+
+        File expectedReport = getTestFile("expectedOutput.txt");
+        IntegrationTestSpec.assertEqualTextFiles(outReport, expectedReport);
+
         outFile.delete();
+        outReport.delete();
     }
 }
