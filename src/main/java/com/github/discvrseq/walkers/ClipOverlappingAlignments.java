@@ -122,7 +122,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
     private long totalOverlappingEnd = 0;
     private long totalAlignments = 0;
 
-    @SuppressWarnings("uncheccked")
+    @SuppressWarnings("unchecked")
     private FeatureInput<BEDFeature> addFeatures() {
         return (FeatureInput<BEDFeature>)addFeatureInputsAfterInitialization(bedFile.getPath(), "overlapRegions", BEDFeature.class, FeatureDataSource.DEFAULT_QUERY_LOOKAHEAD_BASES);
     }
