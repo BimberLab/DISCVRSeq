@@ -123,6 +123,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
     private long totalOverlappingStart = 0;
     private long totalOverlappingEnd = 0;
     private long totalAlignments = 0;
+    private long readsDropped = 0;
 
     @SuppressWarnings("unchecked")
     private FeatureInput<BEDFeature> addFeatures() {
@@ -145,26 +146,64 @@ public class ClipOverlappingAlignments extends ReadWalker {
             //Alignment start within region
             if (read.getSoftStart() >= feat.getStart() && read.getSoftStart() <= feat.getEnd())
             {
-                int numBasesToClip = rec.getReadPositionAtReferencePosition(feat.getEnd());
+                int newAlignStart = feat.getEnd() + 1;
+
+                //Increment start until it doesnt land in a deletion:
+                while (newAlignStart <= read.getSoftEnd() && rec.getReadPositionAtReferencePosition(newAlignStart) == 0) {
+                    newAlignStart++;
+                }
+
+                if (newAlignStart >= read.getSoftEnd()) {
+                    readsDropped++;
+                    return;
+                }
+
+                int numBasesToClip = rec.getReadPositionAtReferencePosition(newAlignStart) - 1;
                 rec.setCigar(softClipStartOfRead(numBasesToClip, rec.getCigar()));
+                rec.setAttribute("OC", origCigar.toString());
+                if (rec.getCigar().getReferenceLength() == 0) {
+                    readsDropped++;
+                    return;
+                }
+
+                rec.setAlignmentStart(newAlignStart);
                 totalOverlappingStart++;
 
                 validateCigarChange(rec, origCigar);
-
                 addSummary(feat, numBasesToClip, true);
+
+                int s = rec.getReadPositionAtReferencePosition(rec.getAlignmentStart());
+                if (s == 0) {
+                    throw new GATKException("Read alignment start doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+                }
+
+                int e = rec.getReadPositionAtReferencePosition(rec.getAlignmentEnd());
+                if (e == 0) {
+                    throw new GATKException("Read alignment end doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+                }
             }
 
             //Alignment end within region
             if (read.getSoftEnd() >= feat.getStart() && read.getSoftEnd() <= feat.getEnd())
             {
+                int newAlignEnd = feat.getStart() - 1;
+                if (newAlignEnd <= read.getSoftStart()) {
+                    readsDropped++;
+                    return;
+                }
+
                 int readEnd = rec.getReadPositionAtReferencePosition(feat.getStart()) - 1;
                 int numBasesToClip = rec.getAlignmentEnd() - feat.getStart();
 
                 rec.setCigar(new Cigar(CigarUtil.softClipEndOfRead(readEnd, rec.getCigar().getCigarElements())));
+                rec.setAttribute("OC", origCigar.toString());
+                if (rec.getCigar().getReferenceLength() == 0) {
+                    readsDropped++;
+                    return;
+                }
                 totalOverlappingEnd++;
 
                 validateCigarChange(rec, origCigar);
-
 
                 addSummary(feat, numBasesToClip, false);
             }
@@ -184,11 +223,11 @@ public class ClipOverlappingAlignments extends ReadWalker {
     //NOTE: eventually remote this, once it has been run on more diverse CIGAR inputs
     private void validateCigarChange(SAMRecord rec, Cigar origCigar) {
         if (rec.getReadBases().length != rec.getCigar().getReadLength()) {
-            throw new GATKException("CIGAR Length Not Equal To Read Length, orig: " + origCigar.toString() + ", new: " + rec.getCigar().toString());
+            throw new GATKException("CIGAR Read Length Not Equal To Actual Read Length, orig: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
         }
 
         if (origCigar.getReadLength() != rec.getCigar().getReadLength()) {
-            throw new GATKException("CIGAR Length Not Equal, orig: " + origCigar.toString() + ", new: " + rec.getCigar().toString());
+            throw new GATKException("CIGAR Length Not Equal, orig: " + origCigar.toString() + ", new: " + rec.getCigar().toString() +", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
         }
     }
 
@@ -196,30 +235,58 @@ public class ClipOverlappingAlignments extends ReadWalker {
         List<CigarElement> newCigar = new LinkedList<>();
         newCigar.add(new CigarElement(basesToClip, CigarOperator.S));
 
-        int cigarBasesConsumed = 0;
+        int totalReadBasesConsumed = 0;
+        boolean outsidePadding = false;
         for (CigarElement c : oldCigar) {
             final CigarOperator op = c.getOperator();
             final int basesConsumedByOperator = op.consumesReadBases() ? c.getLength() : 0;
-            final int basesConsumedWithCurrentOperator = cigarBasesConsumed + basesConsumedByOperator;
+            final int basesConsumedWithCurrentOperator = totalReadBasesConsumed + basesConsumedByOperator;
+
+            //First non-padded element cannot be a deletion
+            if (!outsidePadding && op == CigarOperator.D) {
+                continue;
+            }
 
             //we are past the soft-clip, just write CIGAR:
-            if (cigarBasesConsumed >= basesToClip) {
-                newCigar.add(c);
+            if (totalReadBasesConsumed >= basesToClip) {
+                addOrMergeElement(newCigar, c);
+                if (!op.isPadding()) {
+                    outsidePadding = true;
+                }
             }
             //we are within the soft clip and this element doesnt span the soft-clip region
             else if (basesConsumedWithCurrentOperator <= basesToClip) {
-                //Do nothing, allow counting of bases in cigarBasesConsumed
+                //Do nothing, allow counting of bases in totalReadBasesConsumed
             }
             //we are within the soft clip and need to break apart this element:
             else {
-                int adjustedLength = basesConsumedByOperator - (basesToClip - cigarBasesConsumed);
-                newCigar.add(new CigarElement(adjustedLength, op));
+                int adjustedLength = basesConsumedByOperator - (basesToClip - totalReadBasesConsumed);
+                addOrMergeElement(newCigar, new CigarElement(adjustedLength, op));
+                if (!op.isPadding()) {
+                    outsidePadding = true;
+                }
             }
 
-            cigarBasesConsumed = basesConsumedWithCurrentOperator;
+            totalReadBasesConsumed = basesConsumedWithCurrentOperator;
         }
 
         return new Cigar(newCigar);
+    }
+
+    private void addOrMergeElement(List<CigarElement> list, CigarElement toAdd) {
+        if (list.isEmpty()) {
+            list.add(toAdd);
+            return;
+        }
+
+        int lastIdx = list.size() - 1;
+        CigarElement lastEl = list.get(lastIdx);
+        if (lastEl.getOperator() == toAdd.getOperator()) {
+            list.set(lastIdx, new CigarElement(toAdd.getLength() + lastEl.getLength(), toAdd.getOperator()));
+        }
+        else {
+            list.add(toAdd);
+        }
     }
 
     @Override
@@ -227,6 +294,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
         logger.info("Total alignments written: " + totalAlignments);
         logger.info("Total alignments soft clipped at start: " + totalOverlappingStart);
         logger.info("Total alignments soft clipped at end: " + totalOverlappingEnd);
+        logger.info("Total alignments dropped due to lack of reference coverage after clipping: " + readsDropped);
 
         if (reportFile != null) {
             try (CSVWriter csvWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(reportFile), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {

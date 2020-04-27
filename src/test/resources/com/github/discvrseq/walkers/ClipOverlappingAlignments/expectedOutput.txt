@@ -1,3 +1,2 @@
 FeatureContig	FeatureStart	FeatureEnd	TotalAlignmentsClippedAt5Prime	Total5PrimeBasesClipped	TotalAlignmentsClippedAt3Prime	Total3PrimeBasesClipped
-SIVmac239	201	275	190	5768	7	479
-SIVmac239	351	400	0	0	16	645
+SIVmac239	201	275	190	5768	0	0
