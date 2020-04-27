@@ -160,6 +160,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
 
                 int numBasesToClip = rec.getReadPositionAtReferencePosition(newAlignStart) - 1;
                 rec.setCigar(softClipStartOfRead(numBasesToClip, rec.getCigar()));
+                rec.setAttribute("OC", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
                     return;
@@ -195,6 +196,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 int numBasesToClip = rec.getAlignmentEnd() - feat.getStart();
 
                 rec.setCigar(new Cigar(CigarUtil.softClipEndOfRead(readEnd, rec.getCigar().getCigarElements())));
+                rec.setAttribute("OC", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
                     return;
