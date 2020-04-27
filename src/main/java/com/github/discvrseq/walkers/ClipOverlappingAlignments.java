@@ -28,6 +28,11 @@ import java.util.Map;
 /**
  * This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
  *
+ * Note: this tool has not been tested on every possible BAM/CIGAR configuration and it's possible that in certain cases
+ * other information stored in the BAM isnt properly updated.  For example, if a given alignment no longer maps to the reference
+ * after clipping it is marked unmapped, but the mate is not changed (which can store information about the mate's position). We therefore
+ * recommend running Picard's FixMateInformation afterwards.
+ *
  * <h3>Usage example:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar ClipOverlappingAlignments \
@@ -155,6 +160,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
 
                 if (newAlignStart >= read.getSoftEnd()) {
                     readsDropped++;
+                    setUnaligned(rec);
                     return;
                 }
 
@@ -163,6 +169,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 rec.setAttribute("OC", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
+                    setUnaligned(rec);
                     return;
                 }
 
@@ -172,15 +179,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 validateCigarChange(rec, origCigar);
                 addSummary(feat, numBasesToClip, true);
 
-                int s = rec.getReadPositionAtReferencePosition(rec.getAlignmentStart());
-                if (s == 0) {
-                    throw new GATKException("Read alignment start doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
-                }
 
-                int e = rec.getReadPositionAtReferencePosition(rec.getAlignmentEnd());
-                if (e == 0) {
-                    throw new GATKException("Read alignment end doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
-                }
             }
 
             //Alignment end within region
@@ -189,6 +188,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 int newAlignEnd = feat.getStart() - 1;
                 if (newAlignEnd <= read.getSoftStart()) {
                     readsDropped++;
+                    setUnaligned(rec);
                     return;
                 }
 
@@ -199,6 +199,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 rec.setAttribute("OC", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
+                    setUnaligned(rec);
                     return;
                 }
                 totalOverlappingEnd++;
@@ -215,9 +216,20 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 logger.error(e.getMessage());
             }
 
-            throw new GATKException("Invalid SAM record");
+            throw new GATKException("Invalid SAM Record: " + origCigar.toString() + ", new: " + rec.getCigar().toString() +", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
         }
         writer.addAlignment(rec);
+    }
+
+    private SAMRecord setUnaligned(SAMRecord rec) {
+        rec.setReferenceName(SAMRecord.NO_ALIGNMENT_REFERENCE_NAME);
+        rec.setCigarString(SAMRecord.NO_ALIGNMENT_CIGAR);
+        rec.setAlignmentStart(SAMRecord.NO_ALIGNMENT_START);
+        rec.setMappingQuality(SAMRecord.NO_MAPPING_QUALITY);
+        rec.setReferenceIndex(SAMRecord.NO_ALIGNMENT_REFERENCE_INDEX);
+        rec.setReadUnmappedFlag(true);
+
+        return rec;
     }
 
     //NOTE: eventually remote this, once it has been run on more diverse CIGAR inputs
@@ -228,6 +240,20 @@ public class ClipOverlappingAlignments extends ReadWalker {
 
         if (origCigar.getReadLength() != rec.getCigar().getReadLength()) {
             throw new GATKException("CIGAR Length Not Equal, orig: " + origCigar.toString() + ", new: " + rec.getCigar().toString() +", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+        }
+
+        int s = rec.getReadPositionAtReferencePosition(rec.getAlignmentStart());
+        if (s == 0) {
+            throw new GATKException("Read alignment start doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+        }
+
+        int e = rec.getReadPositionAtReferencePosition(rec.getAlignmentEnd());
+        if (e == 0) {
+            throw new GATKException("Read alignment end doesnt correspond to read bases: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+        }
+
+        if (rec.getCigar().getReferenceLength() == 0) {
+            throw new GATKException("Read has zero reference length: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
         }
     }
 
