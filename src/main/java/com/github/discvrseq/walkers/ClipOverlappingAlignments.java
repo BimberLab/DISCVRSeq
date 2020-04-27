@@ -6,7 +6,6 @@ import htsjdk.samtools.*;
 import htsjdk.samtools.util.CigarUtil;
 import htsjdk.samtools.util.FileExtensions;
 import htsjdk.samtools.util.IOUtil;
-import htsjdk.tribble.Feature;
 import htsjdk.tribble.bed.BEDCodec;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.tribble.index.Index;
@@ -21,7 +20,10 @@ import org.broadinstitute.hellbender.utils.read.GATKRead;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
@@ -168,6 +170,14 @@ public class ClipOverlappingAlignments extends ReadWalker {
             }
         });
 
+        List<SAMValidationError> errors = rec.isValid();
+        if (errors != null && !errors.isEmpty()) {
+            for (SAMValidationError e : errors) {
+                logger.error(e.getMessage());
+            }
+
+            throw new GATKException("Invalid SAM record");
+        }
         writer.addAlignment(rec);
     }
 
@@ -189,24 +199,24 @@ public class ClipOverlappingAlignments extends ReadWalker {
         int cigarBasesConsumed = 0;
         for (CigarElement c : oldCigar) {
             final CigarOperator op = c.getOperator();
-            final int basesConsumed = op.consumesReadBases() ? c.getLength() : 0;
-            final int basesConsumedWithOperator = cigarBasesConsumed + basesConsumed;
+            final int basesConsumedByOperator = op.consumesReadBases() ? c.getLength() : 0;
+            final int basesConsumedWithCurrentOperator = cigarBasesConsumed + basesConsumedByOperator;
 
             //we are past the soft-clip, just write CIGAR:
             if (cigarBasesConsumed >= basesToClip) {
                 newCigar.add(c);
             }
             //we are within the soft clip and this element doesnt span the soft-clip region
-            else if (basesConsumedWithOperator <= basesToClip) {
+            else if (basesConsumedWithCurrentOperator <= basesToClip) {
                 //Do nothing, allow counting of bases in cigarBasesConsumed
             }
             //we are within the soft clip and need to break apart this element:
             else {
-                int adjustedLength = basesConsumed - (basesToClip - cigarBasesConsumed);
+                int adjustedLength = basesConsumedByOperator - (basesToClip - cigarBasesConsumed);
                 newCigar.add(new CigarElement(adjustedLength, op));
             }
 
-            cigarBasesConsumed += basesConsumedWithOperator;
+            cigarBasesConsumed = basesConsumedWithCurrentOperator;
         }
 
         return new Cigar(newCigar);
