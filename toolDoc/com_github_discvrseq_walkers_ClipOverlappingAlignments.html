@@ -24,6 +24,11 @@
 		<h2>Overview</h2>
 		This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
 
+ Note: this tool has not been tested on every possible BAM/CIGAR configuration and it's possible that in certain cases
+ other information stored in the BAM isnt properly updated.  For example, if a given alignment no longer maps to the reference
+ after clipping it is marked unmapped, but the mate is not changed (which can store information about the mate's position). We therefore
+ recommend running Picard's FixMateInformation afterwards.
+
  <h3>Usage example:</h3>
  <pre>
   java -jar DISCVRseq.jar ClipOverlappingAlignments \
@@ -980,7 +985,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.14 built at 27-15-2020 04:15:10.
+        <p class="version">DISCVR-Seq version 1.14 built at 27-47-2020 05:47:56.
         </p>
 
 </div></div>
