@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
@@ -141,6 +142,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
         Cigar origCigar = rec.getCigar();
 
         totalAlignments++;
+        AtomicBoolean shouldWrite = new AtomicBoolean(true);
 
         if (rec.getReadUnmappedFlag()) {
             writer.addAlignment(rec);
@@ -161,6 +163,9 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 if (newAlignStart >= read.getSoftEnd()) {
                     readsDropped++;
                     setUnaligned(rec);
+                    if (rec.isSecondaryOrSupplementary()) {
+                        shouldWrite.getAndSet(false);
+                    }
                     return;
                 }
 
@@ -170,6 +175,9 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
                     setUnaligned(rec);
+                    if (rec.isSecondaryOrSupplementary()) {
+                        shouldWrite.getAndSet(false);
+                    }
                     return;
                 }
 
@@ -188,6 +196,9 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 int newAlignEnd = feat.getStart() - 1;
                 if (newAlignEnd <= read.getSoftStart()) {
                     readsDropped++;
+                    if (rec.isSecondaryOrSupplementary()) {
+                        shouldWrite.getAndSet(false);
+                    }
                     setUnaligned(rec);
                     return;
                 }
@@ -199,6 +210,9 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 rec.setAttribute("OC", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
+                    if (rec.isSecondaryOrSupplementary()) {
+                        shouldWrite.getAndSet(false);
+                    }
                     setUnaligned(rec);
                     return;
                 }
@@ -210,15 +224,17 @@ public class ClipOverlappingAlignments extends ReadWalker {
             }
         });
 
-        List<SAMValidationError> errors = rec.isValid();
-        if (errors != null && !errors.isEmpty()) {
-            for (SAMValidationError e : errors) {
-                logger.error(e.getMessage());
-            }
+        if (shouldWrite.get()) {
+            List<SAMValidationError> errors = rec.isValid();
+            if (errors != null && !errors.isEmpty()) {
+                for (SAMValidationError e : errors) {
+                    logger.error(e.getMessage());
+                }
 
-            throw new GATKException("Invalid SAM Record: " + origCigar.toString() + ", new: " + rec.getCigar().toString() +", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+                throw new GATKException("Invalid SAM Record: " + origCigar.toString() + ", new: " + rec.getCigar().toString() + ", align start: " + rec.getAlignmentStart() + ", name: " + rec.getReadName());
+            }
+            writer.addAlignment(rec);
         }
-        writer.addAlignment(rec);
     }
 
     private SAMRecord setUnaligned(SAMRecord rec) {
