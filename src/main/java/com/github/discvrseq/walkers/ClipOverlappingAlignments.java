@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *  java -jar DISCVRseq.jar ClipOverlappingAlignments \
  *     -R genome.fasta \
  *     -I input.bam \
- *     --clipIntervals blacklist.bed \
+ *     --clipIntervals primerSites.bed \
  *     --reportFile summary.txt \
  *     -O output.bam
  * </pre>
@@ -54,7 +54,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
     @Argument(doc="File to which alignment should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public File outFile = null;
 
-    @Argument(doc="File to which variants should be written", fullName = "clipIntervals", shortName = "CI", optional = false)
+    @Argument(doc="BED file specifying the clipping intervals. Any alignments starting or ending within these intervals will be soft-clipped to these borders", fullName = "clipIntervals", shortName = "CI", optional = false)
     public File bedFile = null;
 
     @Argument(doc="File to which a summary of clipping will be written", fullName = "reportFile", shortName = "rf", optional = true)
@@ -151,16 +151,16 @@ public class ClipOverlappingAlignments extends ReadWalker {
 
         featureContext.getValues(bedFeatures).forEach(feat -> {
             //Alignment start within region
-            if (read.getSoftStart() >= feat.getStart() && read.getSoftStart() <= feat.getEnd())
+            if (read.getStart() >= feat.getStart() && read.getStart() <= feat.getEnd())
             {
                 int newAlignStart = feat.getEnd() + 1;
 
                 //Increment start until it doesnt land in a deletion:
-                while (newAlignStart <= read.getSoftEnd() && rec.getReadPositionAtReferencePosition(newAlignStart) == 0) {
+                while (newAlignStart <= read.getEnd() && rec.getReadPositionAtReferencePosition(newAlignStart) == 0) {
                     newAlignStart++;
                 }
 
-                if (newAlignStart >= read.getSoftEnd()) {
+                if (newAlignStart >= read.getEnd()) {
                     readsDropped++;
                     setUnaligned(rec);
                     if (rec.isSecondaryOrSupplementary()) {
@@ -171,7 +171,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
 
                 int numBasesToClip = rec.getReadPositionAtReferencePosition(newAlignStart) - 1;
                 rec.setCigar(softClipStartOfRead(numBasesToClip, rec.getCigar()));
-                rec.setAttribute("OC", origCigar.toString());
+                rec.setAttribute("Xc", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
                     setUnaligned(rec);
@@ -191,10 +191,10 @@ public class ClipOverlappingAlignments extends ReadWalker {
             }
 
             //Alignment end within region
-            if (read.getSoftEnd() >= feat.getStart() && read.getSoftEnd() <= feat.getEnd())
+            if (read.getEnd() >= feat.getStart() && read.getEnd() <= feat.getEnd())
             {
                 int newAlignEnd = feat.getStart() - 1;
-                if (newAlignEnd <= read.getSoftStart()) {
+                if (newAlignEnd <= read.getStart()) {
                     readsDropped++;
                     if (rec.isSecondaryOrSupplementary()) {
                         shouldWrite.getAndSet(false);
@@ -203,11 +203,11 @@ public class ClipOverlappingAlignments extends ReadWalker {
                     return;
                 }
 
-                int readEnd = rec.getReadPositionAtReferencePosition(feat.getStart()) - 1;
-                int numBasesToClip = rec.getAlignmentEnd() - feat.getStart();
+                int readEnd = rec.getReadPositionAtReferencePosition(newAlignEnd);
+                int numBasesToClip = rec.getAlignmentEnd() - newAlignEnd;
 
                 rec.setCigar(new Cigar(CigarUtil.softClipEndOfRead(readEnd, rec.getCigar().getCigarElements())));
-                rec.setAttribute("OC", origCigar.toString());
+                rec.setAttribute("Xc", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
                     if (rec.isSecondaryOrSupplementary()) {
