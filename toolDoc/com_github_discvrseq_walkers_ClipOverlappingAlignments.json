@@ -47,7 +47,7 @@
       "options": []
     },
     {
-      "summary": "File to which variants should be written",
+      "summary": "BED file specifying the clipping intervals. Any alignments starting or ending within these intervals will be soft-clipped to these borders",
       "name": "--clipIntervals",
       "synonyms": "-CI",
       "type": "File",
@@ -680,7 +680,7 @@
       "options": []
     }
   ],
-  "description": "This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.\n\n Note: this tool has not been tested on every possible BAM/CIGAR configuration and it\u0027s possible that in certain cases\n other information stored in the BAM isnt properly updated.  For example, if a given alignment no longer maps to the reference\n after clipping it is marked unmapped, but the mate is not changed (which can store information about the mate\u0027s position). We therefore\n recommend running Picard\u0027s FixMateInformation afterwards.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar ClipOverlappingAlignments \\\n     -R genome.fasta \\\n     -I input.bam \\\n     --clipIntervals blacklist.bed \\\n     --reportFile summary.txt \\\n     -O output.bam\n \u003c/pre\u003e",
+  "description": "This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.\n\n Note: this tool has not been tested on every possible BAM/CIGAR configuration and it\u0027s possible that in certain cases\n other information stored in the BAM isnt properly updated.  For example, if a given alignment no longer maps to the reference\n after clipping it is marked unmapped, but the mate is not changed (which can store information about the mate\u0027s position). We therefore\n recommend running Picard\u0027s FixMateInformation afterwards.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar ClipOverlappingAlignments \\\n     -R genome.fasta \\\n     -I input.bam \\\n     --clipIntervals primerSites.bed \\\n     --reportFile summary.txt \\\n     -O output.bam\n \u003c/pre\u003e",
   "name": "ClipOverlappingAlignments",
   "group": "Specialized/Internal Tools",
   "beta": false,
