@@ -208,6 +208,8 @@ public class TagPcrSummary extends GATKTool {
         metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", (double)totalPrimaryAlignmentsMatchingInsert / totalReads);
         metricsMap.put("TotalSecondaryAlignmentsMatchingInsert", totalSecondaryAlignmentsMatchingInsert);
 
+        boolean doGenerateAmplicons = (blastDatabase != null && primerPairTable != null) || outputGenbank != null;
+
         int totalReverse = 0;
         List<DNASequence> amplicons = new ArrayList<>();
 
@@ -241,10 +243,11 @@ public class TagPcrSummary extends GATKTool {
                         String siteName = "Site" + totalOutput;
                         writer.writeNext(new String[]{siteName, jm.jd.junctionName, (jm.matchIsNegativeStrand ? "Minus" : "Plus"), jm.contigName, String.valueOf(jm.alignmentStart), (jm.matchIsNegativeStrand ? "-" : "+"), String.valueOf(jm.totalReads)});
 
-                        Pair<DNASequence, DNASequence> ampliconPair = jm.getAmplicons(refSeq, refMap, siteName, primerWriter);
-                        amplicons.add(ampliconPair.getKey());
-                        amplicons.add(ampliconPair.getValue());
-
+                        if (doGenerateAmplicons) {
+                            Pair<DNASequence, DNASequence> ampliconPair = jm.getAmplicons(refSeq, refMap, siteName, primerWriter);
+                            amplicons.add(ampliconPair.getKey());
+                            amplicons.add(ampliconPair.getValue());
+                        }
                     }
                 }
 
