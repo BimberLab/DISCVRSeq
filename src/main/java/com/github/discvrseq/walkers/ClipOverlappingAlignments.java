@@ -194,6 +194,12 @@ public class ClipOverlappingAlignments extends ReadWalker {
             if (read.getEnd() >= feat.getStart() && read.getEnd() <= feat.getEnd())
             {
                 int newAlignEnd = feat.getStart() - 1;
+
+                //Decrement until it doesnt land in a deletion:
+                while (newAlignEnd >= read.getStart() && rec.getReadPositionAtReferencePosition(newAlignEnd) == 0) {
+                    newAlignEnd--;
+                }
+
                 if (newAlignEnd <= read.getStart()) {
                     readsDropped++;
                     if (rec.isSecondaryOrSupplementary()) {
@@ -206,7 +212,14 @@ public class ClipOverlappingAlignments extends ReadWalker {
                 int readEnd = rec.getReadPositionAtReferencePosition(newAlignEnd);
                 int numBasesToClip = rec.getAlignmentEnd() - newAlignEnd;
 
-                rec.setCigar(new Cigar(CigarUtil.softClipEndOfRead(readEnd, rec.getCigar().getCigarElements())));
+                try {
+                    rec.setCigar(new Cigar(CigarUtil.softClipEndOfRead(readEnd, rec.getCigar().getCigarElements())));
+                }
+                catch (SAMException e) {
+                    logger.error("Problem clipping end of read: " + read.getName() + ".  CIGAR: " + rec.getCigar().toString() + ", " + readEnd);
+                    throw e;
+                }
+
                 rec.setAttribute("Xc", origCigar.toString());
                 if (rec.getCigar().getReferenceLength() == 0) {
                     readsDropped++;
