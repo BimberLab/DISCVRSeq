@@ -652,7 +652,7 @@ public class TagPcrSummary extends GATKTool {
                                 "PRIMER_MIN_SIZE=15" + "\n" +
                                 "PRIMER_MAX_SIZE=21" + "\n" +
                                 "PRIMER_MAX_NS_ACCEPTED=1" + "\n" +
-                                "PRIMER_PRODUCT_SIZE_RANGE=100-300 501-600 601-700 401-500 701-850" + "\n" +
+                                "PRIMER_PRODUCT_SIZE_RANGE=250-600 601-1000 " + "\n" +
                                 "P3_FILE_FLAG=0" + "\n" +
                                 "PRIMER_EXPLAIN_FLAG=1" + "\n" +
                                 "="
