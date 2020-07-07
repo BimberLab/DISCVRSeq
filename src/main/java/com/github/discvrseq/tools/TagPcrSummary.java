@@ -10,7 +10,9 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.SequenceUtil;
+import htsjdk.samtools.util.StringUtil;
 import org.apache.commons.collections4.ComparatorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.Logger;
 import org.biojava.nbio.core.exceptions.CompoundNotFoundException;
@@ -35,6 +37,7 @@ import org.broadinstitute.hellbender.utils.runtime.ProcessOutput;
 import org.broadinstitute.hellbender.utils.runtime.ProcessSettings;
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -81,6 +84,12 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="The minimum number of alignments required at a position to report", fullName = "min-alignments", shortName = "ma", optional = true)
     public int MIN_ALIGNMENTS = 3;
 
+    @Argument(doc="Only sites with at least this fraction of total reads will be reported", fullName = "min-fraction", shortName = "mf", optional = true)
+    public double MIN_FRACTION = 0.0;
+
+    @Argument(doc="If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border", fullName = "reads-to-output", shortName = "ro", optional = true)
+    public int READS_PER_SITE = 0;
+
     @Argument(doc="File to which a summary of integration sites, flanking sequence and optionally primers should be written in genbank format", fullName = "genbank-output", shortName = "g", optional = true)
     public File outputGenbank = null;
 
@@ -110,23 +119,27 @@ public class TagPcrSummary extends GATKTool {
     List<InsertDescriptor> INSERT_DESCRIPTORS = new ArrayList<>();
 
     public static List<InsertDescriptor> getDefaultInsertDescriptors() {
+        /**
+         * NOTE: the search strings should be listed in the orientation they would be found if this junction
+         * was in the forward direction (meaning the 5' TR would be inverted).
+         */
         return Arrays.asList(new InsertDescriptor("pENTR-PB511-Repro", "pENTR-PB511-Repro", Arrays.asList(
                 new InsertJunctionDescriptor("PB-3TR", Collections.singletonList("GCAGACTATCTTTCTAGGGTTAA"),
-                        new Interval("pENTR-PB511-Repro", 606, 1066), "PB-5TR",
-                        new Interval("pENTR-PB511-Repro", 7345, 7555), "PB-3TR",
-                        Arrays.asList(
-                                PrimerDescriptor.from("PB-3TR-Nested4", "CATTGACAAGCACGCCTCAC"),
-                                PrimerDescriptor.from("PB-NTSR2-R2", "GCGACGGATTCGCGCTATTT"),
-                                PrimerDescriptor.from("PB-3TR-Nested", "ATTTCAAGAATGCATGCGTCA")
-                        ), false),
+                        new Interval("pENTR-PB511-Repro", 602, 1066), "PB-5TR",
+                        new Interval("pENTR-PB511-Repro", 7345, 7559), "PB-3TR",
+                        false),
                 new InsertJunctionDescriptor("PB-5TR", Collections.singletonList("ATGATTATCTTTCTAGGGTTAA"),
-                        new Interval("pENTR-PB511-Repro", 606, 1066), "PB-5TR",
-                        new Interval("pENTR-PB511-Repro", 7345, 7555), "PB-3TR",
-                        Arrays.asList(
-                                PrimerDescriptor.from("PB-5TR-New", "CACATGATTATCTTTAACGTACGTCAC"),
-                                PrimerDescriptor.from("PB-NTSR2-RCR1", "GACCGATAAAACACATGCGTCA")
-                        ), true)
-        )
+                        new Interval("pENTR-PB511-Repro", 602, 1066), "PB-5TR",
+                        new Interval("pENTR-PB511-Repro", 7345, 7559), "PB-3TR",
+                        true)
+                ),
+                Arrays.asList(
+                        PrimerDescriptor.from("PB-3TR-Nested4", "CATTGACAAGCACGCCTCAC"),
+                        PrimerDescriptor.from("PB-NTSR2-R2", "GCGACGGATTCGCGCTATTT"),
+                        PrimerDescriptor.from("PB-3TR-Nested", "ATTTCAAGAATGCATGCGTCA"),
+                        PrimerDescriptor.from("PB-5TR-New", "CACATGATTATCTTTAACGTACGTCAC"),
+                        PrimerDescriptor.from("PB-RCR1", "GACCGATAAAACACATGCGTCA")
+                )
         ));
     }
 
@@ -156,6 +169,7 @@ public class TagPcrSummary extends GATKTool {
         int totalAlignments = 0;
         int totalReads = 0;
         int numReadsSpanningJunction = 0;
+        int splitAlignments = 0;
         File bam = ensureQuerySorted(inputBam);
 
         Map<String, JunctionMatch> totalMatches = new HashMap<>();
@@ -183,6 +197,29 @@ public class TagPcrSummary extends GATKTool {
                 totalAlignments++;
                 if (alignmentsForRead.isEmpty() || alignmentsForRead.get(0).getReadName().equals(rec.getReadName())) {
                     alignmentsForRead.add(rec);
+
+                    if (rec.hasAttribute("SA")) {
+                        String sa = StringUtils.trimToNull(rec.getStringAttribute("SA"));
+                        if (sa != null)
+                        {
+                            for (String alignment : sa.split(";"))
+                            {
+                                String[] parts = alignment.split(",");
+                                SAMRecord newRec = rec.deepCopy();
+                                newRec.setReferenceIndex(rec.getHeader().getSequenceIndex(parts[0]));
+                                newRec.setAlignmentStart(Integer.parseInt(parts[1]));
+                                newRec.setReadNegativeStrandFlag("-".equals(parts[2]));
+                                if (rec.getReadNegativeStrandFlag() != newRec.getReadNegativeStrandFlag()) {
+                                    newRec.reverseComplement();
+                                }
+                                newRec.setCigar(TextCigarCodec.decode(parts[3]));
+                                newRec.setMappingQuality(Integer.parseInt(parts[4]));
+
+                                alignmentsForRead.add(newRec);
+                                splitAlignments++;
+                            }
+                        }
+                    }
                 } else {
                     totalReads++;
                     numReadsSpanningJunction += processAlignmentsForRead(alignmentsForRead, totalMatches, primaryAlignmentsToInsert, secondaryAlignmentsToInsert);
@@ -205,6 +242,7 @@ public class TagPcrSummary extends GATKTool {
         logger.info("Total reads spanning a junction: " + numReadsSpanningJunction + " of " + totalReads + " (" + pf.format(pct) + ")");
 
         metricsMap.put("TotalAlignments", totalAlignments);
+        metricsMap.put("SplitAlignments", splitAlignments);
         metricsMap.put("DistinctReads", totalReads);
         metricsMap.put("NumReadsSpanningJunction", numReadsSpanningJunction);
         metricsMap.put("PctReadsSpanningJunction", pct);
@@ -229,12 +267,14 @@ public class TagPcrSummary extends GATKTool {
 
         boolean doGenerateAmplicons = (blastDatabase != null && primerPairTable != null) || outputGenbank != null;
 
-        int totalReverse = 0;
+        int totalMinusStrand = 0;
         List<DNASequence> amplicons = new ArrayList<>();
 
         if (!totalMatches.isEmpty()) {
+            NumberFormat format = DecimalFormat.getNumberInstance();
+            format.setMaximumFractionDigits(6);
             try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(outputTsv), '\t', CSVWriter.NO_QUOTE_CHARACTER); CSVWriter primerWriter = primerPairTable == null ? null : new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primerPairTable), '\t', CSVWriter.NO_QUOTE_CHARACTER); ReferenceSequenceFile refSeq = ReferenceSequenceFileFactory.getReferenceSequenceFile(referenceArguments.getReferencePath())) {
-                writer.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Chr", "Position", "Orientation", "Total"});
+                writer.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Chr", "Position", "Strand", "Total", "Fraction"});
                 if (primerWriter != null) {
                     primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start"});
                 }
@@ -242,40 +282,64 @@ public class TagPcrSummary extends GATKTool {
                 List<String> sortedKeys = new ArrayList<>(totalMatches.keySet());
                 sortedKeys.sort(ComparatorUtils.naturalComparator());
 
+                AtomicInteger totalHits = new AtomicInteger();
+                totalMatches.forEach((x, y) -> totalHits.getAndAdd(y.totalReads));
+
                 int totalOutput = 0;
                 for (String key : sortedKeys) {
                     JunctionMatch jm = totalMatches.get(key);
 
-                    if (jm.totalReads >= MIN_ALIGNMENTS) {
-                        totalOutput++;
+                    if (jm.totalReads < MIN_ALIGNMENTS) {
+                        continue;
+                    }
 
-                        ReferenceSequence ref = refMap.get(jm.contigName);
-                        if (ref == null) {
-                            ref = refSeq.getSequence(jm.contigName);
-                            refMap.put(jm.contigName, ref);
+                    double fraction = (double)jm.totalReads / totalHits.get();
+                    if (fraction < MIN_FRACTION) {
+                        continue;
+                    }
+
+                    totalOutput++;
+
+                    ReferenceSequence ref = refMap.get(jm.contigName);
+                    if (ref == null) {
+                        ref = refSeq.getSequence(jm.contigName);
+                        refMap.put(jm.contigName, ref);
+                    }
+
+                    if (jm.isTransgeneInverted()) {
+                        totalMinusStrand++;
+                    }
+
+                    String siteName = "Site" + totalOutput;
+                    writer.writeNext(new String[]{siteName, jm.jd.junctionName, jm.getTransgeneOrientation(), jm.contigName, String.valueOf(jm.matchStart), jm.getTransgeneStrand(), String.valueOf(jm.totalReads), format.format(fraction)});
+
+                    if (READS_PER_SITE > 0 && !jm.representativeRecords.isEmpty()) {
+                        File fastaOut = new File(outputTsv.getParentFile(), siteName + "." + jm.jd.junctionName + "." + jm.getTransgeneOrientation() + ".fasta");
+                        try (BufferedWriter out = IOUtil.openFileForBufferedUtf8Writing(fastaOut)) {
+                            for (SAMRecord r : jm.representativeRecords) {
+                                out.write(">" + r.getReadName() + (r.getReadNegativeStrandFlag() ? "-R" : "") + "\n");
+                                String readString = StringUtil.bytesToString(r.getReadBases());
+                                if (r.getReadNegativeStrandFlag())
+                                    readString = SequenceUtil.reverseComplement(readString);
+
+                                out.write(readString + "\n");
+                            }
                         }
+                    }
 
-                        if (jm.matchIsNegativeStrand) {
-                            totalReverse++;
-                        }
-
-                        String siteName = "Site" + totalOutput;
-                        writer.writeNext(new String[]{siteName, jm.jd.junctionName, (jm.matchIsNegativeStrand ? "Minus" : "Plus"), jm.contigName, String.valueOf(jm.alignmentStart), (jm.matchIsNegativeStrand ? "-" : "+"), String.valueOf(jm.totalReads)});
-
-                        if (doGenerateAmplicons) {
-                            Pair<DNASequence, DNASequence> ampliconPair = jm.getAmplicons(refSeq, refMap, siteName, primerWriter, outputTsv.getParentFile(), primer3ExePath);
-                            amplicons.add(ampliconPair.getKey());
-                            amplicons.add(ampliconPair.getValue());
-                        }
+                    if (doGenerateAmplicons) {
+                        Pair<DNASequence, DNASequence> ampliconPair = jm.getAmplicons(refSeq, refMap, siteName, primerWriter, outputTsv.getParentFile(), primer3ExePath);
+                        amplicons.add(ampliconPair.getKey());
+                        amplicons.add(ampliconPair.getValue());
                     }
                 }
 
                 logger.info("Total junctions output: " + totalOutput);
-                logger.info("Forward: " + (totalOutput - totalReverse) + " / Reverse: " + totalReverse);
+                logger.info("Plus Strand: " + (totalOutput - totalMinusStrand) + " / Minus: " + totalMinusStrand);
 
                 metricsMap.put("TotalIntegrationSitesOutput", totalOutput);
-                metricsMap.put("IntegrationSitesOutputMinusStrand", totalReverse);
-                metricsMap.put("IntegrationSitesOutputPlusStrand", (totalOutput - totalReverse));
+                metricsMap.put("IntegrationSitesOutputMinusStrand", totalMinusStrand);
+                metricsMap.put("IntegrationSitesOutputPlusStrand", (totalOutput - totalMinusStrand));
             } catch (IOException e) {
                 throw new GATKException(e.getMessage(), e);
             }
@@ -325,7 +389,8 @@ public class TagPcrSummary extends GATKTool {
             else {
                 for (InsertDescriptor id : INSERT_DESCRIPTORS) {
                     for (InsertJunctionDescriptor jd : id.junctions) {
-                        matches.putAll(jd.getMatches(rec, id, logger));
+                        Map<String, JunctionMatch> hits = jd.getMatches(rec, id, logger, READS_PER_SITE);
+                        matches.putAll(hits);
                     }
                 }
 
@@ -343,7 +408,7 @@ public class TagPcrSummary extends GATKTool {
         if (!matches.isEmpty()) {
             matches.forEach((x, y) -> {
                 if (totalMatches.containsKey(x)) {
-                    totalMatches.get(x).addRead();
+                    totalMatches.get(x).addRead(y.representativeRecords);
                 }
                 else {
                     totalMatches.put(x, y);
@@ -387,20 +452,22 @@ public class TagPcrSummary extends GATKTool {
         }
     }
 
-    public static class InsertDescriptor {
-        final String displayName;
-        final String contigName;
+    protected static class InsertDescriptor {
+        protected final String displayName;
+        protected final String contigName;
+        protected final List<PrimerDescriptor> internalPrimers;
 
-        final List<InsertJunctionDescriptor> junctions;
+        protected final List<InsertJunctionDescriptor> junctions;
 
-        public InsertDescriptor(String displayName, String contigName, List<InsertJunctionDescriptor> junctions) {
+        public InsertDescriptor(String displayName, String contigName, List<InsertJunctionDescriptor> junctions, List<PrimerDescriptor> internalPrimers) {
             this.displayName = displayName;
             this.contigName = contigName;
             this.junctions = junctions;
+            this.internalPrimers = Collections.unmodifiableList(internalPrimers);
         }
     }
 
-    public static class PrimerDescriptor {
+    protected static class PrimerDescriptor {
         private final String name;
         private final String sequence;
 
@@ -414,7 +481,7 @@ public class TagPcrSummary extends GATKTool {
         }
     }
 
-    public static class InsertJunctionDescriptor {
+    protected static class InsertJunctionDescriptor {
         final String junctionName;
         final List<String> searchStrings;
         List<String> searchStringsRC = null;
@@ -425,17 +492,15 @@ public class TagPcrSummary extends GATKTool {
 
         final Interval insertDownstreamRegion;
         String insertDownstreamRegionLabel;
-        final List<PrimerDescriptor> internalPrimers;
         final boolean invertOrientation;
 
-        public InsertJunctionDescriptor(String junctionName, List<String> searchStrings, Interval insertUpstreamRegion, String insertUpstreamRegionLabel, Interval insertDownstreamRegion, String insertDownstreamRegionLabel, List<PrimerDescriptor> internalPrimers, boolean invertOrientation) {
+        public InsertJunctionDescriptor(String junctionName, List<String> searchStrings, Interval insertUpstreamRegion, String insertUpstreamRegionLabel, Interval insertDownstreamRegion, String insertDownstreamRegionLabel, boolean invertOrientation) {
             this.junctionName = junctionName;
             this.searchStrings = Collections.unmodifiableList(searchStrings);
             this.insertUpstreamRegion = insertUpstreamRegion;
             this.insertUpstreamRegionLabel = insertUpstreamRegionLabel;
             this.insertDownstreamRegion = insertDownstreamRegion;
             this.insertDownstreamRegionLabel = insertDownstreamRegionLabel;
-            this.internalPrimers = Collections.unmodifiableList(internalPrimers);
             this.invertOrientation = invertOrientation;
         }
 
@@ -469,27 +534,56 @@ public class TagPcrSummary extends GATKTool {
             return searchStrings;
         }
 
-        public Map<String, JunctionMatch> getMatches(SAMRecord rec, InsertDescriptor id, Logger log) {
+        public Map<String, JunctionMatch> getMatches(SAMRecord rec, InsertDescriptor id, Logger log, int maxRecordsToStore) {
             Map<String, JunctionMatch> matches = new HashMap<>();
 
             //Forward orientation.
             for (String query : getSearchStrings(false)) {
-                Integer match = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
-                if (match != null) {
-                    //let the read deal with clipping
-                    boolean isRC = rec.getReadNegativeStrandFlag() ? !invertOrientation : invertOrientation;
-                    JunctionMatch jm = new JunctionMatch(log, this, rec.getContig(), rec.getAlignmentStart(), isRC, rec.getContig().equals(id.contigName));
-                    matches.put(jm.getKey(), jm);
+                Integer match0 = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
+                if (match0 != null) {
+                    //this is equal to one base after the 1-based end
+                    final int start = match0 + query.length() + 2;
+                    int pos = rec.getReferencePositionAtReadPosition(start);
+
+                    int i = 1;
+                    while (pos == 0 && (start + i) <= rec.getReadLength()) {
+                        pos = rec.getReferencePositionAtReadPosition(start + i);
+                        i++;
+                    }
+
+                    if (pos == 0 && !rec.getContig().equals(id.contigName)) {
+                        continue;
+                    }
+
+                    if (pos > 0) {
+                        JunctionMatch jm = new JunctionMatch(log, id, this, rec.getContig(), pos, false, rec.getContig().equals(id.contigName), rec, maxRecordsToStore);
+                        matches.put(jm.getKey(), jm);
+                    }
+                    else if (!rec.getContig().equals(id.contigName)){
+                        log.info("Unable to find position");
+                    }
                 }
             }
 
             //Reverse:
             for (String query : getSearchStrings(true)) {
-                Integer match = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
-                if (match != null) {
-                    boolean isRC = rec.getReadNegativeStrandFlag() ? !invertOrientation : invertOrientation;
-                    JunctionMatch jm = new JunctionMatch(log, this, rec.getContig(), rec.getAlignmentEnd(), isRC, rec.getContig().equals(id.contigName));
-                    matches.put(jm.getKey(), jm);
+                Integer match0 = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
+                if (match0 != null) {
+                    int pos = rec.getReferencePositionAtReadPosition(match0);  //this is equal to one base prior to the 1-based start
+
+                    int i = 1;
+                    while (pos == 0 && (match0 - i) > 1) {
+                        pos = rec.getReferencePositionAtReadPosition(match0 - i);
+                        i++;
+                    }
+
+                    if (pos > 0) {
+                        JunctionMatch jm = new JunctionMatch(log, id, this, rec.getContig(), pos, true, rec.getContig().equals(id.contigName), rec, maxRecordsToStore);
+                        matches.put(jm.getKey(), jm);
+                    }
+                    else if (!rec.getContig().equals(id.contigName)){
+                        log.info("Unable to find position");
+                    }
                 }
             }
 
@@ -502,31 +596,62 @@ public class TagPcrSummary extends GATKTool {
         upstream()
     }
 
-    public static class JunctionMatch {
+    protected static class JunctionMatch {
         private final Logger log;
+        private final InsertDescriptor insertDescriptor;
         private final InsertJunctionDescriptor jd;
 
         private final String contigName;
-        private final int alignmentStart;
-        private final boolean matchIsNegativeStrand;
+        private final int matchStart;
+        private final boolean hitOrientationReversed;
         private final boolean matchesInsertContig;
         private int totalReads = 1;
+        private List<SAMRecord> representativeRecords = new ArrayList<>();
+        private final int maxRecordsToStore;
 
-        public JunctionMatch(Logger log, InsertJunctionDescriptor jd, String contigName, int alignmentStart, boolean matchIsNegativeStrand, boolean matchesInsertContig) {
+        public JunctionMatch(Logger log, InsertDescriptor insertDescriptor, InsertJunctionDescriptor jd, String contigName, int matchStart, boolean hitOrientationReversed, boolean matchesInsertContig, SAMRecord rec, int maxRecordsToStore) {
             this.log = log;
+            this.insertDescriptor = insertDescriptor;
             this.jd = jd;
             this.contigName = contigName;
-            this.alignmentStart = alignmentStart;
-            this.matchIsNegativeStrand = matchIsNegativeStrand;
+            this.matchStart = matchStart;
+            this.hitOrientationReversed = hitOrientationReversed;
             this.matchesInsertContig = matchesInsertContig;
+            this.maxRecordsToStore = maxRecordsToStore;
+
+            if (maxRecordsToStore > 0 && rec != null)
+                representativeRecords.add(rec);
         }
 
         public String getKey() {
-            return jd.junctionName + "<>" + contigName + "<>" + alignmentStart + "<>" + matchIsNegativeStrand;
+            return jd.junctionName + "<>" + contigName + "<>" + matchStart + "<>" + hitOrientationReversed;
         }
 
-        public void addRead() {
+        public void addRead(List<SAMRecord> recs) {
             totalReads += 1;
+            if (representativeRecords.size() < maxRecordsToStore && recs != null) {
+                representativeRecords.addAll(recs);
+            }
+        }
+
+        public boolean isTransgeneInverted()
+        {
+            if (hitOrientationReversed) {
+                return !jd.invertOrientation;
+            }
+            else {
+                return jd.invertOrientation;
+            }
+        }
+
+        public String getTransgeneStrand()
+        {
+            return isTransgeneInverted() ? "-" : "+";
+        }
+
+        public String getTransgeneOrientation()
+        {
+            return isTransgeneInverted() ? "Minus" : "Plus";
         }
 
         public Pair<DNASequence, DNASequence> getAmplicons(ReferenceSequenceFile refSeq, Map<String, ReferenceSequence> refMap, String siteName, CSVWriter primerWriter, File outDir, String primer3ExePath) {
@@ -536,10 +661,10 @@ public class TagPcrSummary extends GATKTool {
                 refMap.put(contigName, ref);
             }
 
-            Interval afterInterval = new Interval(ref.getName(), alignmentStart, Math.min(alignmentStart + 1000, ref.length()));
+            Interval afterInterval = new Interval(ref.getName(), matchStart, Math.min(matchStart + 1000, ref.length()));
             String genomeAfter = ref.getBaseString().substring(afterInterval.getStart() - 1, afterInterval.getEnd());
 
-            Interval beforeInterval = new Interval(ref.getName(), Math.max(1, alignmentStart - 1000), alignmentStart);
+            Interval beforeInterval = new Interval(ref.getName(), Math.max(1, matchStart - 1000), matchStart);
             String genomeBefore = ref.getBaseString().substring(beforeInterval.getStart() - 1, beforeInterval.getEnd());
 
             String insertUpstreamRegion = "";
@@ -566,44 +691,42 @@ public class TagPcrSummary extends GATKTool {
 
             try {
                 String id = siteName;
-                String idFull = contigName + ":" + alignmentStart + ":" + (matchIsNegativeStrand ? "Minus" : "Plus");
+                String idFull = contigName + ":" + matchStart + ":" + getTransgeneOrientation();
 
                 //Note: this is a limitation in biojava
-                if (id.length() > 16) {
-                    log.error("A site name greater than 16 characters was passed: " + id + ".  This will be truncated to comply with genbank format");
-                    id = id.substring(0, 16);
+                if (id.length() > 15) {
+                    log.error("A site name greater than 15 characters was passed: " + id + ".  This will be truncated to comply with genbank format");
+                    id = id.substring(0, 15);
                 }
 
-                String orientationSuffix = matchIsNegativeStrand ? "m" : "";
+                String orientationSuffix = isTransgeneInverted() ? "m" : "";
 
-                String effectiveUpstreamRegion = matchIsNegativeStrand ? SequenceUtil.reverseComplement(insertDownstreamRegion) : insertUpstreamRegion;
-                String effectiveUpstreamLabel = matchIsNegativeStrand ? jd.getFeatureLabel(END_TYPE.downstream) + "-RC" : jd.getFeatureLabel(END_TYPE.upstream);
-                Interval effectiveUpstreamInterval = matchIsNegativeStrand ? jd.insertDownstreamRegion : jd.insertUpstreamRegion;
+                String effectiveRegionUpstream = isTransgeneInverted() ? SequenceUtil.reverseComplement(insertDownstreamRegion) : insertUpstreamRegion;
+                String effectiveRegionUpstreamLabel = isTransgeneInverted() ? jd.getFeatureLabel(END_TYPE.downstream) + "-RC" : jd.getFeatureLabel(END_TYPE.upstream);
 
-                String effectiveDownsteamRegion = matchIsNegativeStrand ? SequenceUtil.reverseComplement(insertUpstreamRegion) : insertDownstreamRegion;
-                String effectiveDownstreamLabel = matchIsNegativeStrand ? jd.getFeatureLabel(END_TYPE.upstream) + "-RC" : jd.getFeatureLabel(END_TYPE.downstream);
-                Interval effectiveDownstreamInterval = matchIsNegativeStrand ? jd.insertUpstreamRegion : jd.insertDownstreamRegion;
+                String effectiveRegionDownstream = isTransgeneInverted() ? SequenceUtil.reverseComplement(insertUpstreamRegion) : insertDownstreamRegion;
+                String effectiveRegionDownstreamLabel = isTransgeneInverted() ? jd.getFeatureLabel(END_TYPE.upstream) + "-RC" : jd.getFeatureLabel(END_TYPE.downstream);
 
-                DNASequence seqBeforeInsert = new DNASequence(genomeBefore + effectiveUpstreamRegion);
-                String ampliconName = id + "-" + effectiveUpstreamLabel;
+                DNASequence genomicJunctionUpstream = new DNASequence(genomeBefore + effectiveRegionUpstream);
+                String ampliconName = id + "-" + effectiveRegionUpstreamLabel;
                 String accession = ampliconName + orientationSuffix;
                 if (accession.length() > 15) {
                     //a limitation of BioJava
                     accession = accession.substring(0, 15);
                 }
-                seqBeforeInsert.setAccession(new AccessionID(accession));
-                seqBeforeInsert.setDescription(idFull);
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(effectiveUpstreamLabel, "Vector", jd.junctionName, effectiveUpstreamInterval.toString());
-                tf.setLocation(new SequenceLocation<>(genomeBefore.length() + 1, seqBeforeInsert.getBioEnd(), seqBeforeInsert, matchIsNegativeStrand ? Strand.NEGATIVE : Strand.POSITIVE));
-                seqBeforeInsert.addFeature(tf);
-                runPrimer3(siteName, effectiveUpstreamLabel, seqBeforeInsert, genomeBefore.length(), outDir, primerWriter, primer3ExePath);
+                genomicJunctionUpstream.setAccession(new AccessionID(accession));
+                genomicJunctionUpstream.setDescription(idFull);
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(effectiveRegionUpstreamLabel, "Vector", jd.junctionName, "");
+                tf.setLocation(new SequenceLocation<>(genomeBefore.length() + 1, genomicJunctionUpstream.getBioEnd(), genomicJunctionUpstream, isTransgeneInverted() ? Strand.NEGATIVE : Strand.POSITIVE));
+                genomicJunctionUpstream.addFeature(tf);
+                runPrimer3(siteName, effectiveRegionUpstreamLabel, genomicJunctionUpstream, genomeBefore.length(), outDir, primerWriter, primer3ExePath);
 
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(afterInterval.getContig() + ":" + afterInterval.getStart(), "Genome", afterInterval.toString(), afterInterval.toString());
-                tfG.setLocation(new SequenceLocation<>(1, genomeBefore.length(), seqBeforeInsert, Strand.POSITIVE));
-                seqBeforeInsert.addFeature(tfG);
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG = new TextFeature<>(beforeInterval.getContig() + ":" + beforeInterval.getStart(), "Genome", beforeInterval.toString(), "");
+                tfG.setLocation(new SequenceLocation<>(1, genomeBefore.length(), genomicJunctionUpstream, Strand.POSITIVE));
+                genomicJunctionUpstream.addFeature(tfG);
 
-                DNASequence seqAfterInsert = new DNASequence(effectiveDownsteamRegion + genomeAfter);
-                String ampliconName2 = id + "-" + effectiveDownstreamLabel;
+                DNASequence seqAfterInsert = new DNASequence(effectiveRegionDownstream + genomeAfter);
+                String ampliconName2 = id + "-" + effectiveRegionDownstreamLabel;
                 String accession2 = ampliconName2 + orientationSuffix;
                 if (accession2.length() > 15) {
                     //a limitation of BioJava
@@ -611,35 +734,45 @@ public class TagPcrSummary extends GATKTool {
                 }
                 seqAfterInsert.setAccession(new AccessionID(accession2));
                 seqAfterInsert.setDescription(idFull);
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(effectiveDownstreamLabel, "Vector", jd.junctionName, effectiveDownstreamInterval.toString());
-                tf2.setLocation(new SequenceLocation<>(1, effectiveDownsteamRegion.length(), seqAfterInsert, matchIsNegativeStrand ? Strand.NEGATIVE : Strand.POSITIVE));
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf2 = new TextFeature<>(effectiveRegionDownstreamLabel, "Vector", jd.junctionName, "");
+                tf2.setLocation(new SequenceLocation<>(1, effectiveRegionDownstream.length(), seqAfterInsert, isTransgeneInverted() ? Strand.NEGATIVE : Strand.POSITIVE));
                 seqAfterInsert.addFeature(tf2);
-                runPrimer3(siteName, effectiveDownstreamLabel, seqAfterInsert, effectiveDownsteamRegion.length(), outDir, primerWriter, primer3ExePath);
+                runPrimer3(siteName, effectiveRegionDownstreamLabel, seqAfterInsert, effectiveRegionDownstream.length(), outDir, primerWriter, primer3ExePath);
 
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG2 = new TextFeature<>(beforeInterval.getContig() + ":" + beforeInterval.getStart(), "Genome", beforeInterval.toString(), beforeInterval.toString());
-                tfG2.setLocation(new SequenceLocation<>(effectiveDownsteamRegion.length() + 1, seqAfterInsert.getBioEnd(), seqAfterInsert, Strand.POSITIVE));
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tfG2 = new TextFeature<>(afterInterval.getContig() + ":" + afterInterval.getStart(), "Genome", afterInterval.toString(), afterInterval.toString());
+                tfG2.setLocation(new SequenceLocation<>(effectiveRegionDownstream.length() + 1, seqAfterInsert.getBioEnd(), seqAfterInsert, Strand.POSITIVE));
                 seqAfterInsert.addFeature(tfG2);
 
                 //Add known primers as features:
-                if (!jd.internalPrimers.isEmpty()) {
-                    jd.internalPrimers.forEach(p -> {
-                        addPrimerIfPresent(p, seqBeforeInsert);
+                if (!insertDescriptor.internalPrimers.isEmpty()) {
+                    for (PrimerDescriptor p : insertDescriptor.internalPrimers) {
+                        addPrimerIfPresent(p, genomicJunctionUpstream);
                         addPrimerIfPresent(p, seqAfterInsert);
-                    });
+                    }
                 }
 
-                return Pair.of(seqBeforeInsert, seqAfterInsert);
+                return Pair.of(genomicJunctionUpstream, seqAfterInsert);
 
             } catch (CompoundNotFoundException e) {
                 throw new GATKException(e.getMessage(), e);
             }
         }
 
+        private String getTruncatedLabel(String val, boolean addRCSuffix) {
+            int max = addRCSuffix ? 12 : 15;
+
+            if (val.length() > max) {
+                val = val.substring(0, max);
+            }
+
+            return val + (addRCSuffix ? "-RC" : "");
+        }
+
         private void addPrimerIfPresent(PrimerDescriptor primer, DNASequence seq) {
             int pos = seq.getSequenceAsString().indexOf(primer.sequence);
             if (pos > -1) {
                 pos++; //1-based
-                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(primer.name, "Vector Primer", primer.name, "Existing Primer: " + primer.name);
+                TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(getTruncatedLabel(primer.name, false), "Vector Primer", primer.name, "Existing Primer: " + primer.name);
                 tf.setLocation(new SequenceLocation<>(pos, pos + primer.sequence.length(), seq, Strand.POSITIVE));
                 seq.addFeature(tf);
             }
@@ -650,7 +783,7 @@ public class TagPcrSummary extends GATKTool {
                 int posRC = seq.getSequenceAsString().indexOf(primerSeqRC);
                 if (posRC > -1) {
                     posRC++; //1-based
-                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(primer.name + "-RC", "Vector Primer", primer.name + "-RC", "Existing Primer: " + primer.name + "-RC");
+                    TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(getTruncatedLabel(primer.name, true), "Vector Primer", getTruncatedLabel(primer.name, true), "Existing Primer: " + primer.name + "-RC");
                     tf.setLocation(new SequenceLocation<>(posRC, posRC + primer.sequence.length(), seq, Strand.NEGATIVE));
                     seq.addFeature(tf);
                 }
@@ -756,7 +889,7 @@ public class TagPcrSummary extends GATKTool {
                 String pairNameShort = junctionName + "-" + (i + 1);
                 String pairName = siteName + "-" + pairNameShort;
                 if (primerWriter != null) {
-                    primerWriter.writeNext(new String[]{siteName, junctionName, (matchIsNegativeStrand ? "Minus" : "Plus"), pairName + "F", primer1Seq, String.valueOf(primer1Loc), pairName + "R", primer2Seq, String.valueOf(primer2Loc)});
+                    primerWriter.writeNext(new String[]{siteName, junctionName, getTransgeneOrientation(), pairName + "F", primer1Seq, String.valueOf(primer1Loc), pairName + "R", primer2Seq, String.valueOf(primer2Loc)});
                 }
 
                 TextFeature<AbstractSequence<NucleotideCompound>, NucleotideCompound> tf = new TextFeature<>(pairNameShort + "F", "Primer3", pairName + "F", pairName + "F");
@@ -910,12 +1043,13 @@ public class TagPcrSummary extends GATKTool {
                     failedPrimers.put(primerSeq, false);
                 }
             });
-
-            blastInput.delete();
         }
         catch (IOException e) {
             throw new GATKException(e.getMessage(), e);
         }
+
+        blastInput.delete();
+        blastOutput.delete();
 
         //Now write updated output:
         Set<String> primerNamesToFlag = new HashSet<>();
