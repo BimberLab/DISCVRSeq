@@ -500,6 +500,21 @@
       "options": []
     },
     {
+      "summary": "Only sites with at least this fraction of total reads will be reported",
+      "name": "--min-fraction",
+      "synonyms": "-mf",
+      "type": "double",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0.0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "File to which TSV output should be written",
       "name": "--output-table",
       "synonyms": "-o",
@@ -616,6 +631,21 @@
           "name": "SILENT"
         }
       ]
+    },
+    {
+      "summary": "If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border",
+      "name": "--reads-to-output",
+      "synonyms": "-ro",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
     },
     {
       "summary": "Reference sequence file",

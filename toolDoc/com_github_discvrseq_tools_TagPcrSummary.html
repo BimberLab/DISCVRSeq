@@ -226,6 +226,14 @@
 					<td>The minimum number of alignments required at a position to report</td>
 				</tr>
 				<tr>
+					<td><a href="#--min-fraction">--min-fraction</a><br />
+								&nbsp;<em>-mf</em>
+					</td>
+					<!--<td>double</td> -->
+					<td>0.0</td>
+					<td>Only sites with at least this fraction of total reads will be reported</td>
+				</tr>
+				<tr>
 					<td><a href="#--primer-pair-table">--primer-pair-table</a><br />
 								&nbsp;<em>-pt</em>
 					</td>
@@ -240,6 +248,14 @@
 					<!--<td>String</td> -->
 					<td>primer3</td>
 					<td>In order for this tool to design validation primers, the path to primer3 must be provided</td>
+				</tr>
+				<tr>
+					<td><a href="#--reads-to-output">--reads-to-output</a><br />
+								&nbsp;<em>-ro</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -894,6 +910,20 @@
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--min-fraction">--min-fraction </a>
+			 / <small>-mf</small>
+		</h3>
+		<p class="args">
+			<b>Only sites with at least this fraction of total reads will be reported</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">double</span>
+			&nbsp;<span class="label">0.0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output-table">--output-table </a>
 			 / <small>-o</small>
 		</h3>
@@ -988,6 +1018,20 @@
 		<p>
 		<span class="label label-info ">ValidationStringency</span>
 			&nbsp;<span class="label">SILENT</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--reads-to-output">--reads-to-output </a>
+			 / <small>-ro</small>
+		</h3>
+		<p class="args">
+			<b>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
@@ -1135,7 +1179,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.16 built at 05-31-2020 06:31:02.
+        <p class="version">DISCVR-Seq version 1.17 built at 07-59-2020 08:59:58.
         </p>
 
 </div></div>
