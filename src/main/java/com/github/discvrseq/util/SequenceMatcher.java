@@ -1,9 +1,9 @@
 package com.github.discvrseq.util;
 
-import org.apache.commons.text.similarity.LevenshteinDistance;
+import org.apache.commons.text.similarity.HammingDistance;
 
 public class SequenceMatcher {
-    private static final LevenshteinDistance levenshteinDistance = LevenshteinDistance.getDefaultInstance();
+    private static final HammingDistance hd = new HammingDistance();
 
     public static Integer fuzzyMatch(String query, String readSeq, int editDistance) {
         int windows = readSeq.length() - query.length();
@@ -11,7 +11,7 @@ public class SequenceMatcher {
         int i = 0;
         while (i < windows) {
             CharSequence test = readSeq.subSequence(i, i + query.length());
-            if (levenshteinDistance.apply(query, test) <= editDistance) {
+            if (hd.apply(query, test) <= editDistance) {
                 return i;
             }
 
