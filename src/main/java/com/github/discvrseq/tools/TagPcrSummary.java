@@ -111,43 +111,64 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="If BLAST will be used, this value is passed to the -num_threads argument of blastn.", fullName = "blast-threads", shortName = "bt", optional = true)
     public Integer blastThreads = null;
 
+    @Argument(doc="The type of insert to test: currently support values are PiggyBac and Lentivirus", fullName = "insert-type", shortName = "it", optional = false)
+    public String insertType = null;
+
     @Override
     public boolean requiresReference() {
         return true;
     }
 
-    List<InsertDescriptor> INSERT_DESCRIPTORS = new ArrayList<>();
+    private List<InsertDescriptor> INSERT_DESCRIPTORS = new ArrayList<>();
 
-    public static List<InsertDescriptor> getDefaultInsertDescriptors() {
+    public static Map<String, InsertDescriptor> getDefaultInsertDescriptors() {
         /**
          * NOTE: the search strings should be listed in the orientation they would be found if this junction
          * was in the forward direction (meaning the 5' TR would be inverted).
          */
-        return Arrays.asList(new InsertDescriptor("pENTR-PB511-Repro", "pENTR-PB511-Repro", Arrays.asList(
-                new InsertJunctionDescriptor("PB-3TR", Collections.singletonList("GCAGACTATCTTTCTAGGGTTAA"),
-                        new Interval("pENTR-PB511-Repro", 602, 1066), "PB-5TR",
-                        new Interval("pENTR-PB511-Repro", 7345, 7559), "PB-3TR",
-                        false),
-                new InsertJunctionDescriptor("PB-5TR", Collections.singletonList("ATGATTATCTTTCTAGGGTTAA"),
-                        new Interval("pENTR-PB511-Repro", 602, 1066), "PB-5TR",
-                        new Interval("pENTR-PB511-Repro", 7345, 7559), "PB-3TR",
-                        true)
-                ),
-                Arrays.asList(
-                        PrimerDescriptor.from("PB-3TR-Nested4", "CATTGACAAGCACGCCTCAC"),
-                        PrimerDescriptor.from("PB-NTSR2-R2", "GCGACGGATTCGCGCTATTT"),
-                        PrimerDescriptor.from("PB-3TR-Nested", "ATTTCAAGAATGCATGCGTCA"),
-                        PrimerDescriptor.from("PB-5TR-New", "CACATGATTATCTTTAACGTACGTCAC"),
-                        PrimerDescriptor.from("PB-RCR1", "GACCGATAAAACACATGCGTCA")
-                )
+        Map<String, InsertDescriptor> ret = new HashMap<>();
+        ret.put("PiggyBac", new InsertDescriptor("pENTR-PB511-Repro", "pENTR-PB511-Repro", Arrays.asList(
+                new InsertJunctionDescriptor("PB-3TR", Collections.singletonList("GCAGACTATCTTTCTAGGGTTAA"), false),
+                new InsertJunctionDescriptor("PB-5TR", Collections.singletonList("ATGATTATCTTTCTAGGGTTAA"), true)
+            ),
+            SequenceDescriptor.from("PB-5TR", "TTAACCCTAGAAAGATAATCATATTGTGACGTACGTTAAAGATAATCATGTGTAAAATTGACGCATGTGTTTTATCGGTCTGTATATCGAGGTTTATTTATTAATTTGAATAGATATTAAGTTTTATTATATTTACACTTACATACTAATAATAAATTCAACAAACAATTTATTTATGTTTATTTATTTATTAAAAAAAACAAAAACTCAAAATTTCTTCTATAAAGTAACAAAACTTTTATGAGGGACAGCCCCCCCCCAAAGCCCCCAGGGATGTAATTACGTCCCTCCCCCGCTAGGGGGCAGCAGCGAGCCGCCCGGGGCTCCGCTCCGGTCCGGCGCTCCCCCCGCATCCCCGAGCCGGCAGCGTGCGGGGACAGCCCGGGCACGGGGAAGGTGGCACGGGATCGCTTTCCTCTGAACGCTTCTCGCTGCTCTTTGAGCCTGCAGACACCTGGGGGGATA"),
+            SequenceDescriptor.from("PB-3TR", "CGTAAAAGATAATCATGCGTCATTTTGACTCACGCGGTCGTTATAGTTCAAAATCAGTGACACTTACCGCATTGACAAGCACGCCTCACGGGAGCTCCAAGCGGCGACTGAGATGTCCTAAATGCACAGCGACGGATTCGCGCTATTTAGAAAGAGAGAGCAATATTTCAAGAATGCATGCGTCAATTTTACGCAGACTATCTTTCTAGGGTTAA"),
+            Arrays.asList(
+                SequenceDescriptor.from("PB-3TR-Nested4", "CATTGACAAGCACGCCTCAC"),
+                SequenceDescriptor.from("PB-NTSR2-R2", "GCGACGGATTCGCGCTATTT"),
+                SequenceDescriptor.from("PB-3TR-Nested", "ATTTCAAGAATGCATGCGTCA"),
+                SequenceDescriptor.from("PB-5TR-New", "CACATGATTATCTTTAACGTACGTCAC"),
+                SequenceDescriptor.from("PB-RCR1", "GACCGATAAAACACATGCGTCA")
+            )
         ));
+
+        ret.put("Lentivirus", new InsertDescriptor("Lentivirus", "", Arrays.asList(
+            new InsertJunctionDescriptor("LV-3LTR", Collections.singletonList("AGTGTGGAAAATCTCTAGCA"), false),
+            new InsertJunctionDescriptor("LV-5LTR", Collections.singletonList("TGGAAGGGCTAATTCACTCC"), true)
+            ),
+            SequenceDescriptor.from("LV-5LTR", "TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
+            SequenceDescriptor.from("LV-3LTR", "TGGAAGGGCTAATTCACTCCCAAAGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
+            Arrays.asList(
+                    SequenceDescriptor.from("LV-3LTR-Outer", "GAGAGCTGCATCCGGAGTAC"),
+                    SequenceDescriptor.from("LV-3LTR-Inner", "TAGTGTGTGCCCGTCTGTTG"),
+                    SequenceDescriptor.from("LV-5LTR-Outer", "TCCTCTGGTTTCCCTTTCGC"),  //NOTE: located just upstream of the 5' LTR
+                    SequenceDescriptor.from("LV-5LTR-Inner", "AAGCAGTGGGTTCCCTAGTT")
+            )
+        ));
+
+        return ret;
     }
 
     @Override
     protected void onStartup() {
         super.onStartup();
 
-        INSERT_DESCRIPTORS.addAll(getDefaultInsertDescriptors());
+        Map<String, InsertDescriptor> descriptorMap = getDefaultInsertDescriptors();
+        if (!descriptorMap.containsKey(insertType)) {
+            throw new IllegalArgumentException("Unknown --insert-type: " + insertType + ".  Allowable values are: " + StringUtils.join(descriptorMap.keySet(), ", "));
+        }
+
+        INSERT_DESCRIPTORS.add(descriptorMap.get(insertType));
 
         if (blastDatabase != null) {
             File blastTest = new File(blastDatabase + ".nhr");
@@ -314,8 +335,8 @@ public class TagPcrSummary extends GATKTool {
                     writer.writeNext(new String[]{siteName, jm.jd.junctionName, jm.getTransgeneOrientation(), jm.contigName, String.valueOf(jm.matchStart), jm.getTransgeneStrand(), String.valueOf(jm.totalReads), format.format(fraction)});
 
                     if (READS_PER_SITE > 0 && !jm.representativeRecords.isEmpty()) {
-                        File fastaOut = new File(outputTsv.getParentFile(), siteName + "." + jm.jd.junctionName + "." + jm.getTransgeneOrientation() + ".fasta");
-                        try (BufferedWriter out = IOUtil.openFileForBufferedUtf8Writing(fastaOut)) {
+                        File fastaOut = new File(outputTsv.getParentFile(), siteName + "." + jm.jd.junctionName + "." + jm.getTransgeneOrientation() + ".fasta.gz");
+                        try (BufferedWriter out = new BufferedWriter(new OutputStreamWriter(IOUtil.openGzipFileForWriting(fastaOut.toPath())))) {
                             for (SAMRecord r : jm.representativeRecords) {
                                 out.write(">" + r.getReadName() + (r.getReadNegativeStrandFlag() ? "-R" : "") + "\n");
                                 String readString = StringUtil.bytesToString(r.getReadBases());
@@ -455,29 +476,46 @@ public class TagPcrSummary extends GATKTool {
     protected static class InsertDescriptor {
         protected final String displayName;
         protected final String contigName;
-        protected final List<PrimerDescriptor> internalPrimers;
+
+        protected final SequenceDescriptor insertUpstreamRegion;
+        protected final SequenceDescriptor insertDownstreamRegion;
+
+        protected final List<SequenceDescriptor> internalPrimers;
 
         protected final List<InsertJunctionDescriptor> junctions;
 
-        public InsertDescriptor(String displayName, String contigName, List<InsertJunctionDescriptor> junctions, List<PrimerDescriptor> internalPrimers) {
+        public InsertDescriptor(String displayName, String contigName, List<InsertJunctionDescriptor> junctions, SequenceDescriptor insertUpstreamRegion, SequenceDescriptor insertDownstreamRegion, List<SequenceDescriptor> internalPrimers) {
             this.displayName = displayName;
             this.contigName = contigName;
+            this.insertDownstreamRegion = insertDownstreamRegion;
+            this.insertUpstreamRegion = insertUpstreamRegion;
             this.junctions = junctions;
             this.internalPrimers = Collections.unmodifiableList(internalPrimers);
         }
+
+        public String getFeatureLabel(END_TYPE type) {
+            switch (type) {
+                case upstream:
+                    return insertUpstreamRegion.name;
+                case downstream:
+                    return insertDownstreamRegion.name;
+                default:
+                    throw new IllegalArgumentException("Unknown type");
+            }
+        }
     }
 
-    protected static class PrimerDescriptor {
+    protected static class SequenceDescriptor {
         private final String name;
         private final String sequence;
 
-        public PrimerDescriptor(String name, String sequence) {
+        public SequenceDescriptor(String name, String sequence) {
             this.name = name;
             this.sequence = sequence;
         }
 
-        public static PrimerDescriptor from(String name, String sequence) {
-            return new PrimerDescriptor(name, sequence);
+        public static SequenceDescriptor from(String name, String sequence) {
+            return new SequenceDescriptor(name, sequence);
         }
     }
 
@@ -487,32 +525,12 @@ public class TagPcrSummary extends GATKTool {
         List<String> searchStringsRC = null;
         int mismatchesAllowed = 2;
 
-        final Interval insertUpstreamRegion;
-        final String insertUpstreamRegionLabel;
-
-        final Interval insertDownstreamRegion;
-        String insertDownstreamRegionLabel;
         final boolean invertOrientation;
 
-        public InsertJunctionDescriptor(String junctionName, List<String> searchStrings, Interval insertUpstreamRegion, String insertUpstreamRegionLabel, Interval insertDownstreamRegion, String insertDownstreamRegionLabel, boolean invertOrientation) {
+        public InsertJunctionDescriptor(String junctionName, List<String> searchStrings, boolean invertOrientation) {
             this.junctionName = junctionName;
             this.searchStrings = Collections.unmodifiableList(searchStrings);
-            this.insertUpstreamRegion = insertUpstreamRegion;
-            this.insertUpstreamRegionLabel = insertUpstreamRegionLabel;
-            this.insertDownstreamRegion = insertDownstreamRegion;
-            this.insertDownstreamRegionLabel = insertDownstreamRegionLabel;
             this.invertOrientation = invertOrientation;
-        }
-
-        public String getFeatureLabel(END_TYPE type) {
-            switch (type) {
-                case upstream:
-                    return insertUpstreamRegionLabel;
-                case downstream:
-                    return insertDownstreamRegionLabel;
-                default:
-                    throw new IllegalArgumentException("Unknown type");
-            }
         }
 
         public void setMismatchesAllowed(int mismatchesAllowed) {
@@ -668,25 +686,13 @@ public class TagPcrSummary extends GATKTool {
             String genomeBefore = ref.getBaseString().substring(beforeInterval.getStart() - 1, beforeInterval.getEnd());
 
             String insertUpstreamRegion = "";
-            if (jd.insertUpstreamRegion != null) {
-                ReferenceSequence insertRef = refMap.get(jd.insertUpstreamRegion.getContig());
-                if (insertRef == null) {
-                    insertRef = refSeq.getSequence(jd.insertUpstreamRegion.getContig());
-                    refMap.put(insertRef.getName(), insertRef);
-                }
-
-                insertUpstreamRegion = insertRef.getBaseString().substring(jd.insertUpstreamRegion.getStart() - 1, jd.insertUpstreamRegion.getEnd());
+            if (insertDescriptor.insertUpstreamRegion != null) {
+                insertUpstreamRegion = insertDescriptor.insertUpstreamRegion.sequence;
             }
 
             String insertDownstreamRegion = "";
-            if (jd.insertDownstreamRegion != null) {
-                ReferenceSequence insertRef = refMap.get(jd.insertDownstreamRegion.getContig());
-                if (insertRef == null) {
-                    insertRef = refSeq.getSequence(jd.insertDownstreamRegion.getContig());
-                    refMap.put(insertRef.getName(), insertRef);
-                }
-
-                insertDownstreamRegion = insertRef.getBaseString().substring(jd.insertDownstreamRegion.getStart() - 1, jd.insertDownstreamRegion.getEnd());
+            if (insertDescriptor.insertDownstreamRegion != null) {
+                insertDownstreamRegion = insertDescriptor.insertDownstreamRegion.sequence;
             }
 
             try {
@@ -702,10 +708,10 @@ public class TagPcrSummary extends GATKTool {
                 String orientationSuffix = isTransgeneInverted() ? "m" : "";
 
                 String effectiveRegionUpstream = isTransgeneInverted() ? SequenceUtil.reverseComplement(insertDownstreamRegion) : insertUpstreamRegion;
-                String effectiveRegionUpstreamLabel = isTransgeneInverted() ? jd.getFeatureLabel(END_TYPE.downstream) + "-RC" : jd.getFeatureLabel(END_TYPE.upstream);
+                String effectiveRegionUpstreamLabel = isTransgeneInverted() ? insertDescriptor.getFeatureLabel(END_TYPE.downstream) + "-RC" : insertDescriptor.getFeatureLabel(END_TYPE.upstream);
 
                 String effectiveRegionDownstream = isTransgeneInverted() ? SequenceUtil.reverseComplement(insertUpstreamRegion) : insertDownstreamRegion;
-                String effectiveRegionDownstreamLabel = isTransgeneInverted() ? jd.getFeatureLabel(END_TYPE.upstream) + "-RC" : jd.getFeatureLabel(END_TYPE.downstream);
+                String effectiveRegionDownstreamLabel = isTransgeneInverted() ? insertDescriptor.getFeatureLabel(END_TYPE.upstream) + "-RC" : insertDescriptor.getFeatureLabel(END_TYPE.downstream);
 
                 DNASequence genomicJunctionUpstream = new DNASequence(genomeBefore + effectiveRegionUpstream);
                 String ampliconName = id + "-" + effectiveRegionUpstreamLabel;
@@ -745,7 +751,7 @@ public class TagPcrSummary extends GATKTool {
 
                 //Add known primers as features:
                 if (!insertDescriptor.internalPrimers.isEmpty()) {
-                    for (PrimerDescriptor p : insertDescriptor.internalPrimers) {
+                    for (SequenceDescriptor p : insertDescriptor.internalPrimers) {
                         addPrimerIfPresent(p, genomicJunctionUpstream);
                         addPrimerIfPresent(p, seqAfterInsert);
                     }
@@ -768,7 +774,7 @@ public class TagPcrSummary extends GATKTool {
             return val + (addRCSuffix ? "-RC" : "");
         }
 
-        private void addPrimerIfPresent(PrimerDescriptor primer, DNASequence seq) {
+        private void addPrimerIfPresent(SequenceDescriptor primer, DNASequence seq) {
             int pos = seq.getSequenceAsString().indexOf(primer.sequence);
             if (pos > -1) {
                 pos++; //1-based
