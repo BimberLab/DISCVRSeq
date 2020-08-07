@@ -362,6 +362,21 @@
       "options": []
     },
     {
+      "summary": "The type of insert to test: currently support values are PiggyBac and Lentivirus",
+      "name": "--insert-type",
+      "synonyms": "-it",
+      "type": "String",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "Amount of padding (in bp) to add to each interval you are excluding.",
       "name": "--interval-exclusion-padding",
       "synonyms": "-ixp",
