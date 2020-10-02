@@ -16,6 +16,7 @@ import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.read.GATKRead;
 
 import java.io.File;
@@ -124,6 +125,12 @@ public class ClipOverlappingAlignments extends ReadWalker {
         }
 
         bedFeatures = addFeatures();
+
+        features.getFeatureIterator(bedFeatures).forEachRemaining(feat -> {
+            if (feat.getStart() >= feat.getEnd()) {
+                throw new UserException.BadInput("Improper BED feature, start greater than end: " + feat.getContig() + ":" + feat.getStart() + "-" + feat.getEnd());
+            }
+        });
     }
 
     private long totalOverlappingStart = 0;
