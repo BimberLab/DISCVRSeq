@@ -52,8 +52,9 @@ import java.util.stream.IntStream;
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
 public class FindGenomeDifferences extends GATKTool {
-    public static final String ORIGINAL_CONTIG = "OriginalContig";
-    public static final String ORIGINAL_START = "OriginalStart";
+    public static final String ORIGINAL_CONTIG = "OrigContig";
+    public static final String ORIGINAL_START = "OrigStart";
+    public static final String IS_RC = "IsComplemented";
 
     @Argument(fullName = "sourceGenome", shortName = "s", doc = "Source reference sequence file", optional = false)
     private String sourceGenomeFileName;
@@ -69,6 +70,9 @@ public class FindGenomeDifferences extends GATKTool {
 
     @Argument(fullName = "liftoverMinMatch", shortName = "mm", doc = "LiftOver min match", optional = true)
     private double liftoverMinMatch = 0.95;
+
+    @Argument(fullName = "windowSize", shortName = "ws", doc = "Window Size", optional = true)
+    private int windowSize = 5000;
 
     private SAMSequenceDictionary sourceDict;
     private SAMSequenceDictionary targetDict;
@@ -121,40 +125,59 @@ public class FindGenomeDifferences extends GATKTool {
 
             AtomicInteger passedLiftover = new AtomicInteger(0);
             AtomicInteger refDiffers = new AtomicInteger(0);
+            AtomicInteger rejectedWindows = new AtomicInteger(0);
 
-            IntStream.range(1, length + 1).forEach(sourcePos1 -> {
-                Interval lifted = liftOver.liftOver(new Interval(sr.getSequenceName(), sourcePos1, sourcePos1));
-                if (lifted != null)
-                {
+            final int numWindows = length / windowSize; //note: this could leave trailing bases, but dont worry about this
+
+            IntStream.range(0, numWindows).forEach(windowNumber -> {
+                int startPos0 = windowNumber * windowSize;
+                Interval sourceInterval = new Interval(sr.getSequenceName(), startPos0 + 1, startPos0 + windowSize);
+                Interval lifted = liftOver.liftOver(sourceInterval);
+                if (lifted != null) {
                     passedLiftover.getAndIncrement();
 
-                    byte sourceBase = sourceSeq[sourcePos1 - 1];
-                    byte targetBase = getTargetChar(lifted.getContig(), lifted.getStart());
-                    if (lifted.isNegativeStrand())
-                    {
-                        targetBase = BaseUtils.simpleReverseComplement(new byte[]{targetBase})[0];
+                    if (lifted.length() != windowSize) {
+                        rejectedWindows.getAndIncrement();
+                        return;
                     }
 
-                    if (!BaseUtils.basesAreEqual(sourceBase, targetBase))
-                    {
-                        VariantContextBuilder vcb = new VariantContextBuilder();
+                    final byte[] targetSeq = getTargetSeq(lifted);
 
-                        vcb.chr(lifted.getContig());
-                        vcb.start(lifted.getStart());
-                        vcb.stop(lifted.getEnd());
-                        vcb.alleles(Arrays.asList(Allele.create(targetBase, true), Allele.create(sourceBase)));
-                        vcb.attribute(ORIGINAL_CONTIG, sr.getSequenceName());
-                        vcb.attribute(ORIGINAL_START, sourcePos1);
+                    IntStream.range(0, windowSize).forEach(windowIdx0 -> {
+                        int sourcePos0 = lifted.isNegativeStrand() ? startPos0 + windowSize - windowIdx0 : windowIdx0 + startPos0;
+                        byte sourceBase = sourceSeq[sourcePos0];
+                        if (lifted.isNegativeStrand()) {
+                            sourceBase = BaseUtils.simpleReverseComplement(new byte[]{sourceBase})[0];
+                        }
 
-                        refDiffers.getAndIncrement();
-                        sorter.add(vcb.make());
-                    }
+                        byte targetBase = targetSeq[windowIdx0];
+
+                        if (!BaseUtils.basesAreEqual(sourceBase, targetBase)) {
+                            VariantContextBuilder vcb = new VariantContextBuilder();
+
+                            vcb.chr(lifted.getContig());
+                            int targetBasePos1 = lifted.getStart() + windowIdx0;
+                            vcb.start(targetBasePos1);
+                            vcb.stop(targetBasePos1);
+                            vcb.alleles(Arrays.asList(Allele.create(targetBase, true), Allele.create(sourceBase)));
+                            vcb.attribute(ORIGINAL_CONTIG, sr.getSequenceName());
+                            vcb.attribute(ORIGINAL_START, sourcePos0 + 1);
+
+                            if (lifted.isNegativeStrand()) {
+                                vcb.attribute(IS_RC, 1);
+                            }
+
+                            refDiffers.getAndIncrement();
+                            sorter.add(vcb.make());
+                        }
+                    });
                 }
             });
 
             logger.info("total bases: " + length);
-            logger.info("total lifted: " + passedLiftover.get());
-            logger.info("total lifted with different reference: " + refDiffers.get());
+            logger.info("total lifted windows: " + passedLiftover.get() + " of " + numWindows);
+            logger.info("total rejected windows (for indels): " + rejectedWindows.get());
+            logger.info("total sites with different reference: " + refDiffers.get());
         });
 
         sorter.doneAdding();
@@ -169,14 +192,13 @@ public class FindGenomeDifferences extends GATKTool {
 
     private Map<String, byte[]> targetSeqToBytes = new HashMap<>();
 
-    private byte getTargetChar(String targetName, int pos1)
+    private byte[] getTargetSeq(Interval i)
     {
-        if (targetSeqToBytes.get(targetName) == null)
-        {
-            targetSeqToBytes.put(targetName, targetFasta.getSequence(targetName).getBases());
+        if (targetSeqToBytes.get(i.getContig()) == null) {
+            targetSeqToBytes.put(i.getContig(), targetFasta.getSequence(i.getContig()).getBases());
         }
 
-        return targetSeqToBytes.get(targetName)[pos1 - 1];
+        return Arrays.copyOfRange(targetSeqToBytes.get(i.getContig()), i.getStart() - 1, i.getEnd());
     }
 
     private void initializeSorter() {
@@ -198,6 +220,7 @@ public class FindGenomeDifferences extends GATKTool {
 
         vcfHeader.addMetaDataLine(new VCFInfoHeaderLine(ORIGINAL_CONTIG, 1, VCFHeaderLineType.String, "The name of the contig/chromosome in the source genome."));
         vcfHeader.addMetaDataLine(new VCFInfoHeaderLine(ORIGINAL_START, 1, VCFHeaderLineType.Integer, "The start position of the variant in the source genome."));
+        vcfHeader.addMetaDataLine(new VCFInfoHeaderLine(IS_RC, 1, VCFHeaderLineType.Flag, "Indicates whether the source is reverse-complemented relative to this genome."));
     }
 
     private void writeSortedOutput(final VCFHeader outputHeader, final SortingCollection<VariantContext> sortedOutput) {
