@@ -227,7 +227,9 @@ public class BackportLiftedVcf extends VariantWalker {
             out.add(variantContext);
             writeProgress.record(variantContext.getContig(), variantContext.getStart());
         }
+
         out.close();
+        sortedOutput.cleanup();
     }
 
     @Override
