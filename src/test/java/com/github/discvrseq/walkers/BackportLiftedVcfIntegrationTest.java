@@ -10,7 +10,7 @@ public class BackportLiftedVcfIntegrationTest extends BaseIntegrationTest {
     private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/walkers/BackportLiftedVcf");
 
     @Test
-    public void doBasicTest() throws Exception{
+    public void doBasicTest() throws Exception {
         File fasta = getHg19Micro();
 
         IntegrationTestSpec spec = new IntegrationTestSpec(

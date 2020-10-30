@@ -8,79 +8,50 @@ import java.io.File;
 import java.util.Arrays;
 
 public class RemoveAnnotationsIntegrationTest extends BaseIntegrationTest {
+    //private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/");
+
     @Test
     public void testBasicOperation() throws Exception {
-        ArgumentsBuilder args = getBaseArgs();
-        args.add("-A");
-        args.add("MAC");
-        args.add("-XA");  //-A will trump this
-        args.add("PURPOSE");
-        args.add("-GA");
-        args.add("DP");
-        args.add("-XGA");
-        args.add("AD");
-        args.add("-ef");
+        File cassandra = new File(testBaseDir, "ClinvarAnnotator.vcf");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
-                args.getString(),
-                Arrays.asList(getTestFile("testBasicOperation.vcf").getPath()));
+                    " -V " + normalizePath(cassandra) +
+                    " -XA PURPOSE" +
+                    " -XA RN" +
+                    " -GA DP" +
+                    " -GA AD" +
+                    " -GA GQ" +
+                    " -GA GT" +
+                    " -GA PL" +
+                    " -ef" +
+                    " -cgf" +
+                    " -O " + "%s" +
+                    " --tmp-dir " + getTmpDir(),
+            Arrays.asList(normalizePath(getTestFile("/testBasicOperation.vcf"))));
 
         spec.executeTest("testBasicOperation", this);
     }
 
     @Test
     public void testBasicOperationSitesOnly() throws Exception {
-        ArgumentsBuilder args = getBaseArgs();
-        args.add("-A");
-        args.add("MAC");
-        args.add("-XA");
-        args.add("PURPOSE");
-        args.add("-GA");
-        args.add("DP");
-        args.add("-XGA");
-        args.add("AD");
-        args.add("-ef");
-        args.add("-cgf");
-        args.add("--sitesOnly");
+        File cassandra = new File(testBaseDir, "ClinvarAnnotator.vcf");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
-                args.getString(),
-                Arrays.asList(getTestFile("testBasicOperationSitesOnly.vcf").getPath()));
+                " -V " + normalizePath(cassandra) +
+                        " -XA PURPOSE" +
+                        " -XA RN" +
+                        " -GA DP" +
+                        " -GA AD" +
+                        " -GA GQ" +
+                        " -GA GT" +
+                        " -GA PL" +
+                        " -ef" +
+                        " -cgf" +
+                        " --sitesOnly" +
+                        " -O " + "%s" +
+                        " --tmp-dir " + getTmpDir(),
+                Arrays.asList(normalizePath(getTestFile("/testBasicOperationSitesOnly.vcf"))));
 
         spec.executeTest("testBasicOperationSitesOnly", this);
-    }
-
-    @Test
-    public void testExcludeSiteAnnotation() throws Exception {
-        ArgumentsBuilder args = getBaseArgs();
-        args.add("-XA");
-        args.add("PURPOSE");
-        args.add("-GA");
-        args.add("DP");
-        args.add("-XGA");
-        args.add("AD");
-        args.add("-ef");
-        args.add("-cgf");
-
-        IntegrationTestSpec spec = new IntegrationTestSpec(
-                args.getString(),
-                Arrays.asList(getTestFile("testExcludeSite.vcf").getPath()));
-
-        spec.executeTest("testExcludeSite", this);
-    }
-
-
-    private ArgumentsBuilder getBaseArgs()
-    {
-        ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("-R");
-        args.add(normalizePath(getHg19Micro()));
-        args.add("-V");
-        args.add(normalizePath(new File(testBaseDir, "ClinvarAnnotator.vcf")));
-        args.add("-O %s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
-
-        return args;
     }
 }

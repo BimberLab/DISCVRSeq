@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers;
 
+import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -12,70 +13,63 @@ import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
+import org.broadinstitute.hellbender.utils.Utils;
 
 import java.io.File;
 import java.util.*;
 
 /**
+ * This tool will iterate a VCF and selectively remove annotations using using a whitelist or blacklist.
  *
- * This tool can be used to remove specific INFO or genotype annotations from a VCF (while retaining others), or to completely clear annotations.
- *
- * <h3>Usage examples:</h3>
- * <h3>Discard all annotations except AF:</h3>
+ * <h3>Usage example:</h3>
  * <pre>
- *   java -jar DISCVRSeq.jar RemoveAnnotations \
- *     -variant input.vcf \
+ *  java -jar DISCVRseq.jar RemoveAnnotations \
+ *     -V myVCF.vcf.gz \
  *     -A AF \
- *     -O output.vcf
- * </pre>
- *
- * <h3>Discard only the MAF annotation:</h3>
- * <pre>
- *   java -jar DISCVRSeq.jar RemoveAnnotations \
- *     -variant input.vcf \
  *     -XA MAF \
- *     -O output.vcf
+ *     --sitesOnly \
+ *     -O output.vcf.gz
  * </pre>
- *
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "Removes specific site or genotype annotations from a VCF",
-        oneLineSummary = "Removes specific site or genotype annotations from a VCF",
+        summary = "Iterate a VCF and selectively remove annotations using using a whitelist or blacklist",
+        oneLineSummary = "Iterate a VCF and selectively remove annotations using using a whitelist or blacklist",
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class RemoveAnnotations extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
-    public File out = null;
+    public String outFile = null;
 
-    @Argument(fullName="annotationToKeep", shortName="A", doc="List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed.", optional=true)
+    @Argument(fullName="annotationToKeep", shortName="A", doc="List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed, which override -XA.", optional = true)
     protected List<String> annotationToKeep = new ArrayList<>();
 
-    @Argument(fullName="annotationToRemove", shortName="XA", doc="One or more specific INFO field annotations to remove (by their keys, such as AC, AF, etc).", optional=true)
+    @Argument(fullName="annotationToRemove", shortName="XA", doc="One or more specific INFO field annotations to remove (by their keys, such as AC, AF, etc).", optional = true)
     protected List<String> annotationsToExclude = new ArrayList<>();
 
-    @Argument(fullName="genotypeAnnotationToKeep", shortName="GA", doc="List the specific genotype (format field) annotations to retain", optional=true)
+    @Argument(fullName="genotypeAnnotationToKeep", shortName="GA", doc="List the specific genotype (format field) annotations to retain", optional = true)
     protected List<String> genotypeAnnotationToKeep = new ArrayList<>();
 
-    @Argument(fullName="genotypeAnnotationToRemove", shortName="XGA", doc="One or more specific genotype (format field) annotations to remove.", optional=true)
+    @Argument(fullName="genotypeAnnotationToRemove", shortName="XGA", doc="One or more specific genotype (format field) annotations to remove.", optional = true)
     protected List<String> genotypeAnnotationsToExclude = new ArrayList<>();
 
-    @Argument(fullName="excludeFiltered", shortName="ef", doc="Don't include filtered sites", optional=true)
+    @Argument(fullName="excludeFiltered", shortName="ef", doc="Don't include filtered sites", optional = true)
     protected boolean excludeFiltered = true;
 
-    @Argument(fullName="retainExtraHeaderLines", shortName="rh", doc="If provided, additional header lines (metadata, etc) will be retained.", optional=true)
+    @Argument(fullName="retainExtraHeaderLines", shortName="rh", doc="If provided, additional header lines (metadata, etc) will be retained.", optional = true)
     protected boolean retainExtraHeaderLines = false;
 
-    @Argument(fullName="clearGenotypeFilter", shortName="cgf", doc="Clear the filter field on all genotypes.  This executes after setFilteredGTToNoCall", optional=true)
+    @Argument(fullName="clearGenotypeFilter", shortName="cgf", doc="Clear the filter field on all genotypes.  This executes after setFilteredGTToNoCall", optional = true)
     protected boolean clearGTfilter = true;
 
-    @Argument(fullName="setFilteredGTToNoCall", shortName="sgf", doc="Sets filtered genotypes to no-call.  ", optional=true)
+    @Argument(fullName="setFilteredGTToNoCall", shortName="sgf", doc="Sets filtered genotypes to no-call.  ", optional = true)
     protected boolean setFilteredGTToNoCall = true;
 
-    @Argument(fullName="sitesOnly", shortName="sitesOnly", doc="Omit samples and genotypes from the output VCF.  ", optional=true)
+    @Argument(fullName="sitesOnly", shortName="sitesOnly", doc="Omit samples and genotypes from the output VCF.  ", optional = true)
     protected boolean sitesOnly = false;
 
-    private VCFHeader header;
+    private VariantContextWriter writer;
+
     private Set<String> allowableInfoKeys;
     private Set<String> allowableFormatKeys;
 
@@ -87,13 +81,14 @@ public class RemoveAnnotations extends VariantWalker {
             VCFConstants.GENOTYPE_ALLELE_DEPTHS
     );
 
-    private VariantContextWriter writer = null;
-
     @Override
     public void onTraversalStart() {
         super.onTraversalStart();
 
-        VCFHeader initialHeader = new VCFHeader(getHeaderForVariants());
+        Utils.nonNull(outFile);
+        writer = createVCFWriter(new File(outFile));
+
+        VCFHeader initialHeader = getHeaderForVariants();
 
         //retain only specified header lines
         Set<VCFHeaderLine> headerLines = new HashSet<>();
@@ -132,7 +127,7 @@ public class RemoveAnnotations extends VariantWalker {
 
         logger.info("total header lines skipped: " + skippedHeaderLines);
 
-        header = new VCFHeader(headerLines, (sitesOnly ? Collections.emptyList() : initialHeader.getSampleNamesInOrder()));
+        VCFHeader header = new VCFHeader(headerLines, (sitesOnly ? Collections.emptyList() : initialHeader.getGenotypeSamples()));
 
         allowableInfoKeys = new HashSet<>();
         //NOTE: if lambdas are used here, the walker will not be picked up by PluginManager
@@ -146,7 +141,6 @@ public class RemoveAnnotations extends VariantWalker {
             allowableFormatKeys.add(line.getID());
         }
 
-        writer = createVCFWriter(out);
         writer.writeHeader(header);
     }
 
@@ -155,7 +149,7 @@ public class RemoveAnnotations extends VariantWalker {
             return 1;
         }
 
-        if (annotationsToExclude.contains(line.getID())){
+        if (annotationsToExclude != null && annotationsToExclude.contains(line.getID())){
             return 1;
         }
 
@@ -214,13 +208,8 @@ public class RemoveAnnotations extends VariantWalker {
         writer.add(vcb.make());
     }
 
-    /**
-     * Closes out the new variants file.
-     */
     @Override
-    public void closeTool() {
-        if (writer != null) {
-            writer.close();
-        }
+    public void closeTool(){
+        writer.close();
     }
 }
