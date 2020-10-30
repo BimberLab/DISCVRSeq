@@ -24,6 +24,11 @@ public class MinorAlleleFrequency extends InfoFieldAnnotation implements Standar
 
     public static final String MAF_KEY = "MAF";
 
+    @SuppressWarnings("unchecked")
+    private List<Double> convertAF(Object obj) {
+        return new ArrayList<>((List)obj);
+    }
+
     @Override
     public Map<String, Object> annotate(ReferenceContext ref, VariantContext vc, AlleleLikelihoods<GATKRead, Allele> likelihoods) {
         if ( ! vc.hasGenotypes() )
@@ -37,7 +42,7 @@ public class MinorAlleleFrequency extends InfoFieldAnnotation implements Standar
         //this will be the frequency of each ALT allele
         List<Double> afVals;
         if (chrCounts.get(VCFConstants.ALLELE_FREQUENCY_KEY) instanceof List) {
-            afVals = new ArrayList<>((List)chrCounts.get(VCFConstants.ALLELE_FREQUENCY_KEY));
+            afVals = convertAF(chrCounts.get(VCFConstants.ALLELE_FREQUENCY_KEY));
         }
         else if (chrCounts.get(VCFConstants.ALLELE_FREQUENCY_KEY) instanceof Double) {
             afVals = new ArrayList<>();
