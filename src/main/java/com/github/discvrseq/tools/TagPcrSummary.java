@@ -114,6 +114,9 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="The type of insert to test: currently support values are PiggyBac and Lentivirus", fullName = "insert-type", shortName = "it", optional = false)
     public String insertType = null;
 
+    @Argument(doc="If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well", fullName = "include-sa", shortName = "sa", optional = true)
+    public boolean includeSupplementalAlignments = true;
+
     @Override
     public boolean requiresReference() {
         return true;
@@ -146,8 +149,8 @@ public class TagPcrSummary extends GATKTool {
             new InsertJunctionDescriptor("LV-3LTR", Collections.singletonList("AGTGTGGAAAATCTCTAGCA"), false),
             new InsertJunctionDescriptor("LV-5LTR", Collections.singletonList("TGGAAGGGCTAATTCACTCC"), true)
             ),
-            SequenceDescriptor.from("LV-5LTR", "TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
-            SequenceDescriptor.from("LV-3LTR", "TGGAAGGGCTAATTCACTCCCAAAGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
+            SequenceDescriptor.from("LV-5LTR", "TGGAAGGGCTAATTCACTCCCAAAGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
+            SequenceDescriptor.from("LV-3LTR", "TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA"),
             Arrays.asList(
                     SequenceDescriptor.from("LV-3LTR-Outer", "GAGAGCTGCATCCGGAGTAC"),
                     SequenceDescriptor.from("LV-3LTR-Inner", "TAGTGTGTGCCCGTCTGTTG"),
@@ -188,7 +191,7 @@ public class TagPcrSummary extends GATKTool {
         fact.referenceSequence(referenceArguments.getReferencePath());
 
         int totalAlignments = 0;
-        int totalReads = 0;
+        int uniqueReads = 0;
         int numReadsSpanningJunction = 0;
         int splitAlignments = 0;
         File bam = ensureQuerySorted(inputBam);
@@ -215,41 +218,42 @@ public class TagPcrSummary extends GATKTool {
                     continue;
                 }
 
+                //If this read doesnt match the prior set, process these and clear alignmentsForRead
+                if (!alignmentsForRead.isEmpty() && !alignmentsForRead.get(0).getReadName().equals(rec.getReadName())){
+                    uniqueReads++;
+                    numReadsSpanningJunction += processAlignmentsForRead(alignmentsForRead, totalMatches, primaryAlignmentsToInsert, secondaryAlignmentsToInsert);
+                }
+
                 totalAlignments++;
-                if (alignmentsForRead.isEmpty() || alignmentsForRead.get(0).getReadName().equals(rec.getReadName())) {
-                    alignmentsForRead.add(rec);
+                alignmentsForRead.add(rec);
 
-                    if (rec.hasAttribute("SA")) {
-                        String sa = StringUtils.trimToNull(rec.getStringAttribute("SA"));
-                        if (sa != null)
+                if (includeSupplementalAlignments && rec.hasAttribute("SA")) {
+                    String sa = StringUtils.trimToNull(rec.getStringAttribute("SA"));
+                    if (sa != null)
+                    {
+                        for (String alignment : sa.split(";"))
                         {
-                            for (String alignment : sa.split(";"))
-                            {
-                                String[] parts = alignment.split(",");
-                                SAMRecord newRec = rec.deepCopy();
-                                newRec.setReferenceIndex(rec.getHeader().getSequenceIndex(parts[0]));
-                                newRec.setAlignmentStart(Integer.parseInt(parts[1]));
-                                newRec.setReadNegativeStrandFlag("-".equals(parts[2]));
-                                if (rec.getReadNegativeStrandFlag() != newRec.getReadNegativeStrandFlag()) {
-                                    newRec.reverseComplement();
-                                }
-                                newRec.setCigar(TextCigarCodec.decode(parts[3]));
-                                newRec.setMappingQuality(Integer.parseInt(parts[4]));
-
-                                alignmentsForRead.add(newRec);
-                                splitAlignments++;
+                            String[] parts = alignment.split(",");
+                            SAMRecord newRec = rec.deepCopy();
+                            newRec.setReferenceIndex(rec.getHeader().getSequenceIndex(parts[0]));
+                            newRec.setAlignmentStart(Integer.parseInt(parts[1]));
+                            newRec.setReadNegativeStrandFlag("-".equals(parts[2]));
+                            if (rec.getReadNegativeStrandFlag() != newRec.getReadNegativeStrandFlag()) {
+                                newRec.reverseComplement();
                             }
+                            newRec.setCigar(TextCigarCodec.decode(parts[3]));
+                            newRec.setMappingQuality(Integer.parseInt(parts[4]));
+
+                            alignmentsForRead.add(newRec);
+                            splitAlignments++;
                         }
                     }
-                } else {
-                    totalReads++;
-                    numReadsSpanningJunction += processAlignmentsForRead(alignmentsForRead, totalMatches, primaryAlignmentsToInsert, secondaryAlignmentsToInsert);
                 }
             }
 
             //ensure we capture final read
             if (!alignmentsForRead.isEmpty()) {
-                totalReads++;
+                uniqueReads++;
                 numReadsSpanningJunction += processAlignmentsForRead(alignmentsForRead, totalMatches, primaryAlignmentsToInsert, secondaryAlignmentsToInsert);
 
             }
@@ -259,12 +263,12 @@ public class TagPcrSummary extends GATKTool {
             throw new GATKException(e.getMessage(), e);
         }
 
-        double pct = totalReads == 0 ? 0 : numReadsSpanningJunction / (double)totalReads;
-        logger.info("Total reads spanning a junction: " + numReadsSpanningJunction + " of " + totalReads + " (" + pf.format(pct) + ")");
+        double pct = uniqueReads == 0 ? 0 : numReadsSpanningJunction / (double)uniqueReads;
+        logger.info("Total reads spanning a junction: " + numReadsSpanningJunction + " of " + uniqueReads + " (" + pf.format(pct) + ")");
 
         metricsMap.put("TotalAlignments", totalAlignments);
         metricsMap.put("SplitAlignments", splitAlignments);
-        metricsMap.put("DistinctReads", totalReads);
+        metricsMap.put("DistinctReads", uniqueReads);
         metricsMap.put("NumReadsSpanningJunction", numReadsSpanningJunction);
         metricsMap.put("PctReadsSpanningJunction", pct);
 
@@ -283,7 +287,7 @@ public class TagPcrSummary extends GATKTool {
         }
 
         metricsMap.put("TotalPrimaryAlignmentsMatchingInsert", totalPrimaryAlignmentsMatchingInsert);
-        metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", (double)totalPrimaryAlignmentsMatchingInsert / totalReads);
+        metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", (double)totalPrimaryAlignmentsMatchingInsert / uniqueReads);
         metricsMap.put("TotalSecondaryAlignmentsMatchingInsert", totalSecondaryAlignmentsMatchingInsert);
 
         boolean doGenerateAmplicons = (blastDatabase != null && primerPairTable != null) || outputGenbank != null;
