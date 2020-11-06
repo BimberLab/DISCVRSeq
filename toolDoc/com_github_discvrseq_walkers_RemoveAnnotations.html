@@ -15,30 +15,23 @@
 
 			<h1>RemoveAnnotations</h1>
 
-		<p>Removes specific site or genotype annotations from a VCF</p>
+		<p>Iterate a VCF and selectively remove annotations using using a whitelist or blacklist</p>
 
 			<h3>Category
 				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool can be used to remove specific INFO or genotype annotations from a VCF (while retaining others), or to completely clear annotations.
+		This tool will iterate a VCF and selectively remove annotations using using a whitelist or blacklist.
 
- <h3>Usage examples:</h3>
- <h3>Discard all annotations except AF:</h3>
+ <h3>Usage example:</h3>
  <pre>
-   java -jar DISCVRSeq.jar RemoveAnnotations \
-     -variant input.vcf \
+  java -jar DISCVRseq.jar RemoveAnnotations \
+     -V myVCF.vcf.gz \
      -A AF \
-     -O output.vcf
- </pre>
-
- <h3>Discard only the MAF annotation:</h3>
- <pre>
-   java -jar DISCVRSeq.jar RemoveAnnotations \
-     -variant input.vcf \
      -XA MAF \
-     -O output.vcf
+     --sitesOnly \
+     -O output.vcf.gz
  </pre>
 
 		<hr>
@@ -71,7 +64,7 @@
 					<td><a href="#--output">--output</a><br />
 								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>File</td> -->
+					<!--<td>String</td> -->
 					<td>null</td>
 					<td>File to which variants should be written</td>
 				</tr>
@@ -92,7 +85,7 @@
 					</td>
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
-					<td>List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed.</td>
+					<td>List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed, which override -XA.</td>
 				</tr>
 				<tr>
 					<td><a href="#--annotationToRemove">--annotationToRemove</a><br />
@@ -493,7 +486,7 @@
 			 / <small>-A</small>
 		</h3>
 		<p class="args">
-			<b>List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed.</b><br />
+			<b>List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed, which override -XA.</b><br />
 			
 		</p>
 		<p>
@@ -889,7 +882,7 @@
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -1145,7 +1138,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.18 built at 07-20-2020 05:20:16.
+        <p class="version">DISCVR-Seq version 1.19 built at 06-47-2020 09:47:27.
         </p>
 
 </div></div>

@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>ClipOverlappingAlignments</title>
+<title>FindGenomeDifferences</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,30 +13,25 @@
 
 	<div class="span8">
 
-			<h1>ClipOverlappingAlignments</h1>
+			<h1>FindGenomeDifferences</h1>
 
-		<p>Clip alignments overlapping the specified intervals</p>
+		<p>Create VCF summarizing positions where reference alleles differ between genomes</p>
 
 			<h3>Category
 				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to soft clip any alignments that start or end in the provided set of intervals. It was originally created to clip reads that overlap with amplification primer binding sites.
-
- Note: this tool has not been tested on every possible BAM/CIGAR configuration and it's possible that in certain cases
- other information stored in the BAM isnt properly updated.  For example, if a given alignment no longer maps to the reference
- after clipping it is marked unmapped, but the mate is not changed (which can store information about the mate's position). We therefore
- recommend running Picard's FixMateInformation afterwards.
+		This tool is designed to compare two genomes, writing a VCF with positions where the reference differs.  It iterates each base of the source genome, attempts to lift to the target genome, and if liftover is successful it will compare the reference bases.
+ Any positions with differing reference bases will be written out as a VCF file, in the coordinates of the target genome.
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar ClipOverlappingAlignments \
-     -R genome.fasta \
-     -I input.bam \
-     --clipIntervals primerSites.bed \
-     --reportFile summary.txt \
-     -O output.bam
+  java -jar DISCVRseq.jar FindGenomeDifferences \
+     -s sourceGenome.fasta \
+     -t targetChain.fasta \
+     -c chainFile.chain \
+     -O output.vcf.gz
  </pre>
 
 		<hr>
@@ -46,12 +41,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by ClipOverlappingAlignments.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by FindGenomeDifferences.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>ClipOverlappingAlignments specific arguments</h3>
+				<h3>FindGenomeDifferences specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -66,28 +61,36 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--clipIntervals">--clipIntervals</a><br />
-								&nbsp;<em>-CI</em>
+					<td><a href="#--chainFile">--chainFile</a><br />
+								&nbsp;<em>-c</em>
 					</td>
-					<!--<td>File</td> -->
+					<!--<td>String</td> -->
 					<td>null</td>
-					<td>BED file specifying the clipping intervals. Any alignments starting or ending within these intervals will be soft-clipped to these borders</td>
-				</tr>
-				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
-					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
+					<td>Chain file</td>
 				</tr>
 				<tr>
 					<td><a href="#--output">--output</a><br />
 								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>File</td> -->
+					<!--<td>String</td> -->
 					<td>null</td>
-					<td>File to which alignment should be written</td>
+					<td>File to which the output VCF should be written</td>
+				</tr>
+				<tr>
+					<td><a href="#--sourceGenome">--sourceGenome</a><br />
+								&nbsp;<em>-s</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Source reference sequence file</td>
+				</tr>
+				<tr>
+					<td><a href="#--targetGenome">--targetGenome</a><br />
+								&nbsp;<em>-t</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>Target reference sequence file</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -170,20 +173,20 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
+					<td><a href="#--liftoverMinMatch">--liftoverMinMatch</a><br />
+								&nbsp;<em>-mm</em>
+					</td>
+					<!--<td>double</td> -->
+					<td>0.95</td>
+					<td>LiftOver min match</td>
+				</tr>
+				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>Reference sequence</td>
-				</tr>
-				<tr>
-					<td><a href="#--reportFile">--reportFile</a><br />
-								&nbsp;<em>-rf</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which a summary of clipping will be written</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -198,6 +201,14 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the version number for this tool</td>
+				</tr>
+				<tr>
+					<td><a href="#--windowSize">--windowSize</a><br />
+								&nbsp;<em>-ws</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>5000</td>
+					<td>Window Size</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Common Arguments</th>
@@ -277,6 +288,14 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
+				</tr>
+				<tr>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -436,16 +455,16 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--clipIntervals">--clipIntervals </a>
-			 / <small>-CI</small>
+		<h3><a name="--chainFile">--chainFile </a>
+			 / <small>-c</small>
 		</h3>
 		<p class="args">
-			<b>BED file specifying the clipping intervals. Any alignments starting or ending within these intervals will be soft-clipped to these borders</b><br />
+			<b>Chain file</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -646,7 +665,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -757,16 +775,30 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--liftoverMinMatch">--liftoverMinMatch </a>
+			 / <small>-mm</small>
+		</h3>
+		<p class="args">
+			<b>LiftOver min match</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">double</span>
+			&nbsp;<span class="label">0.95</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which alignment should be written</b><br />
+			<b>File to which the output VCF should be written</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -841,18 +873,6 @@
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--reportFile">--reportFile </a>
-			 / <small>-rf</small>
-		</h3>
-		<p class="args">
-			<b>File to which a summary of clipping will be written</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
 			 / <small>-seconds-between-progress-updates</small>
 		</h3>
@@ -901,6 +921,32 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--sourceGenome">--sourceGenome </a>
+			 / <small>-s</small>
+		</h3>
+		<p class="args">
+			<b>Source reference sequence file</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--targetGenome">--targetGenome </a>
+			 / <small>-t</small>
+		</h3>
+		<p class="args">
+			<b>Target reference sequence file</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
@@ -974,6 +1020,20 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--windowSize">--windowSize </a>
+			 / <small>-ws</small>
+		</h3>
+		<p class="args">
+			<b>Window Size</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">5000</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 
         <hr>

@@ -1,5 +1,5 @@
 {
-  "summary": "Removes specific site or genotype annotations from a VCF",
+  "summary": "Iterate a VCF and selectively remove annotations using using a whitelist or blacklist",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -32,7 +32,7 @@
       "options": []
     },
     {
-      "summary": "List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed.",
+      "summary": "List the specific INFO field annotations to retain (by their keys, such as AC, AF, etc).  If specified, all other INFO field annotations will be removed, which override -XA.",
       "name": "--annotationToKeep",
       "synonyms": "-A",
       "type": "List[String]",
@@ -488,7 +488,7 @@
       "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
-      "type": "File",
+      "type": "String",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -800,7 +800,7 @@
       "options": []
     }
   ],
-  "description": "This tool can be used to remove specific INFO or genotype annotations from a VCF (while retaining others), or to completely clear annotations.\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n \u003ch3\u003eDiscard all annotations except AF:\u003c/h3\u003e\n \u003cpre\u003e\n   java -jar DISCVRSeq.jar RemoveAnnotations \\\n     -variant input.vcf \\\n     -A AF \\\n     -O output.vcf\n \u003c/pre\u003e\n\n \u003ch3\u003eDiscard only the MAF annotation:\u003c/h3\u003e\n \u003cpre\u003e\n   java -jar DISCVRSeq.jar RemoveAnnotations \\\n     -variant input.vcf \\\n     -XA MAF \\\n     -O output.vcf\n \u003c/pre\u003e",
+  "description": "This tool will iterate a VCF and selectively remove annotations using using a whitelist or blacklist.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar RemoveAnnotations \\\n     -V myVCF.vcf.gz \\\n     -A AF \\\n     -XA MAF \\\n     --sitesOnly \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
   "name": "RemoveAnnotations",
   "group": "Public/Stable Tools",
   "beta": false,
