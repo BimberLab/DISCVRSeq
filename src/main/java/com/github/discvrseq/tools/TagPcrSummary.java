@@ -115,7 +115,7 @@ public class TagPcrSummary extends GATKTool {
     public String insertType = null;
 
     @Argument(doc="If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well", fullName = "include-sa", shortName = "sa", optional = true)
-    public boolean includeSupplementalAlignments = true;
+    public boolean includeSupplementalAlignments = false;
 
     @Override
     public boolean requiresReference() {
