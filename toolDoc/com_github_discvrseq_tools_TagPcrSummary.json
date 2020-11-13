@@ -353,7 +353,7 @@
       "type": "boolean",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "true",
+      "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
