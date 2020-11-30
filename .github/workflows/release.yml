@@ -21,25 +21,27 @@ jobs:
           ./gradlew check;
           ./gradlew shadowJar -Drelease=true;
           ./gradlew toolDoc -Drelease=true;
-      - name: Upload the artifacts
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - name: Branch name
+        run: echo running on branch ${{ env.GITHUB_REF_SLUG }}
+      - name: Upload Artifacts
         uses: skx/github-action-publish-binaries@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: 'build/libs/DISCVRSeq-${GITHUB_REF##*/}.jar'
-      - name: GH Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/docs/*
-          enable_jekyll: true
-      - name: Branch name
-        run: echo running on branch ${GITHUB_REF##*/}
+          args: 'build/libs/DISCVRSeq-${GITHUB_REF_SLUG}.jar'
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag discvrseq:release${GITHUB_REF##*/}
+        run: docker build . --file Dockerfile --tag discvrseq:release${{ env.GITHUB_REF_SLUG }}
       - name: Publish Docker to GHCR
         uses: VaultVulp/gp-docker-action@1.1.7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image-name: discvrseq
           image-tag: release${GITHUB_REF##*/}
+      - name: GH Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/docs/*
+          enable_jekyll: true
