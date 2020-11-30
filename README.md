@@ -23,14 +23,14 @@ java -jar DISCVRseq.jar VariantQC --help
 
 ## Docker
 
-By popular demand, DISCVR-seq releases are available as docker images, via [GitHub Container Registry]().  We recommend using a specific release, which you can do using tags:
+By popular demand, DISCVR-seq releases are available as docker images, via [GitHub Container Registry](https://github.com/BimberLab/DISCVRSeq/packages/).  We recommend using a specific release, which you can do using tags:
 
 ```
 
 # Pull specific version:
 docker pull ghcr.io/bimberlab/discvrseq:release1.20
 
-# Run:
+# Running the container will automatically run DISCVRseq (equivalent to java -jar DISCVRseq.jar ...):
 docker run ghcr.io/bimberlab/discvrseq:release1.20 --list
 
 ```

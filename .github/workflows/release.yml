@@ -21,6 +21,7 @@ jobs:
           ./gradlew check;
           ./gradlew shadowJar -Drelease=true;
           ./gradlew toolDoc -Drelease=true;
+          mv ./build/docs ./toolDoc
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
       - name: Branch name
@@ -31,17 +32,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag discvrseq:release${{ env.GITHUB_REF_SLUG }}
-      - name: Publish Docker to GHCR
-        uses: VaultVulp/gp-docker-action@1.1.7
+      - name: Build/Publish Docker to GHCR
+        uses: docker/build-push-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          image-name: discvrseq
-          image-tag: release${{ env.GITHUB_REF_SLUG }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          repository: bimberlab/discvrseq
+          tag_with_ref: true
       - name: GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/docs/*
+          publish_dir: ./toolDoc
           enable_jekyll: true
