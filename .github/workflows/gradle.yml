@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
-name: Gradle Build/Test
+name: Github Actions CI
 on:
   push:
     branches: [ master ]
@@ -34,4 +31,4 @@ jobs:
         ./gradlew build;
         ./gradlew check;
         ./gradlew shadowJar -Drelease=:${{startsWith(github.ref, 'refs/tags/v')}};
-        ./gradlew toolDoc -Drelease=:${{startsWith(github.ref, 'refs/tags/v')}};      
+        ./gradlew toolDoc -Drelease=:${{startsWith(github.ref, 'refs/tags/v')}};
