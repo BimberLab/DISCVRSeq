@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: 'build/libs/DISCVRSeq-${GITHUB_REF_SLUG}.jar'
+          args: build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag discvrseq:release${{ env.GITHUB_REF_SLUG }}
       - name: Publish Docker to GHCR
@@ -38,7 +38,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           image-name: discvrseq
-          image-tag: release${GITHUB_REF##*/}
+          image-tag: release${{ env.GITHUB_REF_SLUG }}
       - name: GH Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
