@@ -276,6 +276,9 @@ public class ImmunoGenotyper extends ReadWalker {
             messages.forEach(message -> outWriter.println(message));
         }
 
+        //Also log to console:
+        messages.forEach(message -> logger.info(message));
+
         Path mismatchFile = IOUtils.getPath(outPrefix + MISMATCH_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(mismatchFile.toFile()));
         try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(mismatchFile.toFile()))){
@@ -510,7 +513,7 @@ public class ImmunoGenotyper extends ReadWalker {
         int totalReads = 0;
         for (HitSet hs : refTracker.hitMap.values()) {
             for (String refName : hs.refNames) {
-                int total = totalByReference.containsKey(refName) ? totalByReference.get(refName) : 0;
+                int total = totalByReference.getOrDefault(refName, 0);
                 total += hs.readNames.size();
                 totalByReference.put(refName, total);
             }
