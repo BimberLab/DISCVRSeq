@@ -13,7 +13,6 @@ RUN cd /discvr-build \
     && echo $GIT_TAG \
     && ./gradlew assemble \
     && ./gradlew installDist \
-    && ./gradlew check \
     && ./gradlew shadowJar -Drelease=true \
     && ls build/libs/ \
     && mv build/libs/DISCVRSeq-${GIT_TAG}.jar /DISCVRSeq.jar \
