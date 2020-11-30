@@ -497,7 +497,7 @@ public class ImmunoGenotyper extends ReadWalker {
         public Set<String> getLineages(Map<String, String> referenceToLineageMap){
             TreeSet<String> ret = new TreeSet<>();
             for (String refName : refNames){
-                ret.add(referenceToLineageMap.containsKey(refName) ? referenceToLineageMap.get(refName) : refName);
+                ret.add(referenceToLineageMap.getOrDefault(refName, refName));
             }
 
             return ret;
