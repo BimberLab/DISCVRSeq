@@ -27,21 +27,21 @@ public class CrossSampleGenotypeComparisonIntegrationTest extends  BaseIntegrati
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "MendelianViolationEval.vcf");
         ensureVcfIndex(input);
 
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
-        args.add("-referenceVCF");
-        args.add(normalizePath(input));
+        args.addRaw("-referenceVCF");
+        args.addRaw(normalizePath(input));
 
-        args.add("-O");
-        args.add("%s");
-        args.add("-summaryTable");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("-summaryTable");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         return args;
     }

@@ -19,8 +19,8 @@ public class MultipleAllelesAtLociIntegrationTest extends  BaseIntegrationTest {
     @Test
     public void testWithFilter() throws Exception {
         ArgumentsBuilder args = getBaseArgs();
-        args.add("--minBasePct");
-        args.add("0.2");
+        args.addRaw("--minBasePct");
+        args.addRaw("0.2");
 
         doTest("testWithFilter", args, "MultipleAllelesAtLociFiltered.bed");
     }
@@ -37,16 +37,16 @@ public class MultipleAllelesAtLociIntegrationTest extends  BaseIntegrationTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         File fasta  = new File(testBaseDir, "Rhesus_KIR_and_MHC_1.0.fasta");
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-I");
-        args.add(normalizePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
+        args.addRaw("-I");
+        args.addRaw(normalizePath(new File(testBaseDir, "ImmunoGenotyper.qsort.bam")));
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         return args;
     }

@@ -53,11 +53,12 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.1.4.1'
-final htsjdkVersion = System.getProperty('htsjdk.version','2.21.1')
-final barclayVersion = System.getProperty('barclay.version','2.1.0')
+final gatkVersion = '4.1.9.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','2.23.0')
+final picardVersion = System.getProperty('picard.version','2.23.3')
+final barclayVersion = System.getProperty('barclay.version','4.0.1')
 final testNGVersion = '7.0.0'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.107.0-alpha:shaded'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.117.0-alpha:shaded'
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
@@ -68,7 +69,7 @@ configurations.all {
         force 'com.github.samtools:htsjdk:' + htsjdkVersion
         // later versions explode Hadoop
         // TODO: this is the same in GATK, but we should check if they solve this issue in the future
-        force 'com.google.protobuf:protobuf-java:3.0.0-beta-1'
+        force 'com.google.protobuf:protobuf-java:3.8.0'
         // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
         force 'org.testng:testng:' + testNGVersion
         force 'org.broadinstitute:barclay:' + barclayVersion

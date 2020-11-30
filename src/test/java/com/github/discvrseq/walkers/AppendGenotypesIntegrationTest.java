@@ -16,10 +16,10 @@ public class AppendGenotypesIntegrationTest extends  BaseIntegrationTest {
 
         String fn = "append1.vcf";
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -31,21 +31,21 @@ public class AppendGenotypesIntegrationTest extends  BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "basicVcf.vcf");
         ensureVcfIndex(input);
 
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
-        args.add("-g");
+        args.addRaw("-g");
         File geno1 = new File(testBaseDir, "genotypeAppend1.vcf");
         ensureVcfIndex(geno1);
-        args.add(normalizePath(geno1));
+        args.addRaw(normalizePath(geno1));
 
-        args.add("-g");
+        args.addRaw("-g");
         File geno2 = new File(testBaseDir, "genotypeAppend2.vcf");
         ensureVcfIndex(geno2);
-        args.add(normalizePath(geno2));
+        args.addRaw(normalizePath(geno2));
 
         return args;
     }

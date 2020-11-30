@@ -41,27 +41,27 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs(File fastqOut1, @Nullable File fastqOut2, @Nullable File summary) {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("--fastq");
-        args.add(normalizePath(getTestFile("fq1.fastq")));
+        args.addRaw("--fastq");
+        args.addRaw(normalizePath(getTestFile("fq1.fastq")));
 
-        args.add("--output");
-        args.add(normalizePath(fastqOut1));
+        args.addRaw("--output");
+        args.addRaw(normalizePath(fastqOut1));
 
         if (fastqOut2 != null) {
-            args.add("--fastq2");
-            args.add(normalizePath(getTestFile("fq2.fastq")));
+            args.addRaw("--fastq2");
+            args.addRaw(normalizePath(getTestFile("fq2.fastq")));
 
-            args.add("--output2");
-            args.add(normalizePath(fastqOut2));
+            args.addRaw("--output2");
+            args.addRaw(normalizePath(fastqOut2));
         }
 
         if (summary != null){
-            args.add("--summaryFile");
-            args.add(normalizePath(summary));
+            args.addRaw("--summaryFile");
+            args.addRaw(normalizePath(summary));
         }
 
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         return args;
     }
@@ -70,11 +70,11 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
     public void testEditDistanceBadInput() throws IOException {
         ArgumentsBuilder args = getBaseArgs(createTempFile("output", "-R1.fastq"), null, null);
 
-        args.add("-e1");
-        args.add("BADVALUES");
+        args.addRaw("-e1");
+        args.addRaw("BADVALUES");
 
-        args.add("--editDistance");
-        args.add("1");
+        args.addRaw("--editDistance");
+        args.addRaw("1");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -94,14 +94,14 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
         ArgumentsBuilder args = getBaseArgs(output1, output2, null);
 
         //One hit, ed=1
-        args.add("-e1");
-        args.add("TCTGCCTCTTG");
+        args.addRaw("-e1");
+        args.addRaw("TCTGCCTCTTG");
 
-        args.add("-e");
-        args.add("ACTGCTGCTTATT");
+        args.addRaw("-e");
+        args.addRaw("ACTGCTGCTTATT");
 
-        args.add("--editDistance");
-        args.add("1");
+        args.addRaw("--editDistance");
+        args.addRaw("1");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -115,14 +115,14 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
         //Edit distance 1
         args = getBaseArgs(output1, output2, null);
 
-        args.add("-e1");
-        args.add("TCTGCCTCTTG");
+        args.addRaw("-e1");
+        args.addRaw("TCTGCCTCTTG");
 
-        args.add("-e");
-        args.add("ACTGCTGCTTATT");
+        args.addRaw("-e");
+        args.addRaw("ACTGCTGCTTATT");
 
-        args.add("--editDistance");
-        args.add("2");
+        args.addRaw("--editDistance");
+        args.addRaw("2");
 
         spec = new IntegrationTestSpec(
                 args.getString(),
@@ -163,42 +163,42 @@ public class PrintReadsContainingIntegrationTest extends BaseIntegrationTest {
 
         if (exprs != null) {
             Arrays.stream(exprs).forEach(x -> {
-                args.add("-e");
-                args.add(x);
+                args.addRaw("-e");
+                args.addRaw(x);
 
                 if (addNames) {
-                    args.add("-en");
-                    args.add("Name1");
+                    args.addRaw("-en");
+                    args.addRaw("Name1");
                 }
             });
         }
 
         if (r1Exprs != null) {
             Arrays.stream(r1Exprs).forEach(x -> {
-                args.add("-e1");
-                args.add(x);
+                args.addRaw("-e1");
+                args.addRaw(x);
 
                 if (addNames) {
-                    args.add("-e1n");
-                    args.add("FName1");
+                    args.addRaw("-e1n");
+                    args.addRaw("FName1");
                 }
             });
         }
 
         if (paired && r2Exprs != null) {
             Arrays.stream(r2Exprs).forEach(x -> {
-                args.add("-e2");
-                args.add(x);
+                args.addRaw("-e2");
+                args.addRaw(x);
 
                 if (addNames) {
-                    args.add("-e2n");
-                    args.add("RName1");
+                    args.addRaw("-e2n");
+                    args.addRaw("RName1");
                 }
             });
         }
 
         if (matchAllExpressions) {
-            args.add("-ma");
+            args.addRaw("-ma");
         }
 
         runCommandLine(args);
