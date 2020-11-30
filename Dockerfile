@@ -1,5 +1,5 @@
 # Using OpenJDK 8
-FROM broadinstitute/gatk:gatkbase-2.2.0
+FROM broadinstitute/gatk:latest
 
 RUN apt-get update \
     && apt-get install -y git \
@@ -13,6 +13,7 @@ RUN cd /discvr-build \
     && echo $GIT_TAG \
     && ./gradlew assemble \
     && ./gradlew installDist \
+    && ./gradlew check \
     && ./gradlew shadowJar -Drelease=true \
     && ls build/libs/ \
     && mv build/libs/DISCVRSeq-${GIT_TAG}.jar /DISCVRSeq.jar \

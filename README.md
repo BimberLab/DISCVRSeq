@@ -1,4 +1,4 @@
-[![Build Status](https://api.travis-ci.com/BimberLab/DISCVRSeq.svg)](https://travis-ci.com/BimberLab/DISCVRSeq)
+![Github CI](https://github.com/BimberLab/DISCVRSeq/workflows/Github%20Actions%20CI/badge.svg)
 
 ## Overview
 DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine. The set of tools is analogous to GATK or Picard.  A description of all software produced by the Bimber Lab can be found [here](https://bimberlab.github.io).  
@@ -23,6 +23,14 @@ java -jar DISCVRseq.jar VariantQC --help
 
 ## Docker
 
-By popular demand, DISCVR-seq releases  [will now be pushed to Docker Hub](https://hub.docker.com/repository/docker/bbimber/discvrseq).  We recommend using a specific release, which you can do using tags:
+By popular demand, DISCVR-seq releases are available as docker images, via [GitHub Container Registry]().  We recommend using a specific release, which you can do using tags:
 
-docker pull bbimber/discvrseq:release1.11
+```
+
+# Pull specific version:
+docker pull ghcr.io/bimberlab/discvrseq:release1.11
+
+# Run:
+docker run ghcr.io/bimberlab/discvrseq:release1.11 java -jar DISCVRSeq.jar --help
+
+```

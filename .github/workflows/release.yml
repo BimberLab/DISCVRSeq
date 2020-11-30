@@ -32,3 +32,13 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/docs
+      - name: Branch name
+        run: echo running on branch ${GITHUB_REF##*/}
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag discvrseq:release${GITHUB_REF##*/}
+      - name: Publish Docker to GHCR
+        uses: VaultVulp/gp-docker-action@1.1.7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          image-name: discvrseq
+          image-tag: release${GITHUB_REF##*/}
