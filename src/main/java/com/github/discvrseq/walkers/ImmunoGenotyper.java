@@ -222,12 +222,12 @@ public class ImmunoGenotyper extends ReadWalker {
         //perform filtering of hits
         List<String> messages = new ArrayList<>();
         double total = (double)refTracker.readPairsNoHits + refTracker.readPairsWithHits;
-        logger.info("Read pairs with hits: " + refTracker.readPairsWithHits + " (" + numberFormat.format(refTracker.readPairsWithHits / total) + ")");
-        logger.info("Read pairs without hits: " + refTracker.readPairsNoHits + " (" + numberFormat.format(refTracker.readPairsNoHits / total) + ")");
-        logger.info("Failed due to MAPQ: " + refTracker.totalReadsFailedForMapq + " (" + numberFormat.format(refTracker.totalReadsFailedForMapq / total) + ")");
-        logger.info("Failed due to length: " + refTracker.totalReadsFailedForLength + " (" + numberFormat.format(refTracker.totalReadsFailedForLength / total) + ")");
-        logger.info("Failed due to no valid pair: " + refTracker.totalReadsFailedForValidPair + " (" + numberFormat.format(refTracker.totalReadsFailedForValidPair / total) + ")");
-        logger.info("Failed due to mismatches: " + refTracker.totalAlignmentsFailedForMismatch + " (" + numberFormat.format(refTracker.totalAlignmentsFailedForMismatch / total) + ")");
+        messages.add("Read pairs with hits: " + refTracker.readPairsWithHits + " (" + numberFormat.format(refTracker.readPairsWithHits / total) + ")");
+        messages.add("Read pairs without hits: " + refTracker.readPairsNoHits + " (" + numberFormat.format(refTracker.readPairsNoHits / total) + ")");
+        messages.add("Failed due to MAPQ: " + refTracker.totalReadsFailedForMapq + " (" + numberFormat.format(refTracker.totalReadsFailedForMapq / total) + ")");
+        messages.add("Failed due to length: " + refTracker.totalReadsFailedForLength + " (" + numberFormat.format(refTracker.totalReadsFailedForLength / total) + ")");
+        messages.add("Failed due to no valid pair: " + refTracker.totalReadsFailedForValidPair + " (" + numberFormat.format(refTracker.totalReadsFailedForValidPair / total) + ")");
+        messages.add("Failed due to mismatches: " + refTracker.totalAlignmentsFailedForMismatch + " (" + numberFormat.format(refTracker.totalAlignmentsFailedForMismatch / total) + ")");
 
         filterByReference(refTracker, messages);
         filterByLineage(refTracker, messages);
@@ -275,6 +275,9 @@ public class ImmunoGenotyper extends ReadWalker {
         try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(summaryFile.toFile()))){
             messages.forEach(message -> outWriter.println(message));
         }
+
+        //Also log to console:
+        messages.forEach(message -> logger.info(message));
 
         Path mismatchFile = IOUtils.getPath(outPrefix + MISMATCH_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(mismatchFile.toFile()));
