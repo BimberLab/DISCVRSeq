@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>AppendGenotypes</title>
+<title>ClinvarAnnotator</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Public/Stable Tools'; ?>
+	<?php $group = 'Specialized/Internal Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,16 +13,27 @@
 
 	<div class="span8">
 
-			<h1>AppendGenotypes</h1>
+			<h1>ClinvarAnnotator</h1>
 
-		<p>Merge multiple VCFs to produce one with all sites</p>
+		<p>Annotate variants overlapping ClinVar</p>
 
 			<h3>Category
-				<small> Public/Stable Tools</small>
+				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		
+		This tool compares an input VCF to the provided <a href=https://www.ncbi.nlm.nih.gov/clinvar/>ClinVar</a> VCF and adds annotations to
+ any variant overlapping with a variant from ClinVar (matching both site and allele). Note, this requires the VCF to use ClinVar's 2.0 VCF format.
+ The ClinVar VCFs can be foind here: <a href="https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/">https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/</a>
+ <p/>
+
+ <h3>Usage example</h3>
+ <pre>
+   java -jar DISCVRSeq.jar ClinvarAnnotator \
+     -variant input.vcf \
+     -clinvar clinvar_v2.vcf \
+     -O output.vcf
+ </pre>
 
 		<hr>
 			<h2>Additional Information</h2>
@@ -31,12 +42,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by AppendGenotypes.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by ClinvarAnnotator.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>AppendGenotypes specific arguments</h3>
+				<h3>ClinvarAnnotator specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -51,12 +62,11 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--genotypeVcfs">--genotypeVcfs</a><br />
-								&nbsp;<em>-g</em>
+					<td><a href="#--clinvar">--clinvar</a><br />
 					</td>
-					<!--<td>List[FeatureInput[VariantContext]]</td> -->
-					<td>[]</td>
-					<td>The files providing genotypes.  The set of samples must be unique across them</td>
+					<!--<td>FeatureInput[VariantContext]</td> -->
+					<td>null</td>
+					<td>Clinvar VCF</td>
 				</tr>
 				<tr>
 					<td><a href="#--output">--output</a><br />
@@ -421,6 +431,19 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--clinvar">--clinvar </a>
+			 / <small>-clinvar</small>
+		</h3>
+		<p class="args">
+			<b>Clinvar VCF</b><br />
+			ClinVar verison 2.0 VCF from NCBI.
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">FeatureInput[VariantContext]</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
 			 / <small>-CIPB</small>
 		</h3>
@@ -598,19 +621,6 @@
 			&nbsp;<span class="label">""</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--genotypeVcfs">--genotypeVcfs </a>
-			 / <small>-g</small>
-		</h3>
-		<p class="args">
-			<b>The files providing genotypes.  The set of samples must be unique across them</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">List[FeatureInput[VariantContext]]</span>
-			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--help">--help </a>
 			 / <small>-h</small>
 		</h3>
@@ -746,7 +756,7 @@
 		</h3>
 		<p class="args">
 			<b>File to which variants should be written</b><br />
-			
+			Output file of new VCF containing variants with ClinVar annotations.
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
@@ -970,7 +980,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-57-2020 03:57:14.
         </p>
 
 </div></div>

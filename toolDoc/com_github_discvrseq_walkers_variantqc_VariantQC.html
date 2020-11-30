@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>TagPcrSummary</title>
+<title>VariantQC</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Development/Pre-production Tools'; ?>
+	<?php $group = 'Public/Stable Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,39 +13,108 @@
 
 	<div class="span8">
 
-			<h1>TagPcrSummary</h1>
+			<h1>VariantQC</h1>
 
-		<p>Detect and summarize transgene integration</p>
+		<p>Generate HTML summary report for a VCF</p>
 
 			<h3>Category
-				<small> Development/Pre-production Tools</small>
+				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
- providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
+		VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order
+ to provide various summary tables and graphs.  In most cases the tables overlay bar graphs for numeric columns in order to help identify outliers.
+ This tool is analogous to FASTQC or MultiQC, which provide similar HTML summary reports for different types of sequence data.
 
+ <h3>Usage examples:</h3>
+
+  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  <a href="https://software.broadinstitute.org/gatk/documentation/article.php?id=11017">See here for download instructions.</a>
+
+  We have also provide a small simplified VCF.  You can <a href="SimpleExample.vcf.gz">download the VCF</a> and <a href="SimpleExample.vcf.gz.tbi">download the VCF index</a>, with can be used with the <a href="ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/b37/">human_g1k_v37 genome</a>.
+
+ <h4>Basic Usage, Without Pedigree:</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R human_g1k_v37.fasta \
+     -V SimpleExample.vcf.gz \
+     -O output.html
+ </pre>
+
+ <h4>Report With Pedigree (required for gender information to display):</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R human_g1k_v37.fasta \
+     -ped myPedigree.ped \
+     -V input.vcf \
+     -O output.html
+ </pre>
+
+ <h3>Variant QC Output Report:</h3>
+ Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).
+ A complete example HTML report can be <a href="resources/variantQCSampleReport.html">viewed here</a>.  The report contains a series of tables or graphs summarizing different aspects of the data.  Below are the main types:
+ <br>
+  <ul>
+      <li>Variant Summary: A table displaying a summary of the total variants by type (SNP, insertion, deletion, MNP, etc.), </li>
+      <li>Variant Type: a bar plot summarizing variant by type (SNP, insertion, deletion, MNP, etc.)</li>
+      <li>Genotype Summary: A table summarizing the total called/non-called genotypes</li>
+      <li>SNP/Indel Summary:</li>
+      <li>Ti/Tv Data: A table displaying a summary of <a href="https://en.wikipedia.org/wiki/Transversion">transition and transversion</a> mutations in the dataset</li>
+      <li>Filter Type: A bar plot summarizing variants by filter</li>
+  </ul>
+ <p></p>
+ <a href="resources/variantQCSampleReport.html"><img src="images/variantQC_ExampleReport.jpg" style="width: 75%" title="Click to view a sample report"/></a>
+
+ <h3>Advanced Usage:</h3>
+
+ VariantQC is designed to produce general-purpose reports applicable to a range of users; however, several mechanisms may make the output more useful to your data:
+
+ <h4>Write the raw output data to a separate file as JSON, which can be parsed separately:</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R human_g1k_v37.fasta \
+     -V input.vcf \
+     -rd output.json \
+     -O output.html
+ </pre>
+
+ <h4>Define additional reports to be included in the HTML report:</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R human_g1k_v37.fasta \
+     -V input.vcf \
+     --additionalReportFile reports.txt \
+     -O output.html
+ </pre>
+
+ Where reports.txt is a tab-delimited file with one report per line and no header.  Comment lines can be included, beginning with '#'.  This file has 4 columns:
+ <br>
  <ul>
-     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is comprised of the organism plus one additional contig representing the delivery vector</li>
-     <li>Only first-mate reads are considered.  Reverse are ignored.</li>
-     <li>Each alignment is inspected (including cropped bases) for the presence of a short sequence expected to be at the insert/genome junction</li>
-     <li>*IMPORTANT* The orientation of each hit is used to determine the orientation of the transgene in the genome.  Each query sequence is associated with one end of the transgene</li>
-     <li>The hits are summarized based on the number of reads per genomic position (junction border)</li>
-     <li>If --primer3-path and --primer-pair-table are provided, the tool will iterate each passing integration site, extract the upstream and downstream region (+/- 1000bp), and design primer pairs that site inside the transgene and flanking genomic region.</li>
-     <li>If --blastn-path and --blast-db-path are provided, the tool will BLAST putative primers against the reference database and any primer with multiple hits will be flagged/discarded, along with non full-length primers that have a perfect match at the 3' end.</li>
-     <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
+ <li>Section label: Corresponds to the report group.  This is typically 'Entire VCF', 'By Contig', etc.; however, any value can be used.</li>
+ <li>Report label: The title used for this report.  For example: 'Variant Summary'</li>
+ <li>Stratifications: A comma-separated list of the stratifications to use when aggregating data.  Allowable values are: VCF, Sample, Contig, and Filter</li>
+ <li>INFO field name: The name of the INFO field attribute to aggregate.  This field must be of type character, string or integer.  Note: this will produce a table summarizing the total variants for each level of this variable.  Therefore a field with a wide range of possible values may not be appropriate to summarize in this manner.  For example, while integer fields are support since in certain cases the value is bounded and will have a reasonable number of unique values.</li>
+ </ul>
+ <br>
+ Example Report File:
+ <pre>
+ By Sample	Example Report	Sample	PURPOSE
+ By Contig	Example Report2	Sample,Contig	PURPOSE
+ </pre>
+
+ <h4>Other Usage Suggestions:</h4>
+ Upstream processing of your VCF can enhance the value of the VariantQC report for your data. Our group routinely performs quality filtering on our VCFs, which saves information about the filter type in the FILTER field (<a href="https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_filters_VariantFiltration.php"></a>see VariantFiltration</a>).  FilterType is used to stratify data in VariantQC, allowing us to view sample, VCF, or chromosome differences.
+ <br><br>
+ While VariantQC does not direct support automatic filtering/flagging of VCFs or samples based on thresholds, our group accomplishes this by writing a separate script to read the raw JSON output (see --rawData argument), and then applying our application-specific criteria.
+
+ <h3>Authors:</h3>
+ <ul>
+  <li>Ben Bimber, Ph.D.</li>
+  <li>Melissa Yan</li>
  </ul>
 
- <h3>Usage example:</h3>
- <pre>
-  java -jar DISCVRseq.jar TagPcrSummary \
-     -R currentGenome.fasta \
-     -b myBam.bam \
-     --output-table output.txt \
-     --primer-pair-table primer_summary.txt \
-     --prime3-path /usr/bin/primer3_core \
-     --genbank-output output.gb
- </pre>
+ <h3>Acknowledgements:</h3>
+ This tool internally uses <a href="https://github.com/broadinstitute/gatk">GATK4's VariantEval</a> to aggregate data, and borrows heavily from <a href="https://multiqc.info/">MultiQC</a> for the HTML in the final report.
+ We thank Philip Ewels for the use of MultiQC HTML/CSS/JS templates, and Chris Norman of the Broad Institute for assistance with VariantEval.
 
 		<hr>
 			<h2>Additional Information</h2>
@@ -54,12 +123,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by TagPcrSummary.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by VariantQC.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>TagPcrSummary specific arguments</h3>
+				<h3>VariantQC specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -74,28 +143,12 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--bam">--bam</a><br />
-								&nbsp;<em>-b</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>A BAM file with alignments to be inspected</td>
-				</tr>
-				<tr>
-					<td><a href="#--insert-type">--insert-type</a><br />
-								&nbsp;<em>-it</em>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
-					<td>The type of insert to test: currently support values are PiggyBac and Lentivirus</td>
-				</tr>
-				<tr>
-					<td><a href="#--output-table">--output-table</a><br />
-								&nbsp;<em>-o</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which TSV output should be written</td>
+					<td>File to which the report should be written</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -105,39 +158,31 @@
 					<td>null</td>
 					<td>Reference sequence file</td>
 				</tr>
+				<tr>
+					<td><a href="#--variant">--variant</a><br />
+								&nbsp;<em>-V</em>
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>A VCF file containing variants</td>
+				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
 			</tr>
+				<tr>
+					<td><a href="#--additionalReportFile">--additionalReportFile</a><br />
+								&nbsp;<em>-arf</em>
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.</td>
+				</tr>
 				<tr>
 					<td><a href="#--arguments_file">--arguments_file</a><br />
 					</td>
 					<!--<td>List[File]</td> -->
 					<td>[]</td>
 					<td>read one or more arguments files and add them to the command line</td>
-				</tr>
-				<tr>
-					<td><a href="#--blast-db-path">--blast-db-path</a><br />
-								&nbsp;<em>-bdb</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided</td>
-				</tr>
-				<tr>
-					<td><a href="#--blast-threads">--blast-threads</a><br />
-								&nbsp;<em>-bt</em>
-					</td>
-					<!--<td>Integer</td> -->
-					<td>null</td>
-					<td>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</td>
-				</tr>
-				<tr>
-					<td><a href="#--blastn-path">--blastn-path</a><br />
-								&nbsp;<em>-bn</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>blastn</td>
-					<td>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</td>
 				</tr>
 				<tr>
 					<td><a href="#--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer</a><br />
@@ -186,28 +231,12 @@
 					<td>Project to bill when accessing "requester pays" buckets. If unset, these buckets cannot be accessed.</td>
 				</tr>
 				<tr>
-					<td><a href="#--genbank-output">--genbank-output</a><br />
-								&nbsp;<em>-g</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which a summary of integration sites, flanking sequence and optionally primers should be written in genbank format</td>
-				</tr>
-				<tr>
 					<td><a href="#--help">--help</a><br />
 								&nbsp;<em>-h</em>
 					</td>
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the help message</td>
-				</tr>
-				<tr>
-					<td><a href="#--include-sa">--include-sa</a><br />
-								&nbsp;<em>-sa</em>
-					</td>
-					<!--<td>boolean</td> -->
-					<td>false</td>
-					<td>If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-merging-rule">--interval-merging-rule</a><br />
@@ -226,52 +255,35 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--metrics-table">--metrics-table</a><br />
-								&nbsp;<em>-mt</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which a TSV of summary metrics should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--min-alignments">--min-alignments</a><br />
-								&nbsp;<em>-ma</em>
+					<td><a href="#--maxContigs">--maxContigs</a><br />
 					</td>
 					<!--<td>int</td> -->
-					<td>3</td>
-					<td>The minimum number of alignments required at a position to report</td>
+					<td>40</td>
+					<td>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</td>
 				</tr>
 				<tr>
-					<td><a href="#--min-fraction">--min-fraction</a><br />
-								&nbsp;<em>-mf</em>
-					</td>
-					<!--<td>double</td> -->
-					<td>0.0</td>
-					<td>Only sites with at least this fraction of total reads will be reported</td>
-				</tr>
-				<tr>
-					<td><a href="#--primer-pair-table">--primer-pair-table</a><br />
-								&nbsp;<em>-pt</em>
+					<td><a href="#--pedigree">--pedigree</a><br />
+								&nbsp;<em>-ped</em>
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>File to which TSV summarizing potential primer pairs should be written</td>
+					<td>Pedigree file for identifying Mendelian violations</td>
 				</tr>
 				<tr>
-					<td><a href="#--primer3-path">--primer3-path</a><br />
-								&nbsp;<em>-p3</em>
+					<td><a href="#--pedigreeValidationType">--pedigreeValidationType</a><br />
+								&nbsp;<em>-pedValidationType</em>
+					</td>
+					<!--<td>PedigreeValidationType</td> -->
+					<td>STRICT</td>
+					<td>The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT</td>
+				</tr>
+				<tr>
+					<td><a href="#--rawData">--rawData</a><br />
+								&nbsp;<em>-rd</em>
 					</td>
 					<!--<td>String</td> -->
-					<td>primer3</td>
-					<td>In order for this tool to design validation primers, the path to primer3 must be provided</td>
-				</tr>
-				<tr>
-					<td><a href="#--reads-to-output">--reads-to-output</a><br />
-								&nbsp;<em>-ro</em>
-					</td>
-					<!--<td>int</td> -->
-					<td>0</td>
-					<td>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</td>
+					<td>null</td>
+					<td>File to which the raw data will be written as JSON</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -520,6 +532,18 @@
 			&nbsp;<span class="label">true</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--additionalReportFile">--additionalReportFile </a>
+			 / <small>-arf</small>
+		</h3>
+		<p class="args">
+			<b>This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--arguments_file">--arguments_file </a>
 			 / <small>NA</small>
 		</h3>
@@ -530,55 +554,6 @@
 		<p>
 		<span class="label label-info ">List[File]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--bam">--bam </a>
-			 / <small>-b</small>
-		</h3>
-		<p class="args">
-			<b>A BAM file with alignments to be inspected</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blast-db-path">--blast-db-path </a>
-			 / <small>-bdb</small>
-		</h3>
-		<p class="args">
-			<b>In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blast-threads">--blast-threads </a>
-			 / <small>-bt</small>
-		</h3>
-		<p class="args">
-			<b>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blastn-path">--blastn-path </a>
-			 / <small>-bn</small>
-		</h3>
-		<p class="args">
-			<b>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">blastn</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
@@ -758,35 +733,11 @@
 			&nbsp;<span class="label">""</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--genbank-output">--genbank-output </a>
-			 / <small>-g</small>
-		</h3>
-		<p class="args">
-			<b>File to which a summary of integration sites, flanking sequence and optionally primers should be written in genbank format</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--help">--help </a>
 			 / <small>-h</small>
 		</h3>
 		<p class="args">
 			<b>display the help message</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">boolean</span>
-			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--include-sa">--include-sa </a>
-			 / <small>-sa</small>
-		</h3>
-		<p class="args">
-			<b>If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well</b><br />
 			
 		</p>
 		<p>
@@ -804,19 +755,6 @@
 		<p>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--insert-type">--insert-type </a>
-			 / <small>-it</small>
-		</h3>
-		<p class="args">
-			<b>The type of insert to test: currently support values are PiggyBac and Lentivirus</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--interval-exclusion-padding">--interval-exclusion-padding </a>
@@ -925,81 +863,64 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--metrics-table">--metrics-table </a>
-			 / <small>-mt</small>
+		<h3><a name="--maxContigs">--maxContigs </a>
+			 / <small>-maxContigs</small>
 		</h3>
 		<p class="args">
-			<b>File to which a TSV of summary metrics should be written</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--min-alignments">--min-alignments </a>
-			 / <small>-ma</small>
-		</h3>
-		<p class="args">
-			<b>The minimum number of alignments required at a position to report</b><br />
+			<b>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</b><br />
 			
 		</p>
 		<p>
 		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">3</span>
+			&nbsp;<span class="label">40</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--min-fraction">--min-fraction </a>
-			 / <small>-mf</small>
+		<h3><a name="--output">--output </a>
+			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>Only sites with at least this fraction of total reads will be reported</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--output-table">--output-table </a>
-			 / <small>-o</small>
-		</h3>
-		<p class="args">
-			<b>File to which TSV output should be written</b><br />
+			<b>File to which the report should be written</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--primer-pair-table">--primer-pair-table </a>
-			 / <small>-pt</small>
-		</h3>
-		<p class="args">
-			<b>File to which TSV summarizing potential primer pairs should be written</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--primer3-path">--primer3-path </a>
-			 / <small>-p3</small>
-		</h3>
-		<p class="args">
-			<b>In order for this tool to design validation primers, the path to primer3 must be provided</b><br />
-			
-		</p>
-		<p>
 		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">primer3</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--pedigree">--pedigree </a>
+			 / <small>-ped</small>
+		</h3>
+		<p class="args">
+			<b>Pedigree file for identifying Mendelian violations</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--pedigreeValidationType">--pedigreeValidationType </a>
+			 / <small>-pedValidationType</small>
+		</h3>
+		<p class="args">
+			<b>The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT</b><br />
+			
+		</p>
+			<p>
+				The --pedigreeValidationType argument is an enumerated type (PedigreeValidationType), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">STRICT</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">SILENT</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">PedigreeValidationType</span>
+			&nbsp;<span class="label">STRICT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--QUIET">--QUIET </a>
@@ -1012,6 +933,18 @@
 		<p>
 		<span class="label label-info ">Boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--rawData">--rawData </a>
+			 / <small>-rd</small>
+		</h3>
+		<p class="args">
+			<b>File to which the raw data will be written as JSON</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--read-filter">--read-filter </a>
@@ -1059,20 +992,6 @@
 		<p>
 		<span class="label label-info ">ValidationStringency</span>
 			&nbsp;<span class="label">SILENT</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--reads-to-output">--reads-to-output </a>
-			 / <small>-ro</small>
-		</h3>
-		<p class="args">
-			<b>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
@@ -1174,6 +1093,19 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--variant">--variant </a>
+			 / <small>-V</small>
+		</h3>
+		<p class="args">
+			<b>A VCF file containing variants</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">String</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
 			 / <small>-verbosity</small>
 		</h3>
@@ -1220,7 +1152,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-57-2020 03:57:14.
         </p>
 
 </div></div>

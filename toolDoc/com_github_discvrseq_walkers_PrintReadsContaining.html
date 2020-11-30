@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>MultipleAllelesAtLoci</title>
+<title>PrintReadsContaining</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,41 +13,77 @@
 
 	<div class="span8">
 
-			<h1>MultipleAllelesAtLoci</h1>
+			<h1>PrintReadsContaining</h1>
 
-		<p>Generate a list of loci with three or more distinct bases detected</p>
+		<p>Print read pairs matching a list of sequences/expressions</p>
 
 			<h3>Category
 				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This walker will iterate a BAM and report sites with passing alignments with reads from more than 2 alleles, where
- the third allele is above the supplied threshold.  The original purpose was to find positions of potential duplications
- or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site).
+		This walker will iterate FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.
 
- <h3>Usage example:</h3>
- <pre>
-  java -jar DISCVRseq.jar MultipleAllelesAtLoci \
-     -R reference.fasta \
-     -I bams.list \
-     -O output.bed
- </pre>
- <p></p>
- Would produce a BED file that looks like:
- <p></p>
- <pre>
-     chr20 10000000 10000001 MultiAllelicSite 2   +   Subj1: [A/0.25/1/4];Subj12: [A/0.2/2/10];
-     chr20 10000865 10000866 MultiAllelicSite 1   +   Subj4: [T/0.1/1/10]
- </pre>
 
- Where the columns are:
- 1) Contig
- 2) Start (0-based)
- 3) End (0-based, exclusive)
- 4) This always uses the name MultiAllelicSite
- 5) Strand (always listed as plus)
- 6) The subject/allele information. There is a semicolon-delimited list, where each element describes one subject/allele (any subject generally only has one flagged allele/site; however, in theory there could be two).  Each block uses the format: subject name, followed by colon, followed by [allele/frequency/count/totalDepth]
+ <h3>Usage examples:</h3>
+ <h4>Simple search for a sequence in either forward or reverse read:</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e 'TACG' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>RegEx search for reads where either forward or reverse contains only A/T</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$ \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>Same as above, except tests forward read only</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e1 '^[AT]+$' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>In this example, the forward read must be exclusively A/T, and either the forward or reverse must contain AA</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e1 '^[AT]+$' \
+     -e 'AA' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>In this example, one of these two conditions must be true: either read is exclusively A/T or either read contains AA</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$' \
+     -e 'AA' \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
+ <h4>Similar to the above, except both conditions must be met.</h4>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadsContaining \
+     -FQ fastq_R1.fastq.gz \
+     -FQ2 fastq_R2.fastq.gz \
+     -e '^[AT]+$' \
+     -e 'AA' \
+     --matchAllExpressions \
+     -O output_R1.fastq.gz \
+     -O2 output_R2.fastq.gz
+ </pre>
 
 		<hr>
 			<h2>Additional Information</h2>
@@ -56,14 +92,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>These Read Filters are automatically applied to the data by the Engine before processing by MultipleAllelesAtLoci.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by PrintReadsContaining.</p>
 				<ul>
-						<li><a href="org_broadinstitute_hellbender_engine_filters_ReadFilterLibrary$MappedReadFilter.html">MappedReadFilter</a></li>
-						<li><a href="org_broadinstitute_hellbender_engine_filters_ReadFilterLibrary$NotDuplicateReadFilter.html">NotDuplicateReadFilter</a></li>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>MultipleAllelesAtLoci specific arguments</h3>
+				<h3>PrintReadsContaining specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -78,12 +112,18 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
+					<td><a href="#--fastq">--fastq</a><br />
 					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>Input fastq file (optionally gzipped) for single end data, or first read in paired end data.</td>
+				</tr>
+				<tr>
+					<td><a href="#--output">--output</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>The output file for the first FASTQ file</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -127,6 +167,37 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--editDistance">--editDistance</a><br />
+								&nbsp;<em>-ed</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.</td>
+				</tr>
+				<tr>
+					<td><a href="#--expressionNames">--expressionNames</a><br />
+								&nbsp;<em>-en</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each expression.  If used, the number of expression names (-en) must be equal to the number of expressions (-e).  If not provided, the expression itself will be used.</td>
+				</tr>
+				<tr>
+					<td><a href="#--expressions">--expressions</a><br />
+								&nbsp;<em>-e</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test.  If either the forward or reverse read matches, it will be included.</td>
+				</tr>
+				<tr>
+					<td><a href="#--fastq2">--fastq2</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>Input fastq file (optionally gzipped) for the second read of paired end data.</td>
+				</tr>
+				<tr>
 					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
 								&nbsp;<em>-gcs-retries</em>
 					</td>
@@ -166,42 +237,51 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--max-depth-per-sample">--max-depth-per-sample</a><br />
+					<td><a href="#--matchAllExpressions">--matchAllExpressions</a><br />
+								&nbsp;<em>-ma</em>
 					</td>
-					<!--<td>int</td> -->
-					<td>0</td>
-					<td>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If provided, a read pair must match all sequences/expressions to be included.  Default: false</td>
 				</tr>
 				<tr>
-					<td><a href="#--minBasePct">--minBasePct</a><br />
-					</td>
-					<!--<td>double</td> -->
-					<td>0.1</td>
-					<td>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minBaseQuality">--minBaseQuality</a><br />
-								&nbsp;<em>-mbq</em>
-					</td>
-					<!--<td>byte</td> -->
-					<td>20</td>
-					<td>Minimum quality of bases to count towards depth.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minMappingQuality">--minMappingQuality</a><br />
-								&nbsp;<em>-mmq</em>
-					</td>
-					<!--<td>byte</td> -->
-					<td>10</td>
-					<td>Minimum mapping quality of reads to count towards depth.</td>
-				</tr>
-				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
+					<td><a href="#--output2">--output2</a><br />
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>The output BED file</td>
+					<td>The output file for the second FASTQ file.  Required if -FQ2 is used.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read1ExpressionNames">--read1ExpressionNames</a><br />
+								&nbsp;<em>-e1n</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each read1 expression.  If used, the number of read1 expression names (-e1n) must be equal to the number of read1 expressions (-e1).  If not provided, the expression itself will be used.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read1Expressions">--read1Expressions</a><br />
+								&nbsp;<em>-e1</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read2ExpressionNames">--read2ExpressionNames</a><br />
+								&nbsp;<em>-e2n</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A mechanism to allow names for each read2 expression.  If used, the number of read2 expression names (-e2n) must be equal to the number of read2 expressions (-e2).  If not provided, the expression itself will be used.</td>
+				</tr>
+				<tr>
+					<td><a href="#--read2Expressions">--read2Expressions</a><br />
+								&nbsp;<em>-e2</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>A list of sequences or regular expressions to test against the reverse read. If passing, the pair will be included.</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -217,6 +297,13 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>If true, don't emit genotype fields when writing vcf file output.</td>
+				</tr>
+				<tr>
+					<td><a href="#--summaryFile">--summaryFile</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>If provided, a TSV summary of matches will be written here.</td>
 				</tr>
 				<tr>
 					<td><a href="#--version">--version</a><br />
@@ -303,6 +390,14 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
+				</tr>
+				<tr>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -413,13 +508,6 @@
 			<tr>
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
-				<tr>
-					<td><a href="#--minDepth">--minDepth</a><br />
-					</td>
-					<!--<td>int</td> -->
-					<td>4</td>
-					<td>Minimum QC+ read depth before a locus is considered callable</td>
-				</tr>
 				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
@@ -593,6 +681,20 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--editDistance">--editDistance </a>
+			 / <small>-ed</small>
+		</h3>
+		<p class="args">
+			<b>If provided, all expressions will be treated as simple strings, and must be ATGC characters.  The tool will scan each motif against the read(s) and report a match if the edit distance is less than or equal to this threshold.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--exclude-intervals">--exclude-intervals </a>
 			 / <small>-XL</small>
 		</h3>
@@ -606,6 +708,55 @@
 		<p>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--expressionNames">--expressionNames </a>
+			 / <small>-en</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each expression.  If used, the number of expression names (-en) must be equal to the number of expressions (-e).  If not provided, the expression itself will be used.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--expressions">--expressions </a>
+			 / <small>-e</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test.  If either the forward or reverse read matches, it will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--fastq">--fastq </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Input fastq file (optionally gzipped) for single end data, or first read in paired end data.</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--fastq2">--fastq2 </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Input fastq file (optionally gzipped) for the second read of paired end data.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--gatk-config-file">--gatk-config-file </a>
@@ -666,7 +817,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -777,83 +927,36 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--max-depth-per-sample">--max-depth-per-sample </a>
-			 / <small>-max-depth-per-sample</small>
+		<h3><a name="--matchAllExpressions">--matchAllExpressions </a>
+			 / <small>-ma</small>
 		</h3>
 		<p class="args">
-			<b>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</b><br />
+			<b>If provided, a read pair must match all sequences/expressions to be included.  Default: false</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minBasePct">--minBasePct </a>
-			 / <small>-minBasePct</small>
-		</h3>
-		<p class="args">
-			<b>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.1</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minBaseQuality">--minBaseQuality </a>
-			 / <small>-mbq</small>
-		</h3>
-		<p class="args">
-			<b>Minimum quality of bases to count towards depth.</b><br />
-			Bases with less than minBaseQuality are viewed as not sufficiently high quality to contribute to the PASS state
-		</p>
-		<p>
-		<span class="label label-info ">byte</span>
-			&nbsp;<span class="label">20</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minDepth">--minDepth </a>
-			 / <small>-minDepth</small>
-		</h3>
-		<p class="args">
-			<b>Minimum QC+ read depth before a locus is considered callable</b><br />
-			If the number of QC+ bases (on reads with MAPQ > minMappingQuality and with base quality > minBaseQuality) exceeds this
- value and is less than maxDepth the site is considered PASS.
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">4</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minMappingQuality">--minMappingQuality </a>
-			 / <small>-mmq</small>
-		</h3>
-		<p class="args">
-			<b>Minimum mapping quality of reads to count towards depth.</b><br />
-			Reads with MAPQ > minMappingQuality are treated as usable for variation detection, contributing to the PASS
- state.
-		</p>
-		<p>
-		<span class="label label-info ">byte</span>
-			&nbsp;<span class="label">10</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
-			 / <small>-O</small>
+			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>The output BED file</b><br />
+			<b>The output file for the first FASTQ file</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--output2">--output2 </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file for the second FASTQ file.  Required if -FQ2 is used.</b><br />
 			
 		</p>
 		<p>
@@ -920,6 +1023,54 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read1ExpressionNames">--read1ExpressionNames </a>
+			 / <small>-e1n</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each read1 expression.  If used, the number of read1 expression names (-e1n) must be equal to the number of read1 expressions (-e1).  If not provided, the expression itself will be used.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read1Expressions">--read1Expressions </a>
+			 / <small>-e1</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test against the forward read. If passing, the pair will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read2ExpressionNames">--read2ExpressionNames </a>
+			 / <small>-e2n</small>
+		</h3>
+		<p class="args">
+			<b>A mechanism to allow names for each read2 expression.  If used, the number of read2 expression names (-e2n) must be equal to the number of read2 expressions (-e2).  If not provided, the expression itself will be used.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--read2Expressions">--read2Expressions </a>
+			 / <small>-e2</small>
+		</h3>
+		<p class="args">
+			<b>A list of sequences or regular expressions to test against the reverse read. If passing, the pair will be included.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
 			 / <small>-R</small>
 		</h3>
@@ -980,6 +1131,18 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--summaryFile">--summaryFile </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If provided, a TSV summary of matches will be written here.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
@@ -1064,7 +1227,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-57-2020 03:57:14.
         </p>
 
 </div></div>
