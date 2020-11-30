@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -85,7 +86,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             throw new UserException.BadInput("Must supply a list of intervals on the command line");
         }
 
-        if (readArguments.getReadFiles().size() > 1) {
+        if (readArguments.getReadPaths().size() > 1) {
             throw new UserException.BadInput("Only one BAM at a time is currently supported");
         }
 
@@ -99,7 +100,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         }
 
         SamReaderFactory fact = SamReaderFactory.makeDefault();
-        File bam = readArguments.getReadFiles().get(0);
+        Path bam = readArguments.getReadPaths().get(0);
         bamReader = fact.open(bam);
 
         readFilter = ReadFilter.fromList(getDefaultReadFilters(), getHeaderForReads());

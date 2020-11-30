@@ -17,21 +17,21 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testBasicOperation() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-L");
-        args.add("1");
+        args.addRaw("-L");
+        args.addRaw("1");
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
@@ -44,21 +44,21 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testMaxContigs() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testMaxContigs.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-maxContigs");
-        args.add("1");
+        args.addRaw("-maxContigs");
+        args.addRaw("1");
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
@@ -71,23 +71,23 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testBasicOperationWithRawData() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-L");
-        args.add("1");
+        args.addRaw("-L");
+        args.addRaw("1");
 
-        args.add("-O");
-        args.add("%s");
-        args.add("-rd");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("-rd");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath(), getTestFile("testBasicOperation.json").getPath()));
@@ -99,22 +99,22 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     private ArgumentsBuilder getBasePedigreeArgs()
     {
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "MendelianViolationEval.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
         ensureVcfIndex(input);
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-ped");
-        args.add(normalizePath(new File(testBaseDir, "MendelianViolationEval.ped")));
+        args.addRaw("-ped");
+        args.addRaw(normalizePath(new File(testBaseDir, "MendelianViolationEval.ped")));
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         return args;
     }
@@ -134,8 +134,8 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testPedigreeOutputWithValidation() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testPedigreeOutput.html"));
         ArgumentsBuilder args = getBasePedigreeArgs();
-        args.add("-pedValidationType");
-        args.add("SILENT");
+        args.addRaw("-pedValidationType");
+        args.addRaw("SILENT");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
@@ -148,25 +148,25 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testExtendedReports() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testExtendedReports.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-L");
-        args.add("1");
+        args.addRaw("-L");
+        args.addRaw("1");
 
         File extendedReports = getTestFile("extendedReports.txt");
-        args.add("-arf");
-        args.add(normalizePath(extendedReports));
+        args.addRaw("-arf");
+        args.addRaw(normalizePath(extendedReports));
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
@@ -179,21 +179,21 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     public void testBasicOperationNoSamples() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testBasicOperationNoSamples.html"));
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "clinvarV2.vcf");
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
-        args.add("-L");
-        args.add("1");
+        args.addRaw("-L");
+        args.addRaw("1");
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));

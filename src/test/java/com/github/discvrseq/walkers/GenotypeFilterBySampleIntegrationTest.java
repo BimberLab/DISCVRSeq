@@ -16,10 +16,10 @@ public class GenotypeFilterBySampleIntegrationTest extends  BaseIntegrationTest 
 
         String fn = "GenotypeFilterBySample.vcf";
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -31,16 +31,16 @@ public class GenotypeFilterBySampleIntegrationTest extends  BaseIntegrationTest 
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         ensureVcfIndex(input);
 
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
-        args.add("-bl");
+        args.addRaw("-bl");
         File blackListBed = new File(testBaseDir, "GenotypeFilterBySampleBlacklist.bed");
         ensureIndex(blackListBed, new BEDCodec());
-        args.add(normalizePath(blackListBed));
+        args.addRaw(normalizePath(blackListBed));
 
         return args;
     }

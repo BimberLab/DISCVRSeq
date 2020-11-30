@@ -13,19 +13,19 @@ public class MergeFastqReadsIntegrationTest extends BaseIntegrationTest {
     public void basicMergeTest() throws IOException {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("-fq1");
+        args.addRaw("-fq1");
         File fq1 = new File(new File(getToolTestDataDir()).getParentFile(), "PrintReadsContaining/fq1.fastq");
-        args.add(normalizePath(fq1));
+        args.addRaw(normalizePath(fq1));
 
-        args.add("-fq2");
+        args.addRaw("-fq2");
         File fq2 = new File(new File(getToolTestDataDir()).getParentFile(), "PrintReadsContaining/fq2.fastq");
-        args.add(normalizePath(fq2));
+        args.addRaw(normalizePath(fq2));
 
-        args.add("-O");
-        args.add("%s");
+        args.addRaw("-O");
+        args.addRaw("%s");
 
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -38,22 +38,22 @@ public class MergeFastqReadsIntegrationTest extends BaseIntegrationTest {
     public void mergeTestWithMinLength() throws IOException {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("-fq1");
+        args.addRaw("-fq1");
         File fq1 = new File(new File(getToolTestDataDir()).getParentFile(), "PrintReadsContaining/fq1.fastq");
-        args.add(normalizePath(fq1));
+        args.addRaw(normalizePath(fq1));
 
-        args.add("-fq2");
+        args.addRaw("-fq2");
         File fq2 = new File(new File(getToolTestDataDir()).getParentFile(), "PrintReadsContaining/fq2.fastq");
-        args.add(normalizePath(fq2));
+        args.addRaw(normalizePath(fq2));
 
-        args.add("-O");
-        args.add("%s");
+        args.addRaw("-O");
+        args.addRaw("%s");
 
-        args.add("--minLength");
-        args.add("100");
+        args.addRaw("--minLength");
+        args.addRaw("100");
 
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),

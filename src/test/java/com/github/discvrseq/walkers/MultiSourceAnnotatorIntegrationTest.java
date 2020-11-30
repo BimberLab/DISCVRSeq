@@ -14,28 +14,28 @@ public class MultiSourceAnnotatorIntegrationTest extends BaseIntegrationTest {
     public void doBasicTest() throws Exception{
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("-V");
-        args.add(normalizePath(getInputVcf()));
+        args.addRaw("-V");
+        args.addRaw(normalizePath(getInputVcf()));
 
-        args.add("-cv");
+        args.addRaw("-cv");
         File clinvar = new File(testBaseDir, "walkers/MultiSourceAnnotator/clinvar.vcf");
-        args.add(normalizePath(clinvar));
+        args.addRaw(normalizePath(clinvar));
         ensureVcfIndex(clinvar);
 
-        args.add("--liftoverReject");
+        args.addRaw("--liftoverReject");
         File liftover = new File(testBaseDir, "walkers/MultiSourceAnnotator/liftoverRejects.vcf");
-        args.add(normalizePath(liftover));
+        args.addRaw(normalizePath(liftover));
         ensureVcfIndex(liftover);
 
-        args.add("--cassandra");
+        args.addRaw("--cassandra");
         File cassandra = new File(testBaseDir, "walkers/MultiSourceAnnotator/cassandra.vcf");
-        args.add(normalizePath(cassandra));
+        args.addRaw(normalizePath(cassandra));
         ensureVcfIndex(cassandra);
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),

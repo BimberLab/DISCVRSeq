@@ -17,14 +17,14 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
     }
 
     private void doTest(String name, ArgumentsBuilder args, String fn) throws Exception {
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         File fasta = getHg19Micro();
-        args.add("-R");
-        args.add(normalizePath(fasta));
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
             args.getString(),
@@ -37,15 +37,15 @@ public class ClinvarAnnotatorIntegrationTest extends  BaseIntegrationTest {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         //Must also create index once for clinvar VCF
-        args.add("--clinvar");
+        args.addRaw("--clinvar");
         File clinvar = new File(testBaseDir, "clinvarV2.vcf");
         ensureVcfIndex(clinvar);
-        args.add(normalizePath(clinvar));
+        args.addRaw(normalizePath(clinvar));
 
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         ensureVcfIndex(input);
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
         return args;
     }

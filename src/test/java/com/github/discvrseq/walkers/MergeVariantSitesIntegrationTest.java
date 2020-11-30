@@ -15,10 +15,10 @@ public class MergeVariantSitesIntegrationTest extends  BaseIntegrationTest {
 
         String fn = "merge1.vcf";
 
-        args.add("-O");
-        args.add("%s");
-        args.add("--tmp-dir");
-        args.add(getTmpDir());
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
@@ -30,16 +30,16 @@ public class MergeVariantSitesIntegrationTest extends  BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
-        args.add("--variant");
+        args.addRaw("--variant");
         File input = new File(testBaseDir, "mergeVcf1.vcf");
         ensureVcfIndex(input);
 
-        args.add(normalizePath(input));
+        args.addRaw(normalizePath(input));
 
-        args.add("-V");
+        args.addRaw("-V");
         File input2 = new File(testBaseDir, "mergeVcf2.vcf");
         ensureVcfIndex(input2);
-        args.add(normalizePath(input2));
+        args.addRaw(normalizePath(input2));
 
         return args;
     }
