@@ -28,9 +28,9 @@ By popular demand, DISCVR-seq releases are available as docker images, via [GitH
 ```
 
 # Pull specific version:
-docker pull ghcr.io/bimberlab/discvrseq:release1.11
+docker pull ghcr.io/bimberlab/discvrseq:release1.20
 
 # Run:
-docker run ghcr.io/bimberlab/discvrseq:release1.11 java -jar DISCVRSeq.jar --list
+docker run ghcr.io/bimberlab/discvrseq:release1.20 --list
 
 ```
