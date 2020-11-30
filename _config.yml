@@ -1,9 +1,0 @@
-plugins:
-  - jekyll-relative-links
-title: DISCVR-seq Toolkit Documentation
-description: The primary documentation for DISCVR-seq Toolkit
-relative_links:
-  enabled: true
-  collections: true
-include:
-  - index.md

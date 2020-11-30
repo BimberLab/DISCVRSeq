@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>FindGenomeDifferences</title>
+<title>PrintReadBackedHaplotypes</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Specialized/Internal Tools'; ?>
+	<?php $group = 'Development/Pre-production Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,25 +13,33 @@
 
 	<div class="span8">
 
-			<h1>FindGenomeDifferences</h1>
+			<h1>PrintReadBackedHaplotypes</h1>
 
-		<p>Create VCF summarizing positions where reference alleles differ between genomes</p>
+		<p>Reconstructs and prints a list of distinct read-backed sequences over the supplied intervals</p>
 
 			<h3>Category
-				<small> Specialized/Internal Tools</small>
+				<small> Development/Pre-production Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to compare two genomes, writing a VCF with positions where the reference differs.  It iterates each base of the source genome, attempts to lift to the target genome, and if liftover is successful it will compare the reference bases.
- Any positions with differing reference bases will be written out as a VCF file, in the coordinates of the target genome.
+		This tool will extract the reads from a BAM over each of the provided intervals, reconstruct the local haplotypes (using simple logic and only relying on regions with coverage), and
+ produce a table listing the frequency of every unique haplotype.  It was originally created to inspect amplicon-based deep sequencing, such as evaluating CRISPR edits.
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar FindGenomeDifferences \
-     -s sourceGenome.fasta \
-     -t targetChain.fasta \
-     -c chainFile.chain \
-     -O output.vcf.gz
+  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+     -R reference.fasta \
+     -L chr01:100-200 \
+     -I myBam.bam \
+     -O output.txt
+ </pre>
+ <h3>Usage example, <a href="https://gatkforums.broadinstitute.org/gatk/discussion/1319/collected-faqs-about-interval-lists"></a>supplying intervals from a file:</a></h3>
+ <pre>
+  java -jar DISCVRseq.jar PrintReadBackedHaplotypes \
+     -R reference.fasta \
+     -L myFile.intervals \
+     -I myBam.bam \
+     -O output.txt
  </pre>
 
 		<hr>
@@ -41,12 +49,13 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by FindGenomeDifferences.</p>
+					<p>These Read Filters are automatically applied to the data by the Engine before processing by PrintReadBackedHaplotypes.</p>
 				<ul>
+						<li><a href="org_broadinstitute_hellbender_engine_filters_ReadFilterLibrary$MappedReadFilter.html">MappedReadFilter</a></li>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>FindGenomeDifferences specific arguments</h3>
+				<h3>PrintReadBackedHaplotypes specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -61,36 +70,20 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--chainFile">--chainFile</a><br />
-								&nbsp;<em>-c</em>
+					<td><a href="#--intervals">--intervals</a><br />
+								&nbsp;<em>-L</em>
 					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Chain file</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
+					<td><a href="#--reference">--reference</a><br />
+								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
-					<td>File to which the output VCF should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--sourceGenome">--sourceGenome</a><br />
-								&nbsp;<em>-s</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Source reference sequence file</td>
-				</tr>
-				<tr>
-					<td><a href="#--targetGenome">--targetGenome</a><br />
-								&nbsp;<em>-t</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Target reference sequence file</td>
+					<td>Reference sequence file</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -165,28 +158,28 @@
 					<td>Interval merging rule for abutting intervals</td>
 				</tr>
 				<tr>
-					<td><a href="#--intervals">--intervals</a><br />
-								&nbsp;<em>-L</em>
+					<td><a href="#--minQual">--minQual</a><br />
+								&nbsp;<em>-mq</em>
 					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>One or more genomic intervals over which to operate</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>If specified, bases with quality lower than this value will be converted to N</td>
 				</tr>
 				<tr>
-					<td><a href="#--liftoverMinMatch">--liftoverMinMatch</a><br />
-								&nbsp;<em>-mm</em>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>double</td> -->
-					<td>0.95</td>
-					<td>LiftOver min match</td>
-				</tr>
-				<tr>
-					<td><a href="#--reference">--reference</a><br />
-								&nbsp;<em>-R</em>
-					</td>
-					<!--<td>String</td> -->
+					<!--<td>File</td> -->
 					<td>null</td>
-					<td>Reference sequence</td>
+					<td>Output file (if not provided, defaults to STDOUT)</td>
+				</tr>
+				<tr>
+					<td><a href="#--requiredCoverageFraction">--requiredCoverageFraction</a><br />
+								&nbsp;<em>-rc</em>
+					</td>
+					<!--<td>Double</td> -->
+					<td>0.0</td>
+					<td>If provided, only reads or read pairs with complete coverage over at least this fraction of the interval will be included</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -201,14 +194,6 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the version number for this tool</td>
-				</tr>
-				<tr>
-					<td><a href="#--windowSize">--windowSize</a><br />
-								&nbsp;<em>-ws</em>
-					</td>
-					<!--<td>int</td> -->
-					<td>5000</td>
-					<td>Window Size</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Common Arguments</th>
@@ -453,19 +438,6 @@
 		<p>
 		<span class="label label-info ">List[File]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--chainFile">--chainFile </a>
-			 / <small>-c</small>
-		</h3>
-		<p class="args">
-			<b>Chain file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
@@ -759,6 +731,7 @@
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -775,16 +748,16 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--liftoverMinMatch">--liftoverMinMatch </a>
-			 / <small>-mm</small>
+		<h3><a name="--minQual">--minQual </a>
+			 / <small>-mq</small>
 		</h3>
 		<p class="args">
-			<b>LiftOver min match</b><br />
+			<b>If specified, bases with quality lower than this value will be converted to N</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.95</span>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
@@ -793,12 +766,11 @@
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which the output VCF should be written</b><br />
+			<b>Output file (if not provided, defaults to STDOUT)</b><br />
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
+		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -865,12 +837,27 @@
 			 / <small>-R</small>
 		</h3>
 		<p class="args">
-			<b>Reference sequence</b><br />
+			<b>Reference sequence file</b><br />
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--requiredCoverageFraction">--requiredCoverageFraction </a>
+			 / <small>-rc</small>
+		</h3>
+		<p class="args">
+			<b>If provided, only reads or read pairs with complete coverage over at least this fraction of the interval will be included</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Double</span>
+			&nbsp;<span class="label">0.0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
@@ -921,32 +908,6 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--sourceGenome">--sourceGenome </a>
-			 / <small>-s</small>
-		</h3>
-		<p class="args">
-			<b>Source reference sequence file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--targetGenome">--targetGenome </a>
-			 / <small>-t</small>
-		</h3>
-		<p class="args">
-			<b>Target reference sequence file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
@@ -1021,20 +982,6 @@
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
 		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--windowSize">--windowSize </a>
-			 / <small>-ws</small>
-		</h3>
-		<p class="args">
-			<b>Window Size</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">5000</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
 
         <hr>
         <p><a href='#top'><i class='fa fa-chevron-up'></i> Return to top</a></p>
@@ -1045,7 +992,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20-SNAPSHOT built at 30-04-2020 05:04:02.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
         </p>
 
 </div></div>

@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>TagPcrSummary</title>
+<title>MergeVariantSites</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Development/Pre-production Tools'; ?>
+	<?php $group = 'Public/Stable Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,39 +13,16 @@
 
 	<div class="span8">
 
-			<h1>TagPcrSummary</h1>
+			<h1>MergeVariantSites</h1>
 
-		<p>Detect and summarize transgene integration</p>
+		<p>Merge multiple VCFs to produce one with all unique sites</p>
 
 			<h3>Category
-				<small> Development/Pre-production Tools</small>
+				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
- providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
-
- <ul>
-     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is comprised of the organism plus one additional contig representing the delivery vector</li>
-     <li>Only first-mate reads are considered.  Reverse are ignored.</li>
-     <li>Each alignment is inspected (including cropped bases) for the presence of a short sequence expected to be at the insert/genome junction</li>
-     <li>*IMPORTANT* The orientation of each hit is used to determine the orientation of the transgene in the genome.  Each query sequence is associated with one end of the transgene</li>
-     <li>The hits are summarized based on the number of reads per genomic position (junction border)</li>
-     <li>If --primer3-path and --primer-pair-table are provided, the tool will iterate each passing integration site, extract the upstream and downstream region (+/- 1000bp), and design primer pairs that site inside the transgene and flanking genomic region.</li>
-     <li>If --blastn-path and --blast-db-path are provided, the tool will BLAST putative primers against the reference database and any primer with multiple hits will be flagged/discarded, along with non full-length primers that have a perfect match at the 3' end.</li>
-     <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
- </ul>
-
- <h3>Usage example:</h3>
- <pre>
-  java -jar DISCVRseq.jar TagPcrSummary \
-     -R currentGenome.fasta \
-     -b myBam.bam \
-     --output-table output.txt \
-     --primer-pair-table primer_summary.txt \
-     --prime3-path /usr/bin/primer3_core \
-     --genbank-output output.gb
- </pre>
+		
 
 		<hr>
 			<h2>Additional Information</h2>
@@ -54,12 +31,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by TagPcrSummary.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by MergeVariantSites.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>TagPcrSummary specific arguments</h3>
+				<h3>MergeVariantSites specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -74,36 +51,20 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--bam">--bam</a><br />
-								&nbsp;<em>-b</em>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>A BAM file with alignments to be inspected</td>
+					<td>File to which variants should be written</td>
 				</tr>
 				<tr>
-					<td><a href="#--insert-type">--insert-type</a><br />
-								&nbsp;<em>-it</em>
+					<td><a href="#--variant">--variant</a><br />
+								&nbsp;<em>-V</em>
 					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>The type of insert to test: currently support values are PiggyBac and Lentivirus</td>
-				</tr>
-				<tr>
-					<td><a href="#--output-table">--output-table</a><br />
-								&nbsp;<em>-o</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which TSV output should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--reference">--reference</a><br />
-								&nbsp;<em>-R</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Reference sequence file</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>One or more VCF files containing variants</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -114,30 +75,6 @@
 					<!--<td>List[File]</td> -->
 					<td>[]</td>
 					<td>read one or more arguments files and add them to the command line</td>
-				</tr>
-				<tr>
-					<td><a href="#--blast-db-path">--blast-db-path</a><br />
-								&nbsp;<em>-bdb</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided</td>
-				</tr>
-				<tr>
-					<td><a href="#--blast-threads">--blast-threads</a><br />
-								&nbsp;<em>-bt</em>
-					</td>
-					<!--<td>Integer</td> -->
-					<td>null</td>
-					<td>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</td>
-				</tr>
-				<tr>
-					<td><a href="#--blastn-path">--blastn-path</a><br />
-								&nbsp;<em>-bn</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>blastn</td>
-					<td>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</td>
 				</tr>
 				<tr>
 					<td><a href="#--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer</a><br />
@@ -171,6 +108,21 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--exclude-filtered">--exclude-filtered</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Don't include filtered sites</td>
+				</tr>
+				<tr>
+					<td><a href="#--excludeNonVariants">--excludeNonVariants</a><br />
+								&nbsp;<em>-env</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Exclude sites where no variation is present in the input</td>
+				</tr>
+				<tr>
 					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
 								&nbsp;<em>-gcs-retries</em>
 					</td>
@@ -186,28 +138,12 @@
 					<td>Project to bill when accessing "requester pays" buckets. If unset, these buckets cannot be accessed.</td>
 				</tr>
 				<tr>
-					<td><a href="#--genbank-output">--genbank-output</a><br />
-								&nbsp;<em>-g</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which a summary of integration sites, flanking sequence and optionally primers should be written in genbank format</td>
-				</tr>
-				<tr>
 					<td><a href="#--help">--help</a><br />
 								&nbsp;<em>-h</em>
 					</td>
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the help message</td>
-				</tr>
-				<tr>
-					<td><a href="#--include-sa">--include-sa</a><br />
-								&nbsp;<em>-sa</em>
-					</td>
-					<!--<td>boolean</td> -->
-					<td>false</td>
-					<td>If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-merging-rule">--interval-merging-rule</a><br />
@@ -226,52 +162,12 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--metrics-table">--metrics-table</a><br />
-								&nbsp;<em>-mt</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which a TSV of summary metrics should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--min-alignments">--min-alignments</a><br />
-								&nbsp;<em>-ma</em>
-					</td>
-					<!--<td>int</td> -->
-					<td>3</td>
-					<td>The minimum number of alignments required at a position to report</td>
-				</tr>
-				<tr>
-					<td><a href="#--min-fraction">--min-fraction</a><br />
-								&nbsp;<em>-mf</em>
-					</td>
-					<!--<td>double</td> -->
-					<td>0.0</td>
-					<td>Only sites with at least this fraction of total reads will be reported</td>
-				</tr>
-				<tr>
-					<td><a href="#--primer-pair-table">--primer-pair-table</a><br />
-								&nbsp;<em>-pt</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which TSV summarizing potential primer pairs should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--primer3-path">--primer3-path</a><br />
-								&nbsp;<em>-p3</em>
+					<td><a href="#--reference">--reference</a><br />
+								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>String</td> -->
-					<td>primer3</td>
-					<td>In order for this tool to design validation primers, the path to primer3 must be provided</td>
-				</tr>
-				<tr>
-					<td><a href="#--reads-to-output">--reads-to-output</a><br />
-								&nbsp;<em>-ro</em>
-					</td>
-					<!--<td>int</td> -->
-					<td>0</td>
-					<td>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</td>
+					<td>null</td>
+					<td>Reference sequence</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -532,55 +428,6 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--bam">--bam </a>
-			 / <small>-b</small>
-		</h3>
-		<p class="args">
-			<b>A BAM file with alignments to be inspected</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blast-db-path">--blast-db-path </a>
-			 / <small>-bdb</small>
-		</h3>
-		<p class="args">
-			<b>In order for this tool to use BLAST to detect validate the primers by detecting alternate binding sites, the path to a BLAST DB compiled against this reference FASTA must be provided</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blast-threads">--blast-threads </a>
-			 / <small>-bt</small>
-		</h3>
-		<p class="args">
-			<b>If BLAST will be used, this value is passed to the -num_threads argument of blastn.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--blastn-path">--blastn-path </a>
-			 / <small>-bn</small>
-		</h3>
-		<p class="args">
-			<b>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">blastn</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
 			 / <small>-CIPB</small>
 		</h3>
@@ -705,6 +552,19 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--exclude-filtered">--exclude-filtered </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Don't include filtered sites</b><br />
+			If this flag is enabled, sites that have been marked as filtered (i.e. have anything other than `.` or `PASS`
+ in the FILTER field) will be excluded from the output.
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--exclude-intervals">--exclude-intervals </a>
 			 / <small>-XL</small>
 		</h3>
@@ -718,6 +578,19 @@
 		<p>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--excludeNonVariants">--excludeNonVariants </a>
+			 / <small>-env</small>
+		</h3>
+		<p class="args">
+			<b>Exclude sites where no variation is present in the input</b><br />
+			Exclude sites that do not contain any called ALT alleles in the merged callset. The evaluation is made after the
+ merging procedure is complete.
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--gatk-config-file">--gatk-config-file </a>
@@ -758,35 +631,11 @@
 			&nbsp;<span class="label">""</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--genbank-output">--genbank-output </a>
-			 / <small>-g</small>
-		</h3>
-		<p class="args">
-			<b>File to which a summary of integration sites, flanking sequence and optionally primers should be written in genbank format</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--help">--help </a>
 			 / <small>-h</small>
 		</h3>
 		<p class="args">
 			<b>display the help message</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">boolean</span>
-			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--include-sa">--include-sa </a>
-			 / <small>-sa</small>
-		</h3>
-		<p class="args">
-			<b>If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well</b><br />
 			
 		</p>
 		<p>
@@ -804,19 +653,6 @@
 		<p>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--insert-type">--insert-type </a>
-			 / <small>-it</small>
-		</h3>
-		<p class="args">
-			<b>The type of insert to test: currently support values are PiggyBac and Lentivirus</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--interval-exclusion-padding">--interval-exclusion-padding </a>
@@ -925,81 +761,17 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--metrics-table">--metrics-table </a>
-			 / <small>-mt</small>
+		<h3><a name="--output">--output </a>
+			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which a TSV of summary metrics should be written</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--min-alignments">--min-alignments </a>
-			 / <small>-ma</small>
-		</h3>
-		<p class="args">
-			<b>The minimum number of alignments required at a position to report</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">3</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--min-fraction">--min-fraction </a>
-			 / <small>-mf</small>
-		</h3>
-		<p class="args">
-			<b>Only sites with at least this fraction of total reads will be reported</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--output-table">--output-table </a>
-			 / <small>-o</small>
-		</h3>
-		<p class="args">
-			<b>File to which TSV output should be written</b><br />
+			<b>File to which variants should be written</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
 		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--primer-pair-table">--primer-pair-table </a>
-			 / <small>-pt</small>
-		</h3>
-		<p class="args">
-			<b>File to which TSV summarizing potential primer pairs should be written</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--primer3-path">--primer3-path </a>
-			 / <small>-p3</small>
-		</h3>
-		<p class="args">
-			<b>In order for this tool to design validation primers, the path to primer3 must be provided</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">primer3</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--QUIET">--QUIET </a>
@@ -1061,29 +833,14 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--reads-to-output">--reads-to-output </a>
-			 / <small>-ro</small>
-		</h3>
-		<p class="args">
-			<b>If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
 			 / <small>-R</small>
 		</h3>
 		<p class="args">
-			<b>Reference sequence file</b><br />
+			<b>Reference sequence</b><br />
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -1174,6 +931,19 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--variant">--variant </a>
+			 / <small>-V</small>
+		</h3>
+		<p class="args">
+			<b>One or more VCF files containing variants</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
 			 / <small>-verbosity</small>
 		</h3>
@@ -1220,7 +990,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20-SNAPSHOT built at 30-04-2020 05:04:02.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
         </p>
 
 </div></div>

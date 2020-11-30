@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>ImmunoGenotyper</title>
+<title>MultipleAllelesAtLoci</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Development/Pre-production Tools'; ?>
+	<?php $group = 'Public/Stable Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,38 +13,41 @@
 
 	<div class="span8">
 
-			<h1>ImmunoGenotyper</h1>
+			<h1>MultipleAllelesAtLoci</h1>
 
-		<p>Provides genotyping summary for complex multigenic loci, like KIR or MHC.</p>
+		<p>Generate a list of loci with three or more distinct bases detected</p>
 
 			<h3>Category
-				<small> Development/Pre-production Tools</small>
+				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool will generate genotype calls for complex loci (such as many immune genes), from next-generation sequence data.
- In general, most next-generation sequencing tasks (WGS, RNA-seq, etc.) expect to align each read uniquely in the genome and frequently discard or ignore
- those reads that do not. While this is sufficient for much of the genome, complex, polygenic regions are frequently systematically filtered or missed by many
- variant-calling or genotyping methods. Further, the reference genome often has a poor representation of complex loci, including those that are polygenic or have copy-number differences
- in the population (often the reference genome has a single copy of the gene), or situations where the set of genes varies widely between individuals (in which case a single reference genome
- poorly captures variation). This tool applies the same general approach as originally published for macaque MHC genotyping (<a href="https://www.ncbi.nlm.nih.gov/pubmed/19820716">https://www.ncbi.nlm.nih.gov/pubmed/19820716</a>),
- though is a much newer implementation. This tool can either be run using targeted sequencing (i.e. amplicon), or using whole genome DNA- or RNA-seq data.
-
- To use this tool, first align your raw reads to a specialized database. For MHC, KIR, or NCR genotyping, we build a specialized database of alleles (<a href="https://www.ebi.ac.uk/ipd/">IPD is a good starting point</a>).
- We often use an aligner that will retain multiple matches per read (<a href="https://github.com/wanpinglee/MOSAIK">MOSAIK</a>, for example); however, we use BWA-mem in some cases as well. This BAM is the input
- for the this tool. ImmunoGenotyper iterates this BAM, capturing the set of contigs each read aligned against, within the provided number of mismatches. We expect ambiguity in many cases, with reads aligning
- to groups of related alleles (i.e. A002*001:02 and A*002*001:01). Finally, we series of filters can be run (described for each argument below) that attempt to collapse these genotypes. A final table
- is produced. Note: the reference data is essential for this tool to operate as-expected, and thoughtful design of that database for your application is critical.
+		This walker will iterate a BAM and report sites with passing alignments with reads from more than 2 alleles, where
+ the third allele is above the supplied threshold.  The original purpose was to find positions of potential duplications
+ or poor genome quality (i.e. reads from more than one duplicated gene are mapping to a single site).
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar ImmunoGenotyper \
+  java -jar DISCVRseq.jar MultipleAllelesAtLoci \
      -R reference.fasta \
-     -I myBam.bam \
-     -mm 1 \
-     -minReadCountForRef 10 \
-     -O outputBaseDir
+     -I bams.list \
+     -O output.bed
  </pre>
+ <p></p>
+ Would produce a BED file that looks like:
+ <p></p>
+ <pre>
+     chr20 10000000 10000001 MultiAllelicSite 2   +   Subj1: [A/0.25/1/4];Subj12: [A/0.2/2/10];
+     chr20 10000865 10000866 MultiAllelicSite 1   +   Subj4: [T/0.1/1/10]
+ </pre>
+
+ Where the columns are:
+ 1) Contig
+ 2) Start (0-based)
+ 3) End (0-based, exclusive)
+ 4) This always uses the name MultiAllelicSite
+ 5) Strand (always listed as plus)
+ 6) The subject/allele information. There is a semicolon-delimited list, where each element describes one subject/allele (any subject generally only has one flagged allele/site; however, in theory there could be two).  Each block uses the format: subject name, followed by colon, followed by [allele/frequency/count/totalDepth]
 
 		<hr>
 			<h2>Additional Information</h2>
@@ -53,12 +56,14 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by ImmunoGenotyper.</p>
+					<p>These Read Filters are automatically applied to the data by the Engine before processing by MultipleAllelesAtLoci.</p>
 				<ul>
-						<li><a href="com_github_discvrseq_walkers_ImmunoGenotyper$Filter.html">Filter</a></li>
+						<li><a href="org_broadinstitute_hellbender_engine_filters_ReadFilterLibrary$MappedReadFilter.html">MappedReadFilter</a></li>
+						<li><a href="org_broadinstitute_hellbender_engine_filters_ReadFilterLibrary$NotDuplicateReadFilter.html">NotDuplicateReadFilter</a></li>
+						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>ImmunoGenotyper specific arguments</h3>
+				<h3>MultipleAllelesAtLoci specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -79,14 +84,6 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>BAM/SAM/CRAM file containing reads</td>
-				</tr>
-				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Prefix for output files</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -169,62 +166,42 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--minAlignmentLength">--minAlignmentLength</a><br />
+					<td><a href="#--max-depth-per-sample">--max-depth-per-sample</a><br />
 					</td>
-					<!--<td>Integer</td> -->
-					<td>40</td>
-					<td>Alignments shorted than this value will be discarded.</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minBasePct">--minBasePct</a><br />
+					</td>
+					<!--<td>double</td> -->
+					<td>0.1</td>
+					<td>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</td>
+				</tr>
+				<tr>
+					<td><a href="#--minBaseQuality">--minBaseQuality</a><br />
+								&nbsp;<em>-mbq</em>
+					</td>
+					<!--<td>byte</td> -->
+					<td>20</td>
+					<td>Minimum quality of bases to count towards depth.</td>
 				</tr>
 				<tr>
 					<td><a href="#--minMappingQuality">--minMappingQuality</a><br />
 								&nbsp;<em>-mmq</em>
 					</td>
-					<!--<td>Integer</td> -->
-					<td>0</td>
+					<!--<td>byte</td> -->
+					<td>10</td>
 					<td>Minimum mapping quality of reads to count towards depth.</td>
 				</tr>
 				<tr>
-					<td><a href="#--minPctForExport">--minPctForExport</a><br />
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>Double</td> -->
-					<td>0.0</td>
-					<td>If provided, any genotype representing fewer than this fraction of mapped reads will be discarded.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minPctForLineageFiltering">--minPctForLineageFiltering</a><br />
-					</td>
-					<!--<td>Double</td> -->
-					<td>0.01</td>
-					<td>This is part of the filtering strategy for ambiguous hits.  If provided, references will be grouped by lineage/allotype (based on the supplied file).  Within each group any hit sets below this threshold will be ignored.  Of the remaining, if any alleles are present across all groups, only those hits will be retained.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minPctForRef">--minPctForRef</a><br />
-					</td>
-					<!--<td>Double</td> -->
-					<td>0.01</td>
-					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minReadCountForExport">--minReadCountForExport</a><br />
-					</td>
-					<!--<td>Integer</td> -->
-					<td>5</td>
-					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.</td>
-				</tr>
-				<tr>
-					<td><a href="#--minReadCountForRef">--minReadCountForRef</a><br />
-					</td>
-					<!--<td>Integer</td> -->
-					<td>5</td>
-					<td>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.</td>
-				</tr>
-				<tr>
-					<td><a href="#--mismatchesTolerated">--mismatchesTolerated</a><br />
-								&nbsp;<em>-mm</em>
-					</td>
-					<!--<td>Integer</td> -->
-					<td>0</td>
-					<td>The maximum number of mismatches tolerated for alignment.  If a given read has multiple alignments, those with the fewest mismatches will be kept (irrespective of length).</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>The output BED file</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -233,21 +210,6 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>Reference sequence</td>
-				</tr>
-				<tr>
-					<td><a href="#--referenceToLineageFile">--referenceToLineageFile</a><br />
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>This is a simple tab-delimited file, no header, with two columns.  The first is the reference name, identical to that provided in the FASTA/BAM.  The second column is the lineage/allotype of this sequence.  This is used for grouping purposes and filtering.</td>
-				</tr>
-				<tr>
-					<td><a href="#--requireValidPair">--requireValidPair</a><br />
-								&nbsp;<em>-rvp</em>
-					</td>
-					<!--<td>boolean</td> -->
-					<td>false</td>
-					<td>If true, only reads with a valid pair to the same reference will be considered</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -451,6 +413,13 @@
 			<tr>
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
+				<tr>
+					<td><a href="#--minDepth">--minDepth</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>4</td>
+					<td>Minimum QC+ read depth before a locus is considered callable</td>
+				</tr>
 				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
@@ -808,17 +777,60 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minAlignmentLength">--minAlignmentLength </a>
-			 / <small>-minAlignmentLength</small>
+		<h3><a name="--max-depth-per-sample">--max-depth-per-sample </a>
+			 / <small>-max-depth-per-sample</small>
 		</h3>
 		<p class="args">
-			<b>Alignments shorted than this value will be discarded.</b><br />
+			<b>Maximum number of reads to retain per sample per locus. Reads above this threshold will be downsampled. Set to 0 to disable.</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">40</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minBasePct">--minBasePct </a>
+			 / <small>-minBasePct</small>
+		</h3>
+		<p class="args">
+			<b>If a given site has more than three alleles present, any alleles beyond the top two that are above this threshold are reported.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">double</span>
+			&nbsp;<span class="label">0.1</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minBaseQuality">--minBaseQuality </a>
+			 / <small>-mbq</small>
+		</h3>
+		<p class="args">
+			<b>Minimum quality of bases to count towards depth.</b><br />
+			Bases with less than minBaseQuality are viewed as not sufficiently high quality to contribute to the PASS state
+		</p>
+		<p>
+		<span class="label label-info ">byte</span>
+			&nbsp;<span class="label">20</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--minDepth">--minDepth </a>
+			 / <small>-minDepth</small>
+		</h3>
+		<p class="args">
+			<b>Minimum QC+ read depth before a locus is considered callable</b><br />
+			If the number of QC+ bases (on reads with MAPQ > minMappingQuality and with base quality > minBaseQuality) exceeds this
+ value and is less than maxDepth the site is considered PASS.
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">4</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -827,96 +839,13 @@
 		</h3>
 		<p class="args">
 			<b>Minimum mapping quality of reads to count towards depth.</b><br />
-			
+			Reads with MAPQ > minMappingQuality are treated as usable for variation detection, contributing to the PASS
+ state.
 		</p>
 		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">0</span>
+		<span class="label label-info ">byte</span>
+			&nbsp;<span class="label">10</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minPctForExport">--minPctForExport </a>
-			 / <small>-minPctForExport</small>
-		</h3>
-		<p class="args">
-			<b>If provided, any genotype representing fewer than this fraction of mapped reads will be discarded.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Double</span>
-			&nbsp;<span class="label">0.0</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
-			&nbsp;<span class="label label-warning">1 ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minPctForLineageFiltering">--minPctForLineageFiltering </a>
-			 / <small>-minPctForLineageFiltering</small>
-		</h3>
-		<p class="args">
-			<b>This is part of the filtering strategy for ambiguous hits.  If provided, references will be grouped by lineage/allotype (based on the supplied file).  Within each group any hit sets below this threshold will be ignored.  Of the remaining, if any alleles are present across all groups, only those hits will be retained.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Double</span>
-			&nbsp;<span class="label">0.01</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
-			&nbsp;<span class="label label-warning">1 ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minPctForRef">--minPctForRef </a>
-			 / <small>-minPctForRef</small>
-		</h3>
-		<p class="args">
-			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than this fraction of reads mapping to it (of the total reads mapping) will be discarded.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Double</span>
-			&nbsp;<span class="label">0.01</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
-			&nbsp;<span class="label label-warning">1 ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minReadCountForExport">--minReadCountForExport </a>
-			 / <small>-minReadCountForExport</small>
-		</h3>
-		<p class="args">
-			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any genotype with fewer than the provided number of reads will be discarded.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">5</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minReadCountForRef">--minReadCountForRef </a>
-			 / <small>-minReadCountForRef</small>
-		</h3>
-		<p class="args">
-			<b>This is part of the filtering strategy for ambiguous hits.  If provided, any reference with fewer than the provided number of reads mapping to it will be discarded.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">5</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--mismatchesTolerated">--mismatchesTolerated </a>
-			 / <small>-mm</small>
-		</h3>
-		<p class="args">
-			<b>The maximum number of mismatches tolerated for alignment.  If a given read has multiple alignments, those with the fewest mismatches will be kept (irrespective of length).</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">0</span>
-			&nbsp;<span class="label label-warning">[ [ 0</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -924,12 +853,11 @@
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>Prefix for output files</b><br />
+			<b>The output BED file</b><br />
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
+		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -1002,30 +930,6 @@
 		<p>
 		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--referenceToLineageFile">--referenceToLineageFile </a>
-			 / <small>-referenceToLineageFile</small>
-		</h3>
-		<p class="args">
-			<b>This is a simple tab-delimited file, no header, with two columns.  The first is the reference name, identical to that provided in the FASTA/BAM.  The second column is the lineage/allotype of this sequence.  This is used for grouping purposes and filtering.</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--requireValidPair">--requireValidPair </a>
-			 / <small>-rvp</small>
-		</h3>
-		<p class="args">
-			<b>If true, only reads with a valid pair to the same reference will be considered</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">boolean</span>
-			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
@@ -1160,7 +1064,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20-SNAPSHOT built at 30-04-2020 05:04:02.
+        <p class="version">DISCVR-Seq version 1.20 built at 30-35-2020 07:35:01.
         </p>
 
 </div></div>
