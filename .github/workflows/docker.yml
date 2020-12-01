@@ -36,5 +36,8 @@ jobs:
           pull: true
           push: true
           tags: ghcr.io/bimberlab/discvrseq:nightly,ghcr.io/bimberlab/discvrseq:latest
-          labels: nightly,latest
+          labels: |
+            org.opencontainers.image.title=DISCVRSeq Toolkit
+            org.opencontainers.image.description=DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine.
+
 
