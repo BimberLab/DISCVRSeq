@@ -174,7 +174,7 @@ task copyShadowJar(type: Copy) {
     into "$buildDir/jars"
 
     doLast {
-        logger.lifecycle("Created DISCVRseq distribution in ${destinationDir}")
+        logger.lifecycle("Created DISCVRseq JAR in ${destinationDir}")
     }
 }
 

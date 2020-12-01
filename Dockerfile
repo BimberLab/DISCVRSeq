@@ -17,4 +17,4 @@ RUN cd /discvr-build \
     && cd / \
     && rm -Rf /discvr-build
 
-ENTRYPOINT ["java", "-jar", "DISCVRSeq.jar"]
+ENTRYPOINT ["java", "-jar", "/DISCVRSeq.jar"]
