@@ -14,8 +14,15 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2
-      - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
+      - name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: ghcr.io/bimberlab/discvrseq
+          tag-sha: true
+          tag-semver: |
+            {{version}}
+            {{major}}.{{minor}}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -37,6 +44,7 @@ jobs:
           push: true
           tags: ghcr.io/bimberlab/discvrseq:nightly,ghcr.io/bimberlab/discvrseq:latest
           labels: |
+            ${{ steps.docker_meta.outputs.labels }}
             org.opencontainers.image.title=DISCVRSeq Toolkit
             org.opencontainers.image.description=DISCVR-seq Toolkit is a diverse collection of tools for working with sequencing data, developed and maintained by the Bimber Lab, built using the GATK4 engine.
 
