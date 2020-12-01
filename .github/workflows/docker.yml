@@ -35,5 +35,5 @@ jobs:
           file: ./Dockerfile
           pull: true
           tags: ghcr.io/bimberlab/discvrseq:nightly,ghcr.io/bimberlab/discvrseq:latest
-          labels: nightly
+          labels: nightly,latest
 
