@@ -11,7 +11,7 @@ ADD . /discvr-build
 RUN cd /discvr-build \
     && ./gradlew assemble \
     && ./gradlew shadowJar \
-    && ./gradlew copyShadowJar
+    && ./gradlew copyShadowJar \
     && ls -lah build/jars/ \
     && mv build/jars/DISCVRSeq-*.jar /DISCVRSeq.jar \
     && cd / \
