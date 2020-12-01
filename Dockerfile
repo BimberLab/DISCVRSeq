@@ -9,7 +9,7 @@ RUN apt-get update \
 ADD . /discvr-build
 
 RUN cd /discvr-build \
-    && export GIT_TAG=$(git describe --tags) \
+    && export GIT_TAG=$(git describe --tags --abbrev=0) \
     && echo $GIT_TAG \
     && ./gradlew assemble \
     && ./gradlew installDist \
