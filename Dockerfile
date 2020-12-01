@@ -11,9 +11,8 @@ ADD . /discvr-build
 RUN cd /discvr-build \
     && ./gradlew assemble \
     && ./gradlew installDist \
-    && ./gradlew shadowJar -Drelease=true \
+    && ./gradlew shadowJar \
     && ls build/libs/ \
-    && rm build/libs/*-SNAPSHOT.jar
     && mv build/libs/DISCVRSeq-*.jar /DISCVRSeq.jar \
     && cd / \
     && rm -Rf /discvr-build
