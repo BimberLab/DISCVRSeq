@@ -167,6 +167,17 @@ task sourcesJar(type: Jar) {
     classifier = 'sources'
 }
 
+task copyShadowJar(type: Copy) {
+    dependsOn shadowJar
+
+    from(shadowJar.archivePath)
+    into "$buildDir/jars"
+
+    doLast {
+        logger.lifecycle("Created DISCVRseq distribution in ${destinationDir}")
+    }
+}
+
 tasks.withType(Javadoc) {
     // do this for all javadoc tasks, including toolDoc
     options.addStringOption('Xdoclint:none')
