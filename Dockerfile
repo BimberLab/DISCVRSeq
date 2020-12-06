@@ -10,19 +10,14 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 #Primer3
-RUN mkdir -p /primer3/ \
-    && cd / \
+RUN cd / \
     && wget https://github.com/primer3-org/primer3/archive/v2.5.0.tar.gz \
     && tar -xf v2.5.0.tar.gz \
-    && ls -lah \
     && rm v2.5.0.tar.gz \
     && cd /primer3-2.5.0/src \
-    && make \
-    && ls -lah
+    && make
 
-ENV PATH="/usr/local/primer3-2.5.0/src/:${PATH}"
-RUN which blastn
-RUN which primer3-core
+ENV PATH="/primer3-2.5.0/src:${PATH}"
 
 ADD . /discvr-build
 
@@ -30,11 +25,13 @@ RUN cd /discvr-build \
     && ./gradlew assemble \
     && ./gradlew shadowJar \
     && ./gradlew copyShadowJar \
-    && ls -lah build/jars/ \
     && mv build/jars/DISCVRSeq-*.jar /DISCVRSeq.jar \
     && cd / \
     && rm -Rf /discvr-build
 
-ENV PATH="/usr/local/primer3-2.5.0/src/:${PATH}"
+# Santity check:
+#RUN which blastn
+#RUN which primer3_core
+#stat /DISCVRSeq.jar
 
 ENTRYPOINT ["java", "-jar", "/DISCVRSeq.jar"]

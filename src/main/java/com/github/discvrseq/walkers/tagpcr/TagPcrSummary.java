@@ -252,7 +252,7 @@ public class TagPcrSummary extends GATKTool {
             logger.info("No BLAST database provided, will not validate primers");
         }
 
-        primer3ExePath = setExePath(primer3ExePath, "primer3-core", "PRIMER3_PATH");
+        primer3ExePath = setExePath(primer3ExePath, "primer3_core", "PRIMER3_PATH");
         if (doGenerateAmplicons() && primer3ExePath == null) {
             throw new UserException.BadInput("Primer generation was implied, but primer3 was not found");
         }
