@@ -1,4 +1,4 @@
-name: pENTR-PB511-Repro
+name: PiggyBac
 junctions:
 - name: PB-3TR
   searchStrings: [ GCAGACTATCTTTCTAGGGTTAA ]

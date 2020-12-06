@@ -221,6 +221,15 @@ public class TagPcrSummary extends GATKTool {
             INSERT_DESCRIPTORS.add(getDefaultType(name));
         }
 
+        Set<String> names = new HashSet<>();
+        for (InsertDescriptor id : INSERT_DESCRIPTORS) {
+            if (names.contains(id.getName())) {
+                throw new UserException.BadInput("Duplicate names in insert descriptors: " + id.getName());
+            }
+
+            names.add(id.getName());
+        }
+
         // The block above will error if not valid
         if (validateDescriptorsOnly) {
             logger.info("The insert descriptors were valid");
