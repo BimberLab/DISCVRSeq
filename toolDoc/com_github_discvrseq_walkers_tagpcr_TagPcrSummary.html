@@ -26,7 +26,7 @@
  providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
 
  <ul>
-     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is comprised of the organism plus one additional contig representing the delivery vector</li>
+     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is the reference for that organism. It is possible for this to also contain the transgene and/or delivery vector but this is not necessarily needed and can be more complicated to maintain</li>
      <li>Only first-mate reads are considered.  Reverse are ignored.</li>
      <li>Each alignment is inspected (including cropped bases) for the presence of a short sequence expected to be at the insert/genome junction</li>
      <li>*IMPORTANT* The orientation of each hit is used to determine the orientation of the transgene in the genome.  Each query sequence is associated with one end of the transgene</li>
@@ -45,6 +45,13 @@
      --primer-pair-table primer_summary.txt \
      --prime3-path /usr/bin/primer3_core \
      --genbank-output output.gb
+ </pre>
+
+ To get the complete output, the tool requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. Below are two examples:
+
+ <pre>
+
+
  </pre>
 
 		<hr>
@@ -74,30 +81,6 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--bam">--bam</a><br />
-								&nbsp;<em>-b</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>A BAM file with alignments to be inspected</td>
-				</tr>
-				<tr>
-					<td><a href="#--insert-type">--insert-type</a><br />
-								&nbsp;<em>-it</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>The type of insert to test: currently support values are PiggyBac and Lentivirus</td>
-				</tr>
-				<tr>
-					<td><a href="#--output-table">--output-table</a><br />
-								&nbsp;<em>-o</em>
-					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>File to which TSV output should be written</td>
-				</tr>
-				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
@@ -114,6 +97,14 @@
 					<!--<td>List[File]</td> -->
 					<td>[]</td>
 					<td>read one or more arguments files and add them to the command line</td>
+				</tr>
+				<tr>
+					<td><a href="#--bam">--bam</a><br />
+								&nbsp;<em>-b</em>
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>A BAM file with alignments to be inspected</td>
 				</tr>
 				<tr>
 					<td><a href="#--blast-db-path">--blast-db-path</a><br />
@@ -136,8 +127,8 @@
 								&nbsp;<em>-bn</em>
 					</td>
 					<!--<td>String</td> -->
-					<td>blastn</td>
-					<td>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</td>
+					<td>null</td>
+					<td>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers. If blastn is in your $PATH, it will be picked up. Alternately, the environment variable BLASTN_PATH can be set, pointing to the blastn executable.</td>
 				</tr>
 				<tr>
 					<td><a href="#--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer</a><br />
@@ -210,6 +201,21 @@
 					<td>If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well</td>
 				</tr>
 				<tr>
+					<td><a href="#--insert-definition">--insert-definition</a><br />
+								&nbsp;<em>-id</em>
+					</td>
+					<!--<td>List[File]</td> -->
+					<td>[]</td>
+					<td>One or more files describing the insert and transgene/genome junctions. See --show-default-descriptors and --validate-descriptor-only</td>
+				</tr>
+				<tr>
+					<td><a href="#--insert-name">--insert-name</a><br />
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>The name of one of the built-in insert descriptors to use. See --write-default-descriptors for available types</td>
+				</tr>
+				<tr>
 					<td><a href="#--interval-merging-rule">--interval-merging-rule</a><br />
 								&nbsp;<em>-imr</em>
 					</td>
@@ -250,6 +256,14 @@
 					<td>Only sites with at least this fraction of total reads will be reported</td>
 				</tr>
 				<tr>
+					<td><a href="#--output-table">--output-table</a><br />
+								&nbsp;<em>-o</em>
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>File to which TSV output should be written</td>
+				</tr>
+				<tr>
 					<td><a href="#--primer-pair-table">--primer-pair-table</a><br />
 								&nbsp;<em>-pt</em>
 					</td>
@@ -262,8 +276,8 @@
 								&nbsp;<em>-p3</em>
 					</td>
 					<!--<td>String</td> -->
-					<td>primer3</td>
-					<td>In order for this tool to design validation primers, the path to primer3 must be provided</td>
+					<td>null</td>
+					<td>In order for this tool to design validation primers, the path to primer3 must be provided. If primer3 is in your $PATH, it will be picked up. Alternately, the environment variable PRIMER3_PATH can be set, pointing to the primer3 executable.</td>
 				</tr>
 				<tr>
 					<td><a href="#--reads-to-output">--reads-to-output</a><br />
@@ -281,11 +295,25 @@
 					<td>If true, don't emit genotype fields when writing vcf file output.</td>
 				</tr>
 				<tr>
+					<td><a href="#--validate-descriptor-only">--validate-descriptor-only</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If provided, the tool will simply validate the insert definition files (see --insert-definition) and exit</td>
+				</tr>
+				<tr>
 					<td><a href="#--version">--version</a><br />
 					</td>
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the version number for this tool</td>
+				</tr>
+				<tr>
+					<td><a href="#--write-default-descriptors">--write-default-descriptors</a><br />
+					</td>
+					<!--<td>File</td> -->
+					<td>null</td>
+					<td>If provided, the tool will write the YAML for the default descriptors to this file and exit. This can be useful as a guide for writing your own descriptors (which is likely needed).</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Common Arguments</th>
@@ -540,7 +568,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -573,12 +600,12 @@
 			 / <small>-bn</small>
 		</h3>
 		<p class="args">
-			<b>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers.</b><br />
+			<b>The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers. If blastn is in your $PATH, it will be picked up. Alternately, the environment variable BLASTN_PATH can be set, pointing to the blastn executable.</b><br />
 			
 		</p>
 		<p>
 		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">blastn</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
@@ -806,17 +833,28 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--insert-type">--insert-type </a>
-			 / <small>-it</small>
+		<h3><a name="--insert-definition">--insert-definition </a>
+			 / <small>-id</small>
 		</h3>
 		<p class="args">
-			<b>The type of insert to test: currently support values are PiggyBac and Lentivirus</b><br />
+			<b>One or more files describing the insert and transgene/genome junctions. See --show-default-descriptors and --validate-descriptor-only</b><br />
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
+		<span class="label label-info ">List[File]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--insert-name">--insert-name </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The name of one of the built-in insert descriptors to use. See --write-default-descriptors for available types</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--interval-exclusion-padding">--interval-exclusion-padding </a>
@@ -973,7 +1011,6 @@
 			
 		</p>
 		<p>
-				<span class="badge badge-important">R</span>
 		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
@@ -994,12 +1031,12 @@
 			 / <small>-p3</small>
 		</h3>
 		<p class="args">
-			<b>In order for this tool to design validation primers, the path to primer3 must be provided</b><br />
+			<b>In order for this tool to design validation primers, the path to primer3 must be provided. If primer3 is in your $PATH, it will be picked up. Alternately, the environment variable PRIMER3_PATH can be set, pointing to the primer3 executable.</b><br />
 			
 		</p>
 		<p>
 		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">primer3</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--QUIET">--QUIET </a>
@@ -1174,6 +1211,18 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--validate-descriptor-only">--validate-descriptor-only </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If provided, the tool will simply validate the insert definition files (see --insert-definition) and exit</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
 			 / <small>-verbosity</small>
 		</h3>
@@ -1210,6 +1259,18 @@
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
 		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--write-default-descriptors">--write-default-descriptors </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If provided, the tool will write the YAML for the default descriptors to this file and exit. This can be useful as a guide for writing your own descriptors (which is likely needed).</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
 
         <hr>
         <p><a href='#top'><i class='fa fa-chevron-up'></i> Return to top</a></p>
@@ -1220,7 +1281,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.20 built at 01-45-2020 04:45:43.
+        <p class="version">DISCVR-Seq version 1.21 built at 06-39-2020 03:39:30.
         </p>
 
 </div></div>
