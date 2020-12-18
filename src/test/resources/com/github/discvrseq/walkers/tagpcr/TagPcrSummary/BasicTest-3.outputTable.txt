@@ -1,0 +1,2 @@
+SiteName	JunctionName	Orientation	Chr	Position	Strand	Total	Fraction
+Site1	PB-5TR	Minus	1	3943	-	6	0.230769
