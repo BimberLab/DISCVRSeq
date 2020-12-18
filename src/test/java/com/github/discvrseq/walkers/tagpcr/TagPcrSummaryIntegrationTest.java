@@ -1,6 +1,6 @@
-package com.github.discvrseq.walkers;
+package com.github.discvrseq.walkers.tagpcr;
 
-import com.github.discvrseq.walkers.tagpcr.TagPcrSummary;
+import com.github.discvrseq.walkers.BaseIntegrationTest;
 import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.io.IOUtils;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class TagPcrSummaryIntegrationTest extends BaseIntegrationTest {
@@ -56,14 +57,49 @@ public class TagPcrSummaryIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testShowDescriptors() throws Exception {
-        File tmp2 = createTempFile("defaults", ".txt");
-
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 " -R " + normalizePath(getHg19Micro()) +
-                        " --write-default-descriptors " + normalizePath(tmp2) +
+                        " --write-default-descriptors %s" +
                         " --tmp-dir " + getTmpDir(),
-                Collections.emptyList());
+                Arrays.asList(getTestFile("descriptors.txt").getPath()));
 
         spec.executeTest("testShowDescriptors", this);
     }
+
+    @Test
+    public void doBasicTest1() throws Exception {
+        doTest(3);
+    }
+
+    @Test
+    public void doBasicTest2() throws Exception {
+        doTest(1);
+    }
+
+    private void doTest(int minAlign) throws Exception {
+        String name = "BasicTest";
+        File bam = new File(testBaseDir, "tagPcrTest.sam");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                " -R " + getHg19Micro() +
+                        " --bam " + normalizePath(bam) +
+                        " --output-table %s " +
+                        " --metrics-table %s " +
+                        " -ma " + minAlign + " " +
+                        " --reads-to-output 3 " +
+                        " --insert-name piggybac " +
+                        " --tmp-dir " + getTmpDir(),
+                Arrays.asList(getTestFile(name + "-" + minAlign + ".outputTable.txt").getPath(), getTestFile(name + "-" + minAlign + ".metrics.txt").getPath())
+        );
+
+        spec.executeTest(name, this);
+
+    }
+
+    //TODO: test primer design:
+//        " --genbank-output sites.gb " +
+//        " --primer-pair-table primerTable.txt " +
+//        " --primer3-path primer3_core.exe " +
+//        " --blastn-path blastn.exe " +
+//        " --blast-db-path /Blast/FDC9E311-9D8F-1038-A30B-F8F3FC862593 " +
 }
