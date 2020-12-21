@@ -2,7 +2,7 @@ MetricName	MetricValue
 TotalSecondaryAlignmentsMatchingInsert	0
 IntegrationSitesOutputMinusStrand	5
 PctReadsSpanningJunction	1.0
-FractionPrimaryAlignmentsMatchingInsert	0.0
+FractionPrimaryAlignmentsMatchingInsert	0.00
 NumReadsSpanningJunction	26
 TotalIntegrationSitesOutput	21
 IntegrationSitesOutputPlusStrand	16
