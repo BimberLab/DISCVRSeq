@@ -47,6 +47,21 @@
       "options": []
     },
     {
+      "summary": "If provided, this tool will scan reads for the presence of any of these strings (perfect match-only, but also inspecting for reverse-complement). If found, the read will be counted as overlapping the backbone. This can be useful if the delivery system is a vector, and would allow detection of non-integrated vector",
+      "name": "--backbone-sequences",
+      "synonyms": "-bs",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "A BAM file with alignments to be inspected",
       "name": "--bam",
       "synonyms": "-b",
