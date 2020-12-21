@@ -96,6 +96,29 @@ public class TagPcrSummaryIntegrationTest extends BaseIntegrationTest {
 
     }
 
+    @Test
+    public void doTestWithSupplementalBackbone() throws Exception {
+        int minAlign = 3;
+        String name = "BasicTest";
+        File bam = new File(testBaseDir, "tagPcrTest.sam");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                " -R " + getHg19Micro() +
+                        " --bam " + normalizePath(bam) +
+                        " --output-table %s " +
+                        " --metrics-table %s " +
+                        " -ma " + minAlign + " " +
+                        " --reads-to-output 3 " +
+                        " --insert-name piggybac " +
+                        " --bs CCCTGTGGGGTAGTGGGTCCTGTGA" +
+                        " --tmp-dir " + getTmpDir(),
+                Arrays.asList(getTestFile(name + "-" + minAlign + ".outputTable.txt").getPath(), getTestFile(name + "-" + minAlign + ".backbone.metrics.txt").getPath())
+        );
+
+        spec.executeTest(name, this);
+
+    }
+
     //TODO: test primer design:
 //        " --genbank-output sites.gb " +
 //        " --primer-pair-table primerTable.txt " +

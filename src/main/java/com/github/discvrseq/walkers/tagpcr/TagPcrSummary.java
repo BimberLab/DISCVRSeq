@@ -139,6 +139,9 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well", fullName = "include-sa", shortName = "sa", optional = true)
     public boolean includeSupplementalAlignments = false;
 
+    @Argument(doc="If provided, this tool will scan reads for the presence of any of these strings (perfect match-only, but also inspecting for reverse-complement). If found, the read will be counted as overlapping the backbone. This can be useful if the delivery system is a vector, and would allow detection of non-integrated vector", fullName = "backbone-sequences", shortName = "bs", optional = true)
+    public List<String> supplementalBackboneSearchStrings = null;
+
     @Override
     public boolean requiresReference() {
         return !validateDescriptorsOnly;
@@ -228,6 +231,10 @@ public class TagPcrSummary extends GATKTool {
             }
 
             names.add(id.getName());
+
+            if (!supplementalBackboneSearchStrings.isEmpty()) {
+                id.getBackboneSearchStrings().addAll(supplementalBackboneSearchStrings);
+            }
         }
 
         // The block above will error if not valid
@@ -356,7 +363,7 @@ public class TagPcrSummary extends GATKTool {
         File bam = ensureQuerySorted(inputBam);
 
         Map<String, JunctionMatch> totalMatches = new HashMap<>();
-        Map<String, Number> metricsMap = new HashMap<>();
+        Map<String, Object> metricsMap = new HashMap<>();
 
         int reverseReadsSkipped = 0;
 
@@ -444,7 +451,10 @@ public class TagPcrSummary extends GATKTool {
         }
 
         metricsMap.put("TotalPrimaryAlignmentsMatchingInsert", totalPrimaryAlignmentsMatchingInsert);
-        metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", (double)totalPrimaryAlignmentsMatchingInsert / uniqueReads);
+
+        NumberFormat format1 = DecimalFormat.getNumberInstance();
+        format1.setMaximumFractionDigits(2);
+        metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", format1.format((double)totalPrimaryAlignmentsMatchingInsert / uniqueReads));
         metricsMap.put("TotalSecondaryAlignmentsMatchingInsert", totalSecondaryAlignmentsMatchingInsert);
 
         int totalMinusStrand = 0;
