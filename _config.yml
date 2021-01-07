@@ -7,3 +7,4 @@ relative_links:
   collections: true
 include:
   - index.md
+theme: jekyll-theme-slate
