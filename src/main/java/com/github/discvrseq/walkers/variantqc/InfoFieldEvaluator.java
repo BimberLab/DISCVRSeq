@@ -4,9 +4,11 @@ import htsjdk.variant.variantcontext.VariantContext;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalEngine;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.VariantEvaluator;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.Analysis;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.Molten;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.util.VariantEvalContext;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,15 +30,15 @@ public class InfoFieldEvaluator extends VariantEvaluator {
     public Map<String, Long> counts = new HashMap<>();
     private long total = 0;
 
-    protected InfoFieldEvaluator(String infoFieldName) {
-        super(getEvalModuleSimpleName(infoFieldName));
+    protected InfoFieldEvaluator(VariantEvalEngine engine, String infoFieldName) {
+        super(engine, getEvalModuleSimpleName(infoFieldName));
         this.infoFieldName = infoFieldName;
     }
 
     @Override
-    public void update1(VariantContext eval, ReferenceContext referenceContext, ReadsContext readsContext, FeatureContext featureContext) {
-        if (eval != null && eval.hasAttribute(infoFieldName)) {
-            Object val = eval.getAttribute(infoFieldName);
+    public void update1(VariantContext vc, VariantEvalContext context) {
+        if (context != null && vc.hasAttribute(infoFieldName)) {
+            Object val = vc.getAttribute(infoFieldName);
             if (val != null) {
                 String stringVal = val.toString();
 

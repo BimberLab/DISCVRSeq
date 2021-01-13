@@ -14,9 +14,14 @@ import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.engine.GATKPath;
+import org.broadinstitute.hellbender.engine.MultiVariantWalkerGroupedOnStart;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalArgumentCollection;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalEngine;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.VariantEvaluator;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
@@ -29,7 +34,6 @@ import org.broadinstitute.hellbender.utils.report.GATKReportVersion;
 import org.broadinstitute.hellbender.utils.samples.PedigreeValidationType;
 import org.broadinstitute.hellbender.utils.samples.SampleDB;
 import org.broadinstitute.hellbender.utils.samples.SampleDBBuilder;
-import org.reflections.Reflections;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -139,7 +143,7 @@ import java.util.*;
         oneLineSummary = "Generate HTML summary report for a VCF",
         programGroup = DiscvrSeqProgramGroup.class
 )
-public class VariantQC extends VariantWalker {
+public class VariantQC extends MultiVariantWalkerGroupedOnStart {
 
     @Argument(fullName = StandardArgumentDefinitions.PEDIGREE_FILE_LONG_NAME, shortName = StandardArgumentDefinitions.PEDIGREE_FILE_SHORT_NAME, doc="Pedigree file for identifying Mendelian violations", optional=true)
     private GATKPath pedigreeFile;
@@ -234,7 +238,7 @@ public class VariantQC extends VariantWalker {
         List<ReportConfig> ret = new ArrayList<>();
 
         VCFHeader header = getHeaderForVariants();
-        Map<String, Class<? extends VariantStratifier>> classMap = getStratifierClassMap();
+        Map<String, Class<? extends VariantStratifier>> classMap = VariantEvalEngine.getStratifierClasses();
 
         try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
             String[] line;
@@ -332,9 +336,7 @@ public class VariantQC extends VariantWalker {
         //configure the child walkers
         this.getTraversalIntervals(); //initialize potential contig override
         for (VariantEvalWrapper wrapper : this.wrappers){
-            wrapper.configureWalker(this);
-
-            wrapper.walker.onTraversalStart();
+            wrapper.configureEngine(this);
         }
     }
 
@@ -362,20 +364,21 @@ public class VariantQC extends VariantWalker {
     }
 
     @Override
-    public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
+    public void apply(List<VariantContext> list, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         for (VariantEvalWrapper wrapper : this.wrappers) {
-            wrapper.walker.apply(variant, readsContext, referenceContext, featureContext);
+            wrapper.engine.apply(list, referenceContext);
         }
     }
 
     @Override
     public Object onTraversalSuccess() {
+        //TODO: option to write to disk
         for (VariantEvalWrapper wrapper : this.wrappers){
-            wrapper.walker.onTraversalSuccess();
+            wrapper.engine.finalizeReport(wrapper.getOutFile());
         }
 
         Map<String, SectionJsonDescriptor> sectionMap = new LinkedHashMap<>();
-        Map<String, Class<? extends VariantEvaluator>> classMap = getEvaluatorClassMap();
+        Map<String, Class<? extends VariantEvaluator>> classMap = VariantEvalEngine.getEvaluatorClasses();
 
         for (VariantEvalWrapper wrapper : this.wrappers) {
             try (BufferedReader sampleReader = IOUtil.openFileForBufferedUtf8Reading(wrapper.outFile)) {
@@ -437,13 +440,14 @@ public class VariantQC extends VariantWalker {
     }
 
     public static class VariantEvalWrapper {
-        private VariantEvalChild walker;
+        private VariantEvalEngine engine;
         //private ByteArrayOutputStream out = new ByteArrayOutputStream();
         private File outFile = IOUtils.createTempFile("variantQC_data", ".txt");
-        List<String> stratifications;
-        Set<String> evaluationModules = new HashSet<>();
-        List<String> infoFields = new ArrayList<>();
-        List<ReportDescriptor> reportDescriptors = new ArrayList<>();
+
+        private List<String> stratifications;
+        private Set<String> evaluationModules = new HashSet<>();
+        private List<String> infoFields = new ArrayList<>();
+        private List<ReportDescriptor> reportDescriptors = new ArrayList<>();
 
         public VariantEvalWrapper(List<String> stratifications) {
             this.stratifications = new ArrayList<>();
@@ -484,8 +488,17 @@ public class VariantQC extends VariantWalker {
             return outFile;
         }
 
-        public void configureWalker(VariantQC variantQC) {
-            this.walker = new VariantEvalChild(variantQC, this, variantQC.getDrivingVariantsFeatureInput(), infoFields);
+        public void configureEngine(VariantQC variantQC) {
+
+            VariantEvalArgumentCollection args = new VariantEvalArgumentCollection();
+            args.evals = Collections.unmodifiableList(variantQC.getDrivingVariantsFeatureInputs());
+            args.modulesToUse = new ArrayList<>(this.evaluationModules);
+            args.noStandardModules = true;
+            args.stratificationsToUse = stratifications;
+            args.noStandardStratifications = true;
+            args.pedigreeFile = variantQC.pedigreeFile;
+
+            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), variantQC.getSequenceDictionaryForDrivingVariants(), variantQC.getSamplesForVariants(), infoFields);
         }
     }
 
@@ -500,29 +513,6 @@ public class VariantQC extends VariantWalker {
         }
 
         return sampleDBBuilder.getFinalSampleDB();
-    }
-
-    //TODO: add getter to VariantEvalUtils
-    private Map<String, Class<? extends VariantStratifier>> getStratifierClassMap() {
-        Map<String, Class<? extends VariantStratifier>> stratifierClasses = new HashMap<>();
-        Reflections reflectionsStrat = new Reflections("org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications");
-        Set<Class<? extends VariantStratifier>> allClasses = reflectionsStrat.getSubTypesOf(VariantStratifier.class);
-        for (Class<? extends VariantStratifier> clazz : allClasses) {
-            stratifierClasses.put(clazz.getSimpleName(), clazz);
-        }
-
-        return stratifierClasses;
-    }
-
-    private Map<String, Class<? extends VariantEvaluator>> getEvaluatorClassMap() {
-        Map<String, Class<? extends VariantEvaluator>> evalClasses = new HashMap<>();
-        Reflections reflectionsEval = new Reflections("org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators");
-        Set<Class<? extends VariantEvaluator>> allClasses = reflectionsEval.getSubTypesOf(VariantEvaluator.class);
-        for (Class<? extends VariantEvaluator> clazz : allClasses) {
-            evalClasses.put(clazz.getSimpleName(), clazz);
-        }
-
-        return evalClasses;
     }
 
     @Override
