@@ -16,10 +16,19 @@ public class ExtendedVariantEvalEngine extends VariantEvalEngine {
     private final List<String> infoFields = new ArrayList<>();
 
     public ExtendedVariantEvalEngine(VariantEvalArgumentCollection variantEvalArgs, FeatureManager features, List<SimpleInterval> traversalIntervals, SAMSequenceDictionary samSequenceDictionaryForDrivingVariants, @Nullable Collection<String> samples, List<String> infoFields) {
-        super(variantEvalArgs, features, traversalIntervals, samSequenceDictionaryForDrivingVariants, samples, true);
+        super(variantEvalArgs, features, traversalIntervals, samSequenceDictionaryForDrivingVariants, samples);
 
         this.infoFields.addAll(infoFields);
-        validateAndInitialize(samples);
+        this.doValidateAndInitialize(samples);
+    }
+
+    @Override
+    protected void validateAndInitialize(@Nullable Collection<String> samples) {
+        // Deliberate no-op to defer initialization of EvaluationContext
+    }
+
+    private void doValidateAndInitialize(@Nullable Collection<String> samples) {
+        super.validateAndInitialize(samples);
     }
 
     @Override
