@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Arrays;
 
-public class MultipleAllelesAtLociIntegrationTest extends  BaseIntegrationTest {
+public class MultipleAllelesAtLociIntegrationTest extends BaseIntegrationTest {
 
     @Test
     public void testBasicOperation() throws Exception {

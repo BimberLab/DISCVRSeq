@@ -1,0 +1,6 @@
+SampleName	TotalCalled	TotalViolations	MotherInconsistent	FatherInconsistent	InconsistentCombined	Mother	MotherHasData	MotherMVs	Father	FatherHasData	FatherMVs
+PAIR_CHILD	16	6	0	6	0	Unknown	false		PAIR_PARENT	true	0
+TRIO_CHILD	16	12	6	6	12	TRIO_FATHER	true	0	TRIO_MOTHER	true	0
+PAIR_PARENT	16	0	0	0	0	Unknown	false		Unknown	false
+TRIO_FATHER	16	0	0	0	0	Unknown	false		Unknown	false
+TRIO_MOTHER	16	0	0	0	0	Unknown	false		Unknown	false
