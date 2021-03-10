@@ -20,7 +20,7 @@ import java.util.*;
  * Calculates MAF based on AF field
  *
  */
-public class MinorAlleleFrequency extends InfoFieldAnnotation implements StandardAnnotation {
+public class MinorAlleleFrequency implements InfoFieldAnnotation, StandardAnnotation {
 
     public static final String MAF_KEY = "MAF";
 
