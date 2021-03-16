@@ -591,7 +591,7 @@
       "summary": "Use the given sequence dictionary as the master/canonical sequence dictionary.  Must be a .dict file.",
       "name": "--sequence-dictionary",
       "synonyms": "-sequence-dictionary",
-      "type": "String",
+      "type": "GATKPath",
       "required": "no",
       "fulltext": "",
       "defaultValue": "null",

@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>BackportLiftedVcf</title>
+<title>VcfFilterComparison</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,26 +13,25 @@
 
 	<div class="span8">
 
-			<h1>BackportLiftedVcf</h1>
+			<h1>VcfFilterComparison</h1>
 
-		<p>Backport lifted VCF to the original coordinates</p>
+		<p>Summarize filtering between two VCFs</p>
 
 			<h3>Category
 				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated
- in those coordinates. Lifeover must be performed using Picard Tools LiftoverVcf, which annotates lifted variants with the values for ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE.  This tool
- reads one of these lifted VCFs, and writes a new sorted VCF in which the original coordinates are restored.
+		This is a fairly specialized tool, designed to take two VCFs, and provide a summary table comparing their FILTER field by site. The input VCFs can be named, and these names will be used as
+ headers in the resulting TSV file.
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar BackportLiftedVcf \
-     -R currentGenome.fasta \
-     -targetFasta targetGenomes.fasta \
-     -V myVCF.vcf \
-     -O output.vcf.gz
+  java -jar DISCVRseq.jar VcfFilterComparison \
+     -R genomes.fasta \
+     -V:WGS vcf1.vcf.gz \
+     -V:WXS vcf2.vcf \
+     -O output.txt
  </pre>
 
 		<hr>
@@ -42,12 +41,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by BackportLiftedVcf.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by VcfFilterComparison.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>BackportLiftedVcf specific arguments</h3>
+				<h3>VcfFilterComparison specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -67,7 +66,7 @@
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
-					<td>File to which variants should be written</td>
+					<td>File to which the summary should be written</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -78,19 +77,12 @@
 					<td>Reference sequence file</td>
 				</tr>
 				<tr>
-					<td><a href="#--targetFasta">--targetFasta</a><br />
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Target FASTA file</td>
-				</tr>
-				<tr>
 					<td><a href="#--variant">--variant</a><br />
 								&nbsp;<em>-V</em>
 					</td>
-					<!--<td>GATKPath</td> -->
-					<td>null</td>
-					<td>A VCF file containing variants</td>
+					<!--<td>List[GATKPath]</td> -->
+					<td>[]</td>
+					<td>One or more VCF files containing variants</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -383,6 +375,34 @@
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
 				<tr>
+					<td><a href="#--combine-variants-distance">--combine-variants-distance</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Maximum distance for variants to be grouped together</td>
+				</tr>
+				<tr>
+					<td><a href="#--ignore-variants-starting-outside-interval">--ignore-variants-starting-outside-interval</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)</td>
+				</tr>
+				<tr>
+					<td><a href="#--max-distance">--max-distance</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>2147483647</td>
+					<td>Maximum distance for variants to be grouped together</td>
+				</tr>
+				<tr>
+					<td><a href="#--ref-padding">--ref-padding</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>1</td>
+					<td>Number of bases on either side to expand spanning reference window</td>
+				</tr>
+				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
 					<!--<td>boolean</td> -->
@@ -455,6 +475,20 @@
 		<p>
 		<span class="label label-info ">int</span>
 			&nbsp;<span class="label">40</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--combine-variants-distance">--combine-variants-distance </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Maximum distance for variants to be grouped together</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
@@ -620,6 +654,18 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--ignore-variants-starting-outside-interval">--ignore-variants-starting-outside-interval </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--input">--input </a>
 			 / <small>-I</small>
 		</h3>
@@ -738,11 +784,25 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--max-distance">--max-distance </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Maximum distance for variants to be grouped together</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">2147483647</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which variants should be written</b><br />
+			<b>File to which the summary should be written</b><br />
 			
 		</p>
 		<p>
@@ -810,6 +870,20 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--ref-padding">--ref-padding </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Number of bases on either side to expand spanning reference window</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">1</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
 			 / <small>-R</small>
 		</h3>
@@ -873,19 +947,6 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--targetFasta">--targetFasta </a>
-			 / <small>-targetFasta</small>
-		</h3>
-		<p class="args">
-			<b>Target FASTA file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
 			 / <small>NA</small>
 		</h3>
@@ -926,13 +987,13 @@
 			 / <small>-V</small>
 		</h3>
 		<p class="args">
-			<b>A VCF file containing variants</b><br />
+			<b>One or more VCF files containing variants</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">GATKPath</span>
-			&nbsp;<span class="label">null</span>
+		<span class="label label-info ">List[GATKPath]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>

@@ -1,5 +1,5 @@
 {
-  "summary": "Merge multiple VCFs to produce one with all unique sites",
+  "summary": "Summarize filtering between two VCFs",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -74,6 +74,21 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--combine-variants-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
       "options": []
     },
     {
@@ -197,21 +212,6 @@
       "options": []
     },
     {
-      "summary": "Don\u0027t include filtered sites",
-      "name": "--exclude-filtered",
-      "synonyms": "NA",
-      "type": "boolean",
-      "required": "no",
-      "fulltext": "If this flag is enabled, sites that have been marked as filtered (i.e. have anything other than `.` or `PASS`\n in the FILTER field) will be excluded from the output.",
-      "defaultValue": "false",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
       "summary": "One or more genomic intervals to exclude from processing",
       "name": "--exclude-intervals",
       "synonyms": "-XL",
@@ -224,21 +224,6 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
-      "options": []
-    },
-    {
-      "summary": "Exclude sites where no variation is present in the input",
-      "name": "--excludeNonVariants",
-      "synonyms": "-env",
-      "type": "boolean",
-      "required": "no",
-      "fulltext": "Exclude sites that do not contain any called ALT alleles in the merged callset. The evaluation is made after the\n merging procedure is complete.",
-      "defaultValue": "false",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
       "options": []
     },
     {
@@ -299,6 +284,21 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)",
+      "name": "--ignore-variants-starting-outside-interval",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
       "options": []
     },
     {
@@ -425,10 +425,25 @@
       "options": []
     },
     {
-      "summary": "File to which variants should be written",
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--max-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "2147483647",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
+      "summary": "File to which the summary should be written",
       "name": "--output",
       "synonyms": "-O",
-      "type": "File",
+      "type": "String",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -513,18 +528,33 @@
       ]
     },
     {
-      "summary": "Reference sequence",
+      "summary": "Number of bases on either side to expand spanning reference window",
+      "name": "--ref-padding",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "1",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
+      "summary": "Reference sequence file",
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
@@ -695,9 +725,9 @@
       "options": []
     }
   ],
-  "description": "",
-  "name": "MergeVariantSites",
-  "group": "Public/Stable Tools",
+  "description": "This is a fairly specialized tool, designed to take two VCFs, and provide a summary table comparing their FILTER field by site. The input VCFs can be named, and these names will be used as\n headers in the resulting TSV file.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VcfFilterComparison \\\n     -R genomes.fasta \\\n     -V:WGS vcf1.vcf.gz \\\n     -V:WXS vcf2.vcf \\\n     -O output.txt\n \u003c/pre\u003e",
+  "name": "VcfFilterComparison",
+  "group": "Specialized/Internal Tools",
   "beta": false,
   "experimental": false
 }
