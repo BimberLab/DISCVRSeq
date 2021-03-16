@@ -47,13 +47,16 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
     public void onTraversalStart() {
         Utils.nonNull(outFile);
 
+        getDrivingVariantsFeatureInputs().forEach(fi -> drivingVariantNames.add(fi.getName()));
     }
+
+    private List<String> drivingVariantNames = new ArrayList<>();
 
     private final Map<String, Long> combinations = new HashMap<>();
 
     @Override
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
-        Map<String, String> vcfToFilters = new LinkedHashMap<>();
+        Map<String, String> vcfToFilters = new HashMap<>();
 
         for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
             //This is very inefficient, but expedient until GATK incorporates a better mechanism to connect vc to source:
@@ -71,16 +74,22 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
     }
 
     private String getKey(Map<String, String> vcfToFilters) {
-        return StringUtils.join(vcfToFilters.values(), "<>");
+        List<String> vals = new ArrayList<>();
+        for (String name : drivingVariantNames)
+        {
+            vals.add(vcfToFilters.getOrDefault(name, "N|ND"));
+        }
+
+        return StringUtils.join(vals, "<>");
     }
 
     @Override
     public Object onTraversalSuccess() {
         try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
             List<String> header = new ArrayList<>();
-            getDrivingVariantsFeatureInputs().stream().forEach(fi -> {
-                header.add(fi.getName());
-                header.add(fi.getName() + "-Called");
+            drivingVariantNames.forEach(fi -> {
+                header.add(fi);
+                header.add(fi + "-Called");
             });
             writer.writeNext(header.toArray(new String[0]));
 
