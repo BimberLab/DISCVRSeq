@@ -1,0 +1,3 @@
+vcf1	vcf1-Called	vcf2	vcf2-Called
+Filter1,Filter2	Y	Filter1,Filter2	Y	1
+PASS	Y	PASS	Y	1
