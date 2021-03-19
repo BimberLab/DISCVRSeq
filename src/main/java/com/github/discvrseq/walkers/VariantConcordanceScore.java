@@ -140,9 +140,10 @@ public class VariantConcordanceScore extends VariantWalker {
         );
 
         refMap = ret;
+        logger.info("total intervals: " + refMap.size());
     }
 
-    Map<String, SampleStats> sampleMap = new HashMap<>();
+    private Map<String, SampleStats> sampleMap = new HashMap<>();
 
     private class SampleStats {
         long totalNoCall = 0;
@@ -161,7 +162,7 @@ public class VariantConcordanceScore extends VariantWalker {
             Map<Allele, Set<String>> map = refMap.get(i);
 
             for (Genotype g : vc.getGenotypes()) {
-                SampleStats ss = sampleMap.getOrDefault(g.getSampleName(), new SampleStats());
+                SampleStats ss = sampleMap.containsKey(g.getSampleName()) ? sampleMap.get(g.getSampleName()) : new SampleStats();
                 if (!g.isCalled()) {
                     ss.totalNoCall += 1;
                     continue;

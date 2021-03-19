@@ -96,7 +96,7 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
             for (String key : combinations.keySet()) {
                 List<String> row = new ArrayList<>();
                 for (String val : key.split("<>")) {
-                    String[] vals = val.split(Pattern.quote("|"));
+                    String[] vals = val.split("\\|");
                     row.add(vals[1]);
                     row.add(vals[0]);
                 }
