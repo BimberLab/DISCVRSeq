@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>FindGenomeDifferences</title>
+<title>Summarize10xAlignments</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,24 +13,22 @@
 
 	<div class="span8">
 
-			<h1>FindGenomeDifferences</h1>
+			<h1>Summarize10xAlignments</h1>
 
-		<p>Create VCF summarizing positions where reference alleles differ between genomes</p>
+		<p>Iterate a 10x BAM and summarize alignments per gene</p>
 
 			<h3>Category
 				<small> Specialized/Internal Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to compare two genomes, writing a VCF with positions where the reference differs.  It iterates each base of the source genome, attempts to lift to the target genome, and if liftover is successful it will compare the reference bases.
- Any positions with differing reference bases will be written out as a VCF file, in the coordinates of the target genome.
+		Iterate a 10x BAM and summarize alignments per gene, including instances where reads map to multiple genes are are filtered.
+ The original purpose is to provide QC over 10x feature counting, such as identifying genes in a GTF that will be systematically under-counted.
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar FindGenomeDifferences \
-     -s sourceGenome.fasta \
-     -t targetChain.fasta \
-     -c chainFile.chain \
+  java -jar DISCVRseq.jar Summarize10xAlignments \
+     -I possorted_bam.bam \
      -O output.vcf.gz
  </pre>
 
@@ -41,12 +39,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by FindGenomeDifferences.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by Summarize10xAlignments.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>FindGenomeDifferences specific arguments</h3>
+				<h3>Summarize10xAlignments specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -61,12 +59,12 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--chainFile">--chainFile</a><br />
-								&nbsp;<em>-c</em>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
 					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Chain file</td>
+					<!--<td>List[GATKPath]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--output">--output</a><br />
@@ -74,23 +72,7 @@
 					</td>
 					<!--<td>String</td> -->
 					<td>null</td>
-					<td>File to which the output VCF should be written</td>
-				</tr>
-				<tr>
-					<td><a href="#--sourceGenome">--sourceGenome</a><br />
-								&nbsp;<em>-s</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Source reference sequence file</td>
-				</tr>
-				<tr>
-					<td><a href="#--targetGenome">--targetGenome</a><br />
-								&nbsp;<em>-t</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>Target reference sequence file</td>
+					<td>File to which the output table should be written</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -173,14 +155,6 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--liftoverMinMatch">--liftoverMinMatch</a><br />
-								&nbsp;<em>-mm</em>
-					</td>
-					<!--<td>double</td> -->
-					<td>0.95</td>
-					<td>LiftOver min match</td>
-				</tr>
-				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
@@ -201,14 +175,6 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the version number for this tool</td>
-				</tr>
-				<tr>
-					<td><a href="#--windowSize">--windowSize</a><br />
-								&nbsp;<em>-ws</em>
-					</td>
-					<!--<td>int</td> -->
-					<td>5000</td>
-					<td>Window Size</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Common Arguments</th>
@@ -288,14 +254,6 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
-				</tr>
-				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
-					</td>
-					<!--<td>List[GATKPath]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -453,19 +411,6 @@
 		<p>
 		<span class="label label-info ">List[File]</span>
 			&nbsp;<span class="label">[]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--chainFile">--chainFile </a>
-			 / <small>-c</small>
-		</h3>
-		<p class="args">
-			<b>Chain file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
@@ -665,6 +610,7 @@
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[GATKPath]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -775,25 +721,11 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--liftoverMinMatch">--liftoverMinMatch </a>
-			 / <small>-mm</small>
-		</h3>
-		<p class="args">
-			<b>LiftOver min match</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.95</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which the output VCF should be written</b><br />
+			<b>File to which the output table should be written</b><br />
 			
 		</p>
 		<p>
@@ -923,32 +855,6 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--sourceGenome">--sourceGenome </a>
-			 / <small>-s</small>
-		</h3>
-		<p class="args">
-			<b>Source reference sequence file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--targetGenome">--targetGenome </a>
-			 / <small>-t</small>
-		</h3>
-		<p class="args">
-			<b>Target reference sequence file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
 			 / <small>NA</small>
 		</h3>
@@ -1020,20 +926,6 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--windowSize">--windowSize </a>
-			 / <small>-ws</small>
-		</h3>
-		<p class="args">
-			<b>Window Size</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">5000</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 
         <hr>
