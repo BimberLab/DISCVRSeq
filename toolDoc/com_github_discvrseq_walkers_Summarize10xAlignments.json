@@ -650,7 +650,7 @@
       "options": []
     }
   ],
-  "description": "Iterate a 10x BAM and summarize alignments per gene, including instances where reads map to multiple genes are are filtered.\n The original purpose is to provide QC over 10x feature counting, such as identifying genes in a GTF that will be systematically under-counted.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Summarize10xAlignments \\\n     -I possorted_bam.bam \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
+  "description": "Iterate a 10x BAM and summarize alignments per gene, including instances where reads map to multiple genes are are filtered.\n The original purpose is to provide QC over 10x feature counting, such as identifying genes in a GTF that will be systematically under-counted.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Summarize10xAlignments \\\n     -I possorted_bam.bam \\\n     -O output.txt\n \u003c/pre\u003e",
   "name": "Summarize10xAlignments",
   "group": "Specialized/Internal Tools",
   "beta": false,
