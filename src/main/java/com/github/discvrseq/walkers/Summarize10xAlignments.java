@@ -28,7 +28,7 @@ import java.util.*;
  * <pre>
  *  java -jar DISCVRseq.jar Summarize10xAlignments \
  *     -I possorted_bam.bam \
- *     -O output.vcf.gz
+ *     -O output.txt
  * </pre>
  */
 @DocumentedFeature
