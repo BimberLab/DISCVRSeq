@@ -61,9 +61,17 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
         for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
             //This is very inefficient, but expedient until GATK incorporates a better mechanism to connect vc to source:
             List<VariantContext> vcs = features.getFeatures(fi, new SimpleInterval(variantContexts.get(0).getContig(), variantContexts.get(0).getStart(), variantContexts.get(0).getEnd()));
+            if (vcs.isEmpty()) {
+                vcfToFilters.put(fi.getName(), "N|NoData");
+                continue;
+            }
 
             List<String> filters = new ArrayList<>(vcs.stream().map(vc -> vc.isFiltered() ? vc.getFilters() : Collections.singleton("PASS")).flatMap(Collection::stream).collect(Collectors.toSet()));
             boolean isCalled = vcs.stream().map(vc -> vc.getNoCallCount() > 0).max(Boolean::compareTo).isPresent();
+
+            if (filters.isEmpty()) {
+                throw new IllegalStateException("Did not expect filters to be empty");
+            }
 
             vcfToFilters.put(fi.getName(), (isCalled ? "Y" : "N") + "|" + StringUtils.join(filters, ","));
         }
@@ -97,6 +105,10 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
                 List<String> row = new ArrayList<>();
                 for (String val : key.split("<>")) {
                     String[] vals = val.split("\\|");
+                    if (vals.length != 2) {
+                        throw new IllegalArgumentException("Improper value: " + key + " / " + val);
+                    }
+
                     row.add(vals[1]);
                     row.add(vals[0]);
                 }
