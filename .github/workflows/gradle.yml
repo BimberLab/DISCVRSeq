@@ -17,7 +17,7 @@ jobs:
         java-version: 8.0.282+8
         distribution: 'adopt'
     - name: Cache
-      uses: actions/cache@v2.1.4
+      uses: actions/cache@v2.1.5
       with:
         path: |
             ~/.gradle/caches
