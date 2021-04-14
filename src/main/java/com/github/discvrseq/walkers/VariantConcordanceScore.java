@@ -67,6 +67,9 @@ public class VariantConcordanceScore extends VariantWalker {
     @Argument(doc="File to which the report should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
 
+    @Argument(doc="By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0", fullName = "scoreSingleAlleleHit", shortName = "sah", optional = true)
+    public boolean scoreSingleAlleleHit = true;
+
     private Map<SimpleInterval, Map<Allele, Set<String>>> refMap = null;
     private Map<String, Long> totalMarkerByRef = new HashMap<>();
 
@@ -171,8 +174,9 @@ public class VariantConcordanceScore extends VariantWalker {
                 for (Allele a : map.keySet()) {
                     if (g.getAlleles().contains(a)) {
                         for (String refHit : map.get(a)) {
+                            double toAdd = scoreSingleAlleleHit ? 1.0 : g.isHom() ? 1.0 : 0.5;
                             long total = ss.hits.getOrDefault(refHit, 0L);
-                            total++;
+                            total += toAdd;
                             ss.hits.put(refHit, total);
                         }
                     }
