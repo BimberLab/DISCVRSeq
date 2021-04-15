@@ -191,6 +191,14 @@
 					<td>Reference sequence</td>
 				</tr>
 				<tr>
+					<td><a href="#--scoreSingleAlleleHit">--scoreSingleAlleleHit</a><br />
+								&nbsp;<em>-sah</em>
+					</td>
+					<!--<td>boolean</td> -->
+					<td>true</td>
+					<td>By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0</td>
+				</tr>
+				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
 					</td>
 					<!--<td>boolean</td> -->
@@ -853,6 +861,18 @@
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--scoreSingleAlleleHit">--scoreSingleAlleleHit </a>
+			 / <small>-sah</small>
+		</h3>
+		<p class="args">
+			<b>By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
 			 / <small>-seconds-between-progress-updates</small>
 		</h3>
@@ -998,7 +1018,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.24 built at 28-47-2021 02:47:06.
+        <p class="version">DISCVR-Seq version 1.25 built at 15-31-2021 10:31:03.
         </p>
 
 </div></div>

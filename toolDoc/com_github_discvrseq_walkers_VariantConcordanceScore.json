@@ -513,6 +513,21 @@
       "options": []
     },
     {
+      "summary": "By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0",
+      "name": "--scoreSingleAlleleHit",
+      "synonyms": "-sah",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "true",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "Output traversal statistics every time this many seconds elapse",
       "name": "--seconds-between-progress-updates",
       "synonyms": "-seconds-between-progress-updates",
