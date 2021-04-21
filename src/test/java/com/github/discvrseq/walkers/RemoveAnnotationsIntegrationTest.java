@@ -8,7 +8,6 @@ import java.io.File;
 import java.util.Arrays;
 
 public class RemoveAnnotationsIntegrationTest extends BaseIntegrationTest {
-    //private static File testBaseDir = new File(publicTestDir + "com/github/discvrseq/");
 
     @Test
     public void testBasicOperation() throws Exception {
