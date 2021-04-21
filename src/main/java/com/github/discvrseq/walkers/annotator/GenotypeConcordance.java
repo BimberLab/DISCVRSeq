@@ -24,14 +24,11 @@ import java.util.Set;
  * Created by bimber on 4/20/2017.
  *
  */
-public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeAnnotation {
-    private FeatureManager featureManager = null;
-
+public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeAnnotation, GenotypeConcordanceArgumentCollection.UsesGenotypeConcordanceArgumentCollection {
     public static final String KEY = "GTD";
     public static final String D_KEY = "REF_GT";
 
-    @ArgumentCollection
-    public GenotypeConcordanceArgumentCollection args = new GenotypeConcordanceArgumentCollection();
+    public GenotypeConcordanceArgumentCollection args = null;
 
     public GenotypeConcordance()
     {
@@ -44,12 +41,21 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
     }
 
     @Override
+    public void setArgumentCollection(GenotypeConcordanceArgumentCollection args) {
+        this.args = args;
+    }
+
+    @Override
     public List<String> getKeyNames() {
         return Arrays.asList(KEY, D_KEY);
     }
 
     @Override
     public void annotate(ReferenceContext ref, VariantContext vc, Genotype g, GenotypeBuilder gb, AlleleLikelihoods<GATKRead, Allele> likelihoods) {
+        if (args == null) {
+            throw new IllegalArgumentException("GenotypeConcordanceArgumentCollection was not set!");
+        }
+
         if (args.referenceVcf == null) {
             throw new IllegalArgumentException("Must provide a VCF with reference genotypes!");
         }
@@ -58,7 +64,7 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
             return;
         }
 
-        List<VariantContext> list = featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
+        List<VariantContext> list = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
         if (list == null || list.isEmpty()){
             return;
         }

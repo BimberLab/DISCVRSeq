@@ -1,0 +1,34 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GTD,Number=1,Type=Integer,Description="Flags genotypes (as 1) discordant with those from the same sample/position in the provided VCF file.  Concordant genotypes are flagged a 0.  Genotypes not called in either VCF are ignored.">
+##FORMAT=<ID=MV,Number=1,Type=Integer,Description="Number of mendelian violations observed for this sample.">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FORMAT=<ID=REF_GT,Number=1,Type=String,Description="When comparing genotypes against an alternate VCF, this will store the genotype of this sample in that alternate VCF, if discordant.  Genotypes not called in either VCF are ignored.">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=GTC,Number=1,Type=Integer,Description="The total number of genotypes concordant with those from the same sample/position in the provided VCF file.  Genotypes not called in either VCF are ignored.">
+##INFO=<ID=GTD,Number=1,Type=Integer,Description="The total number of genotypes discordant with those from the same sample/position in the provided VCF file.  Genotypes not called in either VCF are ignored.">
+##INFO=<ID=MAF,Number=1,Type=Float,Description="The minor allele frequency (frequency of second most common allele), derived from the AF field.">
+##INFO=<ID=MV_NUM,Number=1,Type=Integer,Description="Number of mendelian violations across all samples.">
+##INFO=<ID=MV_SAMPLES,Number=1,Type=String,Description="Samples where a mendelian violation was observed.">
+##MendelianViolationEvaluator="This file contains genotypes with mendelian violations in the input data. Please note that this file is entirely synthetic and does not represent true SNPs or genotypes observed."
+##contig=<ID=1,length=0>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	TRIO_MOTHER	TRIO_FATHER	TRIO_CHILD	PAIR_PARENT	PAIR_CHILD	UNRELATED_INDIVIDUAL_CONTROL
+1	10109	.	A	T	99	PASS	AC=2;AF=0.167;AN=12;GTC=6;GTD=0;MAF=0.167	GT:GQ:GTD:MV:PL	0/0:50:0:.:0,50,200	0/0:40:0:.:0,40,200	0/1:30:0:.:30,0,200	0/0:50:0:.:0,50,200	0/1:30:0:.:30,0,200	0/0:50:0:.:0,50,200
+1	10147	.	C	A	99	PASS	AC=4;AF=0.333;AN=12;GTC=6;GTD=0;MAF=0.333	GT:GQ:GTD:MV:PL	0/0:30:0:.:0,30,200	0/0:50:0:.:0,50,200	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200
+1	10150	.	C	T	99	PASS	AC=5;AF=0.417;AN=12;GTC=6;GTD=0;MAF=0.417	GT:GQ:GTD:MV:PL	0/0:40:0:.:0,40,200	0/1:30:0:.:30,0,200	1/1:50:0:.:200,50,0	0/0:40:0:.:0,40,200	1/1:50:0:.:200,50,0	0/0:40:0:.:0,40,200
+1	10177	.	A	C	99	PASS	AC=2;AF=0.167;AN=12;GTC=6;GTD=0;MAF=0.167	GT:GQ:GTD:MV:PL	0/0:50:0:.:0,50,200	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200	0/0:50:0:.:0,50,200	0/0:30:0:.:0,30,200	0/0:50:0:.:0,50,200
+1	10180	.	T	C	99	PASS	AC=6;AF=0.500;AN=12;GTC=6;GTD=0;MAF=0.500	GT:GQ:GTD:MV:PL	0/0:30:0:.:0,30,200	1/1:50:0:.:200,50,0	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200
+1	10234	.	C	T	99	PASS	AC=7;AF=0.583;AN=12;GTC=6;GTD=0;MAF=0.417	GT:GQ:GTD:MV:PL	0/1:40:0:.:40,0,200	0/0:30:0:.:0,30,200	1/1:50:0:.:200,50,0	0/1:40:0:.:40,0,200	1/1:50:0:.:200,50,0	0/1:40:0:.:40,0,200
+1	10235	.	T	A	99	PASS	AC=5;AF=0.417;AN=12;GTC=6;GTD=0;MAF=0.417	GT:GQ:GTD:MV:PL	0/1:50:0:.:50,0,200	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200	0/1:50:0:.:50,0,200	0/0:30:0:.:0,30,200	0/1:50:0:.:50,0,200
+1	10236	.	A	G	99	PASS	AC=6;AF=0.500;AN=12;GTC=6;GTD=0;MAF=0.500	GT:GQ:GTD:MV:PL	1/1:30:0:.:200,30,0	0/0:50:0:.:0,50,200	0/0:40:0:.:0,40,200	1/1:30:0:.:200,30,0	0/0:50:0:.:0,50,200	1/1:30:0:.:200,30,0
+1	10250	.	A	C	99	PASS	AC=10;AF=0.833;AN=12;GTC=6;GTD=0;MAF=0.167	GT:GQ:GTD:MV:PL	1/1:40:0:.:200,40,0	0/0:30:0:.:0,30,200	1/1:50:0:.:200,50,0	1/1:40:0:.:200,40,0	1/1:50:0:.:200,50,0	1/1:40:0:.:200,40,0
+1	10257	.	A	C	99	PASS	AC=7;AF=0.583;AN=12;GTC=6;GTD=0;MAF=0.417	GT:GQ:GTD:MV:PL	1/1:50:0:.:200,50,0	0/1:40:0:.:40,0,200	0/0:30:0:.:0,30,200	1/1:50:0:.:200,50,0	0/0:30:0:.:0,30,200	1/1:50:0:.:200,50,0
+1	10285	.	T	C	99	PASS	AC=10;AF=0.833;AN=12;GTC=6;GTD=0;MAF=0.167	GT:GQ:GTD:MV:PL	1/1:30:0:.:200,30,0	1/1:50:0:.:200,50,0	0/1:40:0:.:40,0,200	1/1:30:0:.:200,30,0	0/1:40:0:.:40,0,200	1/1:30:0:.:200,30,0
+1	10297	.	C	T	99	PASS	AC=8;AF=0.667;AN=12;GTC=6;GTD=0;MAF=0.333	GT:GQ:GTD:MV:PL	1/1:40:0:.:200,40,0	1/1:30:0:.:200,30,0	0/0:50:0:.:0,50,200	1/1:40:0:.:200,40,0	0/0:50:0:.:0,50,200	1/1:40:0:.:200,40,0
+1	10304	.	A	C	99	PASS	AC=9;AF=0.750;AN=12;GTC=6;GTD=0;MAF=0.250	GT:GQ:GTD:MV:PL	1/1:50:0:.:200,50,0	0/1:50:0:.:50,0,200	0/1:0:0:.:0,0,0	1/1:50:0:.:200,50,0	0/1:0:0:.:0,0,0	1/1:50:0:.:200,50,0
+1	10304	.	A	C	99	PASS	AC=9;AF=0.750;AN=12;GTC=6;GTD=0;MAF=0.250	GT:GQ:GTD:MV:PL	1/1:50:0:.:200,50,0	0/1:50:0:.:50,0,200	0/1:50:0:.:50,0,200	1/1:50:0:.:200,50,0	0/1:50:0:.:200,0,50	1/1:50:0:.:200,50,0
+1	10310	.	A	C	99	PASS	AC=11;AF=0.917;AN=12;GTC=6;GTD=0;MAF=0.083	GT:GQ:GTD:MV:PL	1/1:50:0:.:200,50,0	0/1:50:0:.:50,0,200	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0
+1	10315	.	C	T	99	PASS	AC=12;AF=1.00;AN=12;GTC=6;GTD=0;MAF=0.00	GT:GQ:GTD:MV:PL	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0	1/1:50:0:.:200,50,0

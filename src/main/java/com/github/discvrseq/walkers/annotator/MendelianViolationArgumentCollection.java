@@ -10,4 +10,12 @@ public class MendelianViolationArgumentCollection {
      */
     @Argument(fullName="mendelian-violation-qual-threshold", doc="Minimum GQ score for each trio member to accept a site as a violation", optional=true)
     public double minGenotypeQuality = 10.0;
+
+    public static interface UsesMendelianViolationArgumentCollection {
+        public void setArgumentCollection(MendelianViolationArgumentCollection args);
+    }
+
+    public void validateArguments() {
+
+    }
 }

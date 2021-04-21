@@ -22,14 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by bimber on 4/20/2017.
  *
  */
-public class GenotypeConcordanceBySite extends PedigreeAnnotation implements InfoFieldAnnotation {
-    private FeatureManager featureManager = null;
-
+public class GenotypeConcordanceBySite extends PedigreeAnnotation implements InfoFieldAnnotation, GenotypeConcordanceArgumentCollection.UsesGenotypeConcordanceArgumentCollection {
     public static final String DISCORD_KEY = "GTD";
     public static final String CONCORD_KEY = "GTC";
 
-    @ArgumentCollection
-    public GenotypeConcordanceArgumentCollection args = new GenotypeConcordanceArgumentCollection();
+    public GenotypeConcordanceArgumentCollection args = null;
 
     public GenotypeConcordanceBySite()
     {
@@ -42,17 +39,26 @@ public class GenotypeConcordanceBySite extends PedigreeAnnotation implements Inf
     }
 
     @Override
+    public void setArgumentCollection(GenotypeConcordanceArgumentCollection args) {
+        this.args = args;
+    }
+
+    @Override
     public List<String> getKeyNames() {
         return Arrays.asList(DISCORD_KEY, CONCORD_KEY);
     }
 
     @Override
     public Map<String, Object> annotate(ReferenceContext ref, VariantContext vc, AlleleLikelihoods<GATKRead, Allele> likelihoods) {
+        if (args == null) {
+            throw new IllegalArgumentException("GenotypeConcordanceArgumentCollection was not set!");
+        }
+
         if (args.referenceVcf == null) {
             throw new IllegalArgumentException("Must provide a VCF with reference genotypes!");
         }
 
-        List<VariantContext> list = featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
+        List<VariantContext> list = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
         if (list == null || list.isEmpty()){
             return null;
         }

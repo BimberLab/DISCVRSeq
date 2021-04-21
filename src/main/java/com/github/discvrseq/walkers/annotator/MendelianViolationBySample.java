@@ -23,13 +23,12 @@ import java.util.Set;
  * Created by bimber on 3/13/2017.
  *
  */
-public class MendelianViolationBySample extends PedigreeAnnotation implements GenotypeAnnotation {
+public class MendelianViolationBySample extends PedigreeAnnotation implements GenotypeAnnotation, MendelianViolationArgumentCollection.UsesMendelianViolationArgumentCollection {
     private SampleDB sampleDB = null;
 
     public static final String MV_KEY = "MV";
 
-    @ArgumentCollection
-    public MendelianViolationArgumentCollection args = new MendelianViolationArgumentCollection();
+    public MendelianViolationArgumentCollection args = null;
 
     public MendelianViolationBySample()
     {
@@ -43,6 +42,11 @@ public class MendelianViolationBySample extends PedigreeAnnotation implements Ge
     @Override
     public List<String> getKeyNames() {
         return Collections.singletonList(MV_KEY);
+    }
+
+    @Override
+    public void setArgumentCollection(MendelianViolationArgumentCollection args) {
+        this.args = args;
     }
 
     @Override

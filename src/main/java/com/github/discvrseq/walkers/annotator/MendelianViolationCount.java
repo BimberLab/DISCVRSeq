@@ -27,18 +27,17 @@ import java.util.*;
  *
  * <h3>Caveats</h3>
  * <ul>
- *     <li>The defaults to a hard cutoff of 10 for the phred scale genotype quality.  If a given sample is below this threshold, the genotype is assumed to be no call.</li>
+ *     <li>If a given sample is below the quality threshold, the genotype is assumed to be no call.</li>
  *     <li>This annotation requires a valid pedigree file.</li>
  * </ul>
  *
  */
-public class MendelianViolationCount extends PedigreeAnnotation implements InfoFieldAnnotation {
+public class MendelianViolationCount extends PedigreeAnnotation implements InfoFieldAnnotation, MendelianViolationArgumentCollection.UsesMendelianViolationArgumentCollection {
     public static final String MV_NUM = "MV_NUM";
     public static final String MV_SAMPLES = "MV_SAMPLES";
     private SampleDB sampleDB = null;
 
-    @ArgumentCollection
-    public MendelianViolationArgumentCollection args = new MendelianViolationArgumentCollection();
+    public MendelianViolationArgumentCollection args = null;
 
     public MendelianViolationCount()
     {
@@ -47,6 +46,11 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
 
     public MendelianViolationCount(final GATKPath pedigreeFile){
         super(pedigreeFile);
+    }
+
+    @Override
+    public void setArgumentCollection(MendelianViolationArgumentCollection args) {
+        this.args = args;
     }
 
     @Override
