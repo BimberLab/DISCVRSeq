@@ -5,9 +5,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -326,9 +326,9 @@
         "plot_type": "bar_graph",
         "samples": [
           [
-            "drivingVariantFile / called",
-            "drivingVariantFile / filtered",
-            "drivingVariantFile / raw"
+            "eval / called",
+            "eval / filtered",
+            "eval / raw"
           ]
         ],
         "datasets": [
@@ -402,9 +402,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -454,9 +454,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -668,9 +668,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -801,7 +801,7 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile"
+          "eval"
         ],
         "datasets": [
           [
@@ -827,7 +827,7 @@
         "plot_type": "bar_graph",
         "samples": [
           [
-            "drivingVariantFile"
+            "eval"
           ]
         ],
         "datasets": [
