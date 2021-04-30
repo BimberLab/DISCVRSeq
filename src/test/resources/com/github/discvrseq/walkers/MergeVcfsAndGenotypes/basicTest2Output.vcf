@@ -1,0 +1,13 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=set,Number=1,Type=String,Description="Source VCF for the merged record in MergeVcfsAndGenotypes">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1	Sample2
+1	61	.	GT	G	724.43	PASS	AC=2;AF=0.500;AN=4	GT	0/1	0/1
+1	72	.	T	A	100	PASS	AC=1;AF=0.250;AN=4	GT	0/1	0/0
+1	72	.	TT	AG	100	PASS	AC=1;AF=0.500;AN=2	GT	0/1	./.
+1	100	.	T	G	100	PASS	AC=1;AF=0.500;AN=2	GT	./.	0/1
