@@ -8,7 +8,8 @@ import htsjdk.variant.vcf.VCFUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.StringBufferInputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,7 +114,7 @@ public class MergeVcfsAndGenotypesUnitTest {
     private VCFHeader createHeader(String headerStr) {
         VCFCodec codec = new VCFCodec();
         VCFHeader head = null;
-        head = (VCFHeader) codec.readActualHeader(codec.makeSourceFromStream(new PositionalBufferedStream(new StringBufferInputStream(headerStr))));
+        head = (VCFHeader) codec.readActualHeader(codec.makeSourceFromStream(new PositionalBufferedStream(new ByteArrayInputStream(headerStr.getBytes(StandardCharsets.UTF_8)))));
         return head;
     }
 
