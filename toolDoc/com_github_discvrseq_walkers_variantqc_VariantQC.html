@@ -162,9 +162,9 @@
 					<td><a href="#--variant">--variant</a><br />
 								&nbsp;<em>-V</em>
 					</td>
-					<!--<td>GATKPath</td> -->
-					<td>null</td>
-					<td>A VCF file containing variants</td>
+					<!--<td>List[GATKPath]</td> -->
+					<td>[]</td>
+					<td>One or more VCF files containing variants</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -496,6 +496,34 @@
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
 				<tr>
+					<td><a href="#--combine-variants-distance">--combine-variants-distance</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Maximum distance for variants to be grouped together</td>
+				</tr>
+				<tr>
+					<td><a href="#--ignore-variants-starting-outside-interval">--ignore-variants-starting-outside-interval</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)</td>
+				</tr>
+				<tr>
+					<td><a href="#--max-distance">--max-distance</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>2147483647</td>
+					<td>Maximum distance for variants to be grouped together</td>
+				</tr>
+				<tr>
+					<td><a href="#--ref-padding">--ref-padding</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>1</td>
+					<td>Number of bases on either side to expand spanning reference window</td>
+				</tr>
+				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
 					<!--<td>boolean</td> -->
@@ -580,6 +608,20 @@
 		<p>
 		<span class="label label-info ">int</span>
 			&nbsp;<span class="label">40</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--combine-variants-distance">--combine-variants-distance </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Maximum distance for variants to be grouped together</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
@@ -745,6 +787,18 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--ignore-variants-starting-outside-interval">--ignore-variants-starting-outside-interval </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--input">--input </a>
 			 / <small>-I</small>
 		</h3>
@@ -861,6 +915,20 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--max-distance">--max-distance </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Maximum distance for variants to be grouped together</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">2147483647</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--maxContigs">--maxContigs </a>
@@ -994,6 +1062,20 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--ref-padding">--ref-padding </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Number of bases on either side to expand spanning reference window</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">1</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--reference">--reference </a>
 			 / <small>-R</small>
 		</h3>
@@ -1097,13 +1179,13 @@
 			 / <small>-V</small>
 		</h3>
 		<p class="args">
-			<b>A VCF file containing variants</b><br />
+			<b>One or more VCF files containing variants</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">GATKPath</span>
-			&nbsp;<span class="label">null</span>
+		<span class="label label-info ">List[GATKPath]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
@@ -1152,7 +1234,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.25 built at 15-31-2021 10:31:03.
+        <p class="version">DISCVR-Seq version 1.26 built at 04-30-2021 03:30:15.
         </p>
 
 </div></div>

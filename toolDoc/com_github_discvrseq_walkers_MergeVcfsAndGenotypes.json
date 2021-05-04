@@ -1,5 +1,5 @@
 {
-  "summary": "Generate HTML summary report for a VCF",
+  "summary": "Generate a merged VCF from one or more inputs",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -32,13 +32,13 @@
       "options": []
     },
     {
-      "summary": "This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field \u0027\u0027, and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.",
-      "name": "--additionalReportFile",
-      "synonyms": "-arf",
-      "type": "File",
+      "summary": "read one or more arguments files and add them to the command line",
+      "name": "--arguments_file",
+      "synonyms": "NA",
+      "type": "List[File]",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
+      "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -47,13 +47,13 @@
       "options": []
     },
     {
-      "summary": "read one or more arguments files and add them to the command line",
-      "name": "--arguments_file",
-      "synonyms": "NA",
-      "type": "List[File]",
+      "summary": "Assume input VCFs have identical sample sets and disjoint calls",
+      "name": "--assumeIdenticalSamples",
+      "synonyms": "-assumeIdenticalSamples",
+      "type": "boolean",
       "required": "no",
-      "fulltext": "",
-      "defaultValue": "[]",
+      "fulltext": "This option allows you to perform a simple merge (concatenation) to combine the VCFs, drastically reducing\n runtime. Note that in many cases where you think you want to use this option, you may want to check out the\n CatVariants tool instead, because CatVariants provides the same functionality, but does so even more efficiently.",
+      "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -242,6 +242,64 @@
       "options": []
     },
     {
+      "summary": "Exclude sites where no variation is present after merging",
+      "name": "--excludeNonVariants",
+      "synonyms": "-env",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "Exclude sites that do not contain any called ALT alleles in the merged callset. The evaluation is made after the\n merging procedure is complete.",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Treat filtered variants as uncalled",
+      "name": "--filteredAreUncalled",
+      "synonyms": "-filteredAreUncalled",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "If enabled, this flag causes filtered variants (i.e. variant records where the FILTER field is populated by\n something other than PASS or a dot) to be omitted from the output.",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Determines how we should handle records seen at the same site in the VCF, but with different FILTER fields",
+      "name": "--filteredRecordsMergeType",
+      "synonyms": "-filteredRecordsMergeType",
+      "type": "FilteredRecordMergeType",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "KEEP_IF_ANY_UNFILTERED",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": [
+        {
+          "summary": "",
+          "name": "KEEP_IF_ANY_UNFILTERED"
+        },
+        {
+          "summary": "",
+          "name": "KEEP_IF_ALL_UNFILTERED"
+        },
+        {
+          "summary": "",
+          "name": "KEEP_UNCONDITIONAL"
+        }
+      ]
+    },
+    {
       "summary": "A configuration file to use with the GATK.",
       "name": "--gatk-config-file",
       "synonyms": "NA",
@@ -285,6 +343,38 @@
       "maxRecValue": "NA",
       "kind": "optional",
       "options": []
+    },
+    {
+      "summary": "Determines how we should merge genotype records for samples shared across the VCF files",
+      "name": "--genotypeMergeOption",
+      "synonyms": "-genotypeMergeOption",
+      "type": "GenotypeMergeType",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": [
+        {
+          "summary": "",
+          "name": "UNIQUIFY"
+        },
+        {
+          "summary": "",
+          "name": "PRIORITIZE"
+        },
+        {
+          "summary": "",
+          "name": "UNSORTED"
+        },
+        {
+          "summary": "",
+          "name": "REQUIRE_UNIQUE"
+        }
+      ]
     },
     {
       "summary": "display the help message",
@@ -455,13 +545,43 @@
       "options": []
     },
     {
-      "summary": "Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.",
-      "name": "--maxContigs",
-      "synonyms": "-maxContigs",
+      "summary": "Use the INFO content of the record with the highest AC",
+      "name": "--mergeInfoWithMaxAC",
+      "synonyms": "-mergeInfoWithMaxAC",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "By default, the INFO field of the merged variant record only contains the INFO field attributes for which all\n original overlapping records had the same values. Discordant attributes are therefore discarded. This flag allows you to\n override that behavior and simply copy over the INFO field contents of whichever record had the highest AC value.",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Emit a sites-only file",
+      "name": "--minimalVCF",
+      "synonyms": "-minimalVCF",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "If this flag is enabled, the INFO, FORMAT and sample-level (genotype) fields will not be emitted to the output file.",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Minimum number of input files the site must be observed in to be included",
+      "name": "--minimumN",
+      "synonyms": "-minN",
       "type": "int",
       "required": "no",
-      "fulltext": "",
-      "defaultValue": "40",
+      "fulltext": "Sites that are present in fewer than this number of inputs will be ignored. This is a convenient way to build\n a collection of common variants and exclude rare variants.",
+      "defaultValue": "1",
       "minValue": "-Infinity",
       "maxValue": "Infinity",
       "minRecValue": "NA",
@@ -470,10 +590,10 @@
       "options": []
     },
     {
-      "summary": "File to which the report should be written",
+      "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
-      "type": "String",
+      "type": "File",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -485,13 +605,13 @@
       "options": []
     },
     {
-      "summary": "Pedigree file for identifying Mendelian violations",
-      "name": "--pedigree",
-      "synonyms": "-ped",
-      "type": "GATKPath",
+      "summary": "Emit interesting sites requiring complex compatibility merging to file",
+      "name": "--printComplexMerges",
+      "synonyms": "-printComplexMerges",
+      "type": "boolean",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
+      "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -500,28 +620,19 @@
       "options": []
     },
     {
-      "summary": "The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT",
-      "name": "--pedigreeValidationType",
-      "synonyms": "-pedValidationType",
-      "type": "PedigreeValidationType",
+      "summary": "Ordered list specifying priority for merging",
+      "name": "--priority_list",
+      "synonyms": "-priority",
+      "type": "String",
       "required": "no",
-      "fulltext": "",
-      "defaultValue": "STRICT",
+      "fulltext": "Refers to the merging priority behavior described in the tool documentation regarding the choice of which record\n gets emitted when taking the union of variants that contain genotypes. The list must be passed as a\n comma-separated string listing the names of the variant input files. The list must be complete and include all\n variant inputs that are being provided to the tool. Use name tags for best results.",
+      "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
-      "options": [
-        {
-          "summary": "",
-          "name": "STRICT"
-        },
-        {
-          "summary": "",
-          "name": "SILENT"
-        }
-      ]
+      "options": []
     },
     {
       "summary": "Whether to suppress job-summary info on System.err.",
@@ -536,21 +647,6 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
-      "options": []
-    },
-    {
-      "summary": "File to which the raw data will be written as JSON",
-      "name": "--rawData",
-      "synonyms": "-rd",
-      "type": "String",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
       "options": []
     },
     {
@@ -672,6 +768,21 @@
       "options": []
     },
     {
+      "summary": "Key name for the set attribute",
+      "name": "--setKey",
+      "synonyms": "-setKey",
+      "type": "String",
+      "required": "no",
+      "fulltext": "Key used in the INFO key\u003dvalue tag emitted describing which set(s) the combined record came from\n (e.g. set\u003dcontrol). This provides the option to override the default naming, so instead of set\u003dcontrol you could\n have it be origin\u003dcontrol, or any other word you want that is not already an INFO field attribute. Set this to\n \u0027null\u0027 if you don\u0027t want the set attribute emitted at all.",
+      "defaultValue": "set",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "display hidden arguments",
       "name": "--showHidden",
       "synonyms": "-showHidden",
@@ -693,6 +804,21 @@
       "type": "boolean",
       "required": "no",
       "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "Do not output the command line to the header",
+      "name": "--suppressCommandLineHeader",
+      "synonyms": "-suppressCommandLineHeader",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "By default, this tool writes the command line that was used in the header of the output VCF file. This flag\n enables you to override that behavior . This is most often useful when combining variants for dozens or\n hundreds of smaller VCFs iteratively, to avoid cluttering the header with a lot of command lines.",
       "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
@@ -809,8 +935,8 @@
       "options": []
     }
   ],
-  "description": "VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order\n to provide various summary tables and graphs.  In most cases the tables overlay bar graphs for numeric columns in order to help identify outliers.\n This tool is analogous to FASTQC or MultiQC, which provide similar HTML summary reports for different types of sequence data.\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n\n  Note: The public GATK Reference Bundle can be downloaded to provide example VCFs and a pre-indexed GRCh38 human genome build.  \u003ca href\u003d\"https://software.broadinstitute.org/gatk/documentation/article.php?id\u003d11017\"\u003eSee here for download instructions.\u003c/a\u003e\n\n  We have also provide a small simplified VCF.  You can \u003ca href\u003d\"SimpleExample.vcf.gz\"\u003edownload the VCF\u003c/a\u003e and \u003ca href\u003d\"SimpleExample.vcf.gz.tbi\"\u003edownload the VCF index\u003c/a\u003e, with can be used with the \u003ca href\u003d\"ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/b37/\"\u003ehuman_g1k_v37 genome\u003c/a\u003e.\n\n \u003ch4\u003eBasic Usage, Without Pedigree:\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R human_g1k_v37.fasta \\\n     -V SimpleExample.vcf.gz \\\n     -O output.html\n \u003c/pre\u003e\n\n \u003ch4\u003eReport With Pedigree (required for gender information to display):\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R human_g1k_v37.fasta \\\n     -ped myPedigree.ped \\\n     -V input.vcf \\\n     -O output.html\n \u003c/pre\u003e\n\n \u003ch3\u003eVariant QC Output Report:\u003c/h3\u003e\n Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).\n A complete example HTML report can be \u003ca href\u003d\"resources/variantQCSampleReport.html\"\u003eviewed here\u003c/a\u003e.  The report contains a series of tables or graphs summarizing different aspects of the data.  Below are the main types:\n \u003cbr\u003e\n  \u003cul\u003e\n      \u003cli\u003eVariant Summary: A table displaying a summary of the total variants by type (SNP, insertion, deletion, MNP, etc.), \u003c/li\u003e\n      \u003cli\u003eVariant Type: a bar plot summarizing variant by type (SNP, insertion, deletion, MNP, etc.)\u003c/li\u003e\n      \u003cli\u003eGenotype Summary: A table summarizing the total called/non-called genotypes\u003c/li\u003e\n      \u003cli\u003eSNP/Indel Summary:\u003c/li\u003e\n      \u003cli\u003eTi/Tv Data: A table displaying a summary of \u003ca href\u003d\"https://en.wikipedia.org/wiki/Transversion\"\u003etransition and transversion\u003c/a\u003e mutations in the dataset\u003c/li\u003e\n      \u003cli\u003eFilter Type: A bar plot summarizing variants by filter\u003c/li\u003e\n  \u003c/ul\u003e\n \u003cp\u003e\u003c/p\u003e\n \u003ca href\u003d\"resources/variantQCSampleReport.html\"\u003e\u003cimg src\u003d\"images/variantQC_ExampleReport.jpg\" style\u003d\"width: 75%\" title\u003d\"Click to view a sample report\"/\u003e\u003c/a\u003e\n\n \u003ch3\u003eAdvanced Usage:\u003c/h3\u003e\n\n VariantQC is designed to produce general-purpose reports applicable to a range of users; however, several mechanisms may make the output more useful to your data:\n\n \u003ch4\u003eWrite the raw output data to a separate file as JSON, which can be parsed separately:\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R human_g1k_v37.fasta \\\n     -V input.vcf \\\n     -rd output.json \\\n     -O output.html\n \u003c/pre\u003e\n\n \u003ch4\u003eDefine additional reports to be included in the HTML report:\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRSeq.jar VariantQC \\\n     -R human_g1k_v37.fasta \\\n     -V input.vcf \\\n     --additionalReportFile reports.txt \\\n     -O output.html\n \u003c/pre\u003e\n\n Where reports.txt is a tab-delimited file with one report per line and no header.  Comment lines can be included, beginning with \u0027#\u0027.  This file has 4 columns:\n \u003cbr\u003e\n \u003cul\u003e\n \u003cli\u003eSection label: Corresponds to the report group.  This is typically \u0027Entire VCF\u0027, \u0027By Contig\u0027, etc.; however, any value can be used.\u003c/li\u003e\n \u003cli\u003eReport label: The title used for this report.  For example: \u0027Variant Summary\u0027\u003c/li\u003e\n \u003cli\u003eStratifications: A comma-separated list of the stratifications to use when aggregating data.  Allowable values are: VCF, Sample, Contig, and Filter\u003c/li\u003e\n \u003cli\u003eINFO field name: The name of the INFO field attribute to aggregate.  This field must be of type character, string or integer.  Note: this will produce a table summarizing the total variants for each level of this variable.  Therefore a field with a wide range of possible values may not be appropriate to summarize in this manner.  For example, while integer fields are support since in certain cases the value is bounded and will have a reasonable number of unique values.\u003c/li\u003e\n \u003c/ul\u003e\n \u003cbr\u003e\n Example Report File:\n \u003cpre\u003e\n By Sample\tExample Report\tSample\tPURPOSE\n By Contig\tExample Report2\tSample,Contig\tPURPOSE\n \u003c/pre\u003e\n\n \u003ch4\u003eOther Usage Suggestions:\u003c/h4\u003e\n Upstream processing of your VCF can enhance the value of the VariantQC report for your data. Our group routinely performs quality filtering on our VCFs, which saves information about the filter type in the FILTER field (\u003ca href\u003d\"https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_filters_VariantFiltration.php\"\u003e\u003c/a\u003esee VariantFiltration\u003c/a\u003e).  FilterType is used to stratify data in VariantQC, allowing us to view sample, VCF, or chromosome differences.\n \u003cbr\u003e\u003cbr\u003e\n While VariantQC does not direct support automatic filtering/flagging of VCFs or samples based on thresholds, our group accomplishes this by writing a separate script to read the raw JSON output (see --rawData argument), and then applying our application-specific criteria.\n\n \u003ch3\u003eAuthors:\u003c/h3\u003e\n \u003cul\u003e\n  \u003cli\u003eBen Bimber, Ph.D.\u003c/li\u003e\n  \u003cli\u003eMelissa Yan\u003c/li\u003e\n \u003c/ul\u003e\n\n \u003ch3\u003eAcknowledgements:\u003c/h3\u003e\n This tool internally uses \u003ca href\u003d\"https://github.com/broadinstitute/gatk\"\u003eGATK4\u0027s VariantEval\u003c/a\u003e to aggregate data, and borrows heavily from \u003ca href\u003d\"https://multiqc.info/\"\u003eMultiQC\u003c/a\u003e for the HTML in the final report.\n We thank Philip Ewels for the use of MultiQC HTML/CSS/JS templates, and Chris Norman of the Broad Institute for assistance with VariantEval.",
-  "name": "VariantQC",
+  "description": "MergeVcfsAndGenotypes is an adaptation of the Broad Institute GATK 3 tool CombineVariants. This is different from Picard\n tools MergeVcfs in that it will not only merge sites, but also merge genotypes.\n\n \u003cul\u003e\n \u003cli\u003e\u003cb\u003eMERGE:\u003c/b\u003e combines multiple variant records present at the same site in the different input sources into a\n single variant record in the output. If sample names overlap, then they are \"uniquified\" by default, which means a\n suffix is appended to make them unique. \u003cem\u003eNote that in version 3.3, the automatic uniquifying was disabled\n (unintentionally), and required setting `-genotypeMergeOption UNIQUIFY` manually.\u003c/em\u003e\u003c/li\u003e\n\n \u003cli\u003e\u003cb\u003eUNION:\u003c/b\u003e assumes that each ROD source represents the same set of samples (although this is not enforced).\n It uses the priority list (if provided) to emit a single record instance at every position represented in the input RODs.\u003c/li\u003e\n \u003c/ul\u003e\n\n \u003cp\u003eBy default, the input sets will be named variants, variants2, variants3, and so on. You can override this by\n providing an explicit name tag for each input, using the syntax \" -V:name,format\". Each input tagged in this\n way will be labeled as such in the output (i.e., set\u003dname rather than set\u003dvariants2). For example, you could specify\n a set of control samples as \" -V:control,vcf my_control_samples.vcf\", and the resulting VCF records would contain\n the annotation \"set\u003dcontrol\" in the INFO field. It is strongly recommended to provide explicit names in this way\n when a rod priority list is provided.\u003c/p\u003e\n\n \u003cp\u003eMergeVcfsAndGenotypes will emit a record for every site that was present in any of your input VCF files, and will annotate\n (in the set attribute in the INFO field) whether the record had a PASS or FILTER status in each input ROD . In effect,\n MergeVcfsAndGenotypes always produces a union of the input VCFs.  However, any part of the Venn of the merged VCFs\n can be extracted using JEXL expressions on the set attribute using SelectVariants.  If you want to extract just\n the records in common between two VCFs, you would first run MergeVcfsAndGenotypes on the two files to generate a single\n VCF and then run SelectVariants to extract the common records with `-select \u0027set \u003d\u003d \"Intersection\"\u0027`, as worked out\n in the detailed example in the documentation guide.\u003c/p\u003e\n\n \u003ch3\u003eInput\u003c/h3\u003e\n \u003cp\u003e\n Two or more variant sets to combine.\n \u003c/p\u003e\n\n \u003ch3\u003eOutput\u003c/h3\u003e\n \u003cp\u003e\n A combined VCF.\n \u003c/p\u003e\n\n \u003ch3\u003eUsage examples\u003c/h3\u003e\n \u0026nbsp;\n \u003ch4\u003eMerge two separate callsets\u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRseq.jar \\\n   -T MergeVcfsAndGenotypes \\\n   -R reference.fasta \\\n   --variant input1.vcf \\\n   --variant input2.vcf \\\n   -O output.vcf \\\n   -genotypeMergeOption UNIQUIFY\n \u003c/pre\u003e\n\n \u003ch4\u003eGet the union of calls made on the same samples \u003c/h4\u003e\n \u003cpre\u003e\n java -jar DISCVRseq.jar \\\n   -T MergeVcfsAndGenotypes \\\n   -R reference.fasta \\\n   --variant:foo input1.vcf \\\n   --variant:bar input2.vcf \\\n   -O output.vcf \\\n   -genotypeMergeOption PRIORITIZE \\\n   -priority foo,bar\n \u003c/pre\u003e\n\n \u003ch3\u003eCaveats\u003c/h3\u003e\n \u003cul\u003e\n \u003cli\u003eThis tool is not intended to manipulate gVCFS! To combine GVCF files output for different samples by HaplotypeCaller, use CombineGVCFs.\u003c/li\u003e\n \u003c/ul\u003e",
+  "name": "MergeVcfsAndGenotypes",
   "group": "Public/Stable Tools",
   "beta": false,
   "experimental": false
