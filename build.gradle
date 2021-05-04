@@ -53,7 +53,7 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.2.0.0-5-g8d5f374-SNAPSHOT'
+final gatkVersion = '4.2.0.0-17-g8ba9aa4-SNAPSHOT'
 final htsjdkVersion = System.getProperty('htsjdk.version','2.24.0')
 final barclayVersion = System.getProperty('barclay.version','4.0.1')
 final testNGVersion = '7.0.0'

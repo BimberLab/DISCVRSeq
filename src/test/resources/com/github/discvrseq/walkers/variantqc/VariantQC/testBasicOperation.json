@@ -5,9 +5,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -326,9 +326,9 @@
         "plot_type": "bar_graph",
         "samples": [
           [
-            "drivingVariantFile / called",
-            "drivingVariantFile / filtered",
-            "drivingVariantFile / raw"
+            "eval / called",
+            "eval / filtered",
+            "eval / raw"
           ]
         ],
         "datasets": [
@@ -402,9 +402,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -454,9 +454,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -668,9 +668,9 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile / called",
-          "drivingVariantFile / filtered",
-          "drivingVariantFile / raw"
+          "eval / called",
+          "eval / filtered",
+          "eval / raw"
         ],
         "datasets": [
           [
@@ -801,7 +801,7 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "drivingVariantFile"
+          "eval"
         ],
         "datasets": [
           [
@@ -827,7 +827,7 @@
         "plot_type": "bar_graph",
         "samples": [
           [
-            "drivingVariantFile"
+            "eval"
           ]
         ],
         "datasets": [
@@ -856,9 +856,6 @@
           "1 / called",
           "1 / filtered",
           "1 / raw",
-          "2 / called",
-          "2 / filtered",
-          "2 / raw",
           "all / called",
           "all / filtered",
           "all / raw"
@@ -950,93 +947,6 @@
             6.25E-5,
             16000.0,
             1.0
-          ],
-          [
-            "2",
-            "called",
-            16000,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          [
-            "2",
-            "filtered",
-            16000,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
-          ],
-          [
-            "2",
-            "raw",
-            16000,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0
           ],
           [
             "all",
@@ -1148,8 +1058,8 @@
             "name": "nCalledLoci",
             "label": "Number of called loci",
             "formatString": "0,0",
-            "flagAbove": 23.976591965342468,
-            "flagBelow": -9.754369743120247,
+            "flagAbove": 27.19139561048498,
+            "flagBelow": -5.858062277151648,
             "dmin": 0.0,
             "dmax": 17.6
           },
@@ -1157,8 +1067,8 @@
             "name": "nRefLoci",
             "label": "Number of reference loci",
             "formatString": "0,0",
-            "flagAbove": 17.982443974006852,
-            "flagBelow": -7.315777307340185,
+            "flagAbove": 20.393546707863734,
+            "flagBelow": -4.3935467078637345,
             "dmin": 0.0,
             "dmax": 13.2
           },
@@ -1166,24 +1076,24 @@
             "name": "nVariantLoci",
             "label": "Number of variant loci",
             "formatString": "0,0",
-            "flagAbove": 5.994147991335617,
-            "flagBelow": -2.4385924357800617,
+            "flagAbove": 6.797848902621245,
+            "flagBelow": -1.464515569287912,
             "dmin": 0.0,
             "dmax": 4.4
           },
           {
             "name": "variantRate",
             "label": "Variants per loci rate",
-            "flagAbove": 3.746342494584761E-4,
-            "flagBelow": -1.5241202723625385E-4,
+            "flagAbove": 4.2486555641382774E-4,
+            "flagBelow": -9.153222308049444E-5,
             "dmin": 0.0,
             "dmax": 2.750000130617991E-4
           },
           {
             "name": "variantRatePerBp",
             "label": "Number of variants per base",
-            "flagAbove": 5994.147991335616,
-            "flagBelow": -2438.592435780061,
+            "flagAbove": 6797.848902621245,
+            "flagBelow": -1464.5155692879111,
             "dmin": 0.0,
             "dmax": 4400.0
           },
@@ -1191,8 +1101,8 @@
             "name": "nSNPs",
             "label": "Number of snp loci",
             "formatString": "0,0",
-            "flagAbove": 4.495610993501713,
-            "flagBelow": -1.8289443268350463,
+            "flagAbove": 5.098386676965934,
+            "flagBelow": -1.0983866769659336,
             "dmin": 0.0,
             "dmax": 3.3
           },
@@ -1209,8 +1119,8 @@
             "name": "nInsertions",
             "label": "Number of insertions",
             "formatString": "0,0",
-            "flagAbove": 1.4985369978339043,
-            "flagBelow": -0.6096481089450154,
+            "flagAbove": 1.6994622256553114,
+            "flagBelow": -0.366128892321978,
             "dmin": 0.0,
             "dmax": 1.1
           },
@@ -1254,8 +1164,8 @@
             "name": "nNoCalls",
             "label": "Number of no calls loci",
             "formatString": "0,0",
-            "flagAbove": 17.982443974006852,
-            "flagBelow": -7.315777307340185,
+            "flagAbove": 20.393546707863734,
+            "flagBelow": -4.3935467078637345,
             "dmin": 0.0,
             "dmax": 13.2
           },
@@ -1263,8 +1173,8 @@
             "name": "nHets",
             "label": "Number of het loci",
             "formatString": "0,0",
-            "flagAbove": 5.994147991335617,
-            "flagBelow": -2.4385924357800617,
+            "flagAbove": 6.797848902621245,
+            "flagBelow": -1.464515569287912,
             "dmin": 0.0,
             "dmax": 4.4
           },
@@ -1272,8 +1182,8 @@
             "name": "nHomRef",
             "label": "Number of hom ref loci",
             "formatString": "0,0",
-            "flagAbove": 23.976591965342468,
-            "flagBelow": -9.754369743120247,
+            "flagAbove": 27.19139561048498,
+            "flagBelow": -5.858062277151648,
             "dmin": 0.0,
             "dmax": 17.6
           },
@@ -1290,8 +1200,8 @@
             "name": "nSingletons",
             "label": "Number of singletons",
             "formatString": "0,0",
-            "flagAbove": 4.495610993501713,
-            "flagBelow": -1.8289443268350463,
+            "flagAbove": 5.098386676965934,
+            "flagBelow": -1.0983866769659336,
             "dmin": 0.0,
             "dmax": 3.3
           },
@@ -1307,48 +1217,48 @@
           {
             "name": "heterozygosity",
             "label": "heterozygosity per locus rate",
-            "flagAbove": 3.746342494584761E-4,
-            "flagBelow": -1.5241202723625385E-4,
+            "flagAbove": 4.2486555641382774E-4,
+            "flagBelow": -9.153222308049444E-5,
             "dmin": 0.0,
             "dmax": 2.750000130617991E-4
           },
           {
             "name": "heterozygosityPerBp",
             "label": "heterozygosity per base pair",
-            "flagAbove": 5994.147991335616,
-            "flagBelow": -2438.592435780061,
+            "flagAbove": 6797.848902621245,
+            "flagBelow": -1464.5155692879111,
             "dmin": 0.0,
             "dmax": 4400.0
           },
           {
             "name": "hetHomRatio",
             "label": "heterozygosity to homozygosity ratio",
-            "flagAbove": 5.994147991335617,
-            "flagBelow": -2.4385924357800617,
+            "flagAbove": 6.797848902621245,
+            "flagBelow": -1.464515569287912,
             "dmin": 0.0,
             "dmax": 4.4
           },
           {
             "name": "indelRate",
             "label": "indel rate (insertion count + deletion count)",
-            "flagAbove": 9.365856236461903E-5,
-            "flagBelow": -3.810300680906346E-5,
+            "flagAbove": 1.0621638910345693E-4,
+            "flagBelow": -2.288305577012361E-5,
             "dmin": 0.0,
             "dmax": 6.875000326544978E-5
           },
           {
             "name": "indelRatePerBp",
             "label": "indel rate per base pair",
-            "flagAbove": 23976.591965342464,
-            "flagBelow": -9754.369743120244,
+            "flagAbove": 27191.39561048498,
+            "flagBelow": -5858.062277151645,
             "dmin": 0.0,
             "dmax": 17600.0
           },
           {
             "name": "insertionDeletionRatio",
             "label": "insertion  to deletion ratio",
-            "flagAbove": 1.4985369978339043,
-            "flagBelow": -0.6096481089450154,
+            "flagAbove": 1.6994622256553114,
+            "flagBelow": -0.366128892321978,
             "dmin": 0.0,
             "dmax": 1.1
           }
@@ -1364,9 +1274,6 @@
             "1 / called",
             "1 / filtered",
             "1 / raw",
-            "2 / called",
-            "2 / filtered",
-            "2 / raw",
             "all / called",
             "all / filtered",
             "all / raw"
@@ -1380,9 +1287,6 @@
                 3,
                 0,
                 3,
-                0,
-                0,
-                0,
                 3,
                 0,
                 3
@@ -1391,9 +1295,6 @@
             {
               "name": "nMNPs",
               "data": [
-                0,
-                0,
-                0,
                 0,
                 0,
                 0,
@@ -1408,9 +1309,6 @@
                 1,
                 0,
                 1,
-                0,
-                0,
-                0,
                 1,
                 0,
                 1
@@ -1419,9 +1317,6 @@
             {
               "name": "nDeletions",
               "data": [
-                0,
-                0,
-                0,
                 0,
                 0,
                 0,
@@ -1438,9 +1333,6 @@
                 0,
                 0,
                 0,
-                0,
-                0,
-                0,
                 0
               ]
             },
@@ -1452,18 +1344,12 @@
                 0,
                 0,
                 0,
-                0,
-                0,
-                0,
                 0
               ]
             },
             {
               "name": "nMixed",
               "data": [
-                0,
-                0,
-                0,
                 0,
                 0,
                 0,
@@ -1488,9 +1374,6 @@
           "1 / called",
           "1 / filtered",
           "1 / raw",
-          "2 / called",
-          "2 / filtered",
-          "2 / raw",
           "all / called",
           "all / filtered",
           "all / raw"
@@ -1513,24 +1396,6 @@
             "raw",
             20,
             12
-          ],
-          [
-            "2",
-            "called",
-            0,
-            0
-          ],
-          [
-            "2",
-            "filtered",
-            0,
-            0
-          ],
-          [
-            "2",
-            "raw",
-            0,
-            0
           ],
           [
             "all",
@@ -1564,8 +1429,8 @@
             "name": "nCalledNotFiltered",
             "label": "Number of Called Genotypes",
             "formatString": "0,0",
-            "flagAbove": 29.970739956678088,
-            "flagBelow": -12.19296217890031,
+            "flagAbove": 33.98924451310622,
+            "flagBelow": -7.322577846439556,
             "dmin": 0.0,
             "dmax": 22.0
           },
@@ -1573,8 +1438,8 @@
             "name": "nNoCallOrFiltered",
             "label": "Number of No-Call Genotypes",
             "formatString": "0,0",
-            "flagAbove": 17.982443974006852,
-            "flagBelow": -7.315777307340185,
+            "flagAbove": 20.393546707863734,
+            "flagBelow": -4.3935467078637345,
             "dmin": 0.0,
             "dmax": 13.2
           }
@@ -1589,9 +1454,6 @@
           "1 / called",
           "1 / filtered",
           "1 / raw",
-          "2 / called",
-          "2 / filtered",
-          "2 / raw",
           "all / called",
           "all / filtered",
           "all / raw"
@@ -1665,87 +1527,6 @@
             1,
             "100.00",
             "1",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            "NA",
-            "NA"
-          ],
-          [
-            "2",
-            "called",
-            0,
-            0,
-            0,
-            0,
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            0,
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            "NA",
-            "NA"
-          ],
-          [
-            "2",
-            "filtered",
-            0,
-            0,
-            0,
-            0,
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            0,
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "0",
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            "NA",
-            "NA"
-          ],
-          [
-            "2",
-            "raw",
-            0,
-            0,
-            0,
-            0,
-            "0",
-            "NA",
-            "NA",
-            "NA",
-            0,
-            "NA",
-            "0",
             "0",
             "NA",
             "0",
@@ -1854,8 +1635,8 @@
             "name": "n_SNPs",
             "label": "Number of SNPs",
             "formatString": "0,0",
-            "flagAbove": 4.495610993501713,
-            "flagBelow": -1.8289443268350463,
+            "flagAbove": 5.098386676965934,
+            "flagBelow": -1.0983866769659336,
             "dmin": 0.0,
             "dmax": 3.3
           },
@@ -1863,8 +1644,8 @@
             "name": "n_singleton_SNPs",
             "label": "Number of singleton SNPs",
             "formatString": "0,0",
-            "flagAbove": 4.495610993501713,
-            "flagBelow": -1.8289443268350463,
+            "flagAbove": 5.098386676965934,
+            "flagBelow": -1.0983866769659336,
             "dmin": 0.0,
             "dmax": 3.3
           },
@@ -1872,8 +1653,8 @@
             "name": "n_indels",
             "label": "Number of indels",
             "formatString": "0,0",
-            "flagAbove": 1.4985369978339043,
-            "flagBelow": -0.6096481089450154,
+            "flagAbove": 1.6994622256553114,
+            "flagBelow": -0.366128892321978,
             "dmin": 0.0,
             "dmax": 1.1
           },
@@ -1881,8 +1662,8 @@
             "name": "n_singleton_indels",
             "label": "Number of singleton indels",
             "formatString": "0,0",
-            "flagAbove": 1.4985369978339043,
-            "flagBelow": -0.6096481089450154,
+            "flagAbove": 1.6994622256553114,
+            "flagBelow": -0.366128892321978,
             "dmin": 0.0,
             "dmax": 1.1
           },
@@ -1906,8 +1687,8 @@
             "name": "n_novel_indels",
             "label": "Number of novel indels",
             "formatString": "0,0",
-            "flagAbove": 1.4985369978339043,
-            "flagBelow": -0.6096481089450154,
+            "flagAbove": 1.6994622256553114,
+            "flagBelow": -0.366128892321978,
             "dmin": 0.0,
             "dmax": 1.1
           },
@@ -1975,17 +1756,12 @@
       "data": {
         "plot_type": "data_table",
         "samples": [
-          "1",
-          "2"
+          "1"
         ],
         "datasets": [
           [
             "1",
             4
-          ],
-          [
-            "2",
-            0
           ]
         ],
         "columns": [
@@ -1997,9 +1773,9 @@
             "name": "PASS",
             "label": "PASS",
             "formatString": "0,0",
-            "flagAbove": 7.656854249492381,
-            "flagBelow": -3.6568542494923806,
-            "dmin": 0.0,
+            "flagAbove": 4.0,
+            "flagBelow": 4.0,
+            "dmin": 3.6,
             "dmax": 4.4
           }
         ]
@@ -2011,8 +1787,7 @@
         "plot_type": "bar_graph",
         "samples": [
           [
-            "1",
-            "2"
+            "1"
           ]
         ],
         "datasets": [
@@ -2020,8 +1795,7 @@
             {
               "name": "PASS",
               "data": [
-                4,
-                0
+                4
               ]
             }
           ]
@@ -3194,14 +2968,12 @@
             "sample1",
             "UNKNOWN",
             1,
-            0,
             1
           ],
           [
             "sample2",
             "UNKNOWN",
             3,
-            0,
             3
           ]
         ],
@@ -3222,15 +2994,6 @@
             "flagBelow": -0.8284271247461903,
             "dmin": 0.9,
             "dmax": 3.3
-          },
-          {
-            "name": "2",
-            "label": "2",
-            "formatString": "0,0",
-            "flagAbove": 0.0,
-            "flagBelow": 0.0,
-            "dmin": 0.0,
-            "dmax": 1.0
           },
           {
             "name": "all",
