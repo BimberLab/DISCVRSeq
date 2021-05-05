@@ -497,6 +497,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
             args.stratificationsToUse = stratifications;
             args.noStandardStratifications = true;
             args.pedigreeFile = variantQC.pedigreeFile;
+            args.pedigreeValidationType = variantQC.pedigreeValidationType;
 
             this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), variantQC.getSequenceDictionaryForDrivingVariants(), variantQC.getSamplesForVariants(), infoFields);
         }
