@@ -53,6 +53,9 @@ public class MendelianViolationReport extends VariantWalker {
     @Argument(fullName = StandardArgumentDefinitions.PEDIGREE_FILE_LONG_NAME, shortName = StandardArgumentDefinitions.PEDIGREE_FILE_SHORT_NAME, doc="Pedigree file for determining the population \"founders\"", optional=false)
     private GATKPath pedigreeFile;
 
+    @Argument(fullName = "pedigreeValidationType", shortName = "pedValidationType", doc="The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT", optional=true)
+    private PedigreeValidationType pedigreeValidationType = PedigreeValidationType.STRICT;
+
     private Map<String, MVSummary> sampleMap;
     private SampleDB sampleDB = null;
 
@@ -75,7 +78,7 @@ public class MendelianViolationReport extends VariantWalker {
     }
 
     private SampleDB initializeSampleDB() {
-        final SampleDBBuilder sampleDBBuilder = new SampleDBBuilder(PedigreeValidationType.STRICT);
+        final SampleDBBuilder sampleDBBuilder = new SampleDBBuilder(pedigreeValidationType);
         if (pedigreeFile != null)
             sampleDBBuilder.addSamplesFromPedigreeFiles(Collections.singletonList(pedigreeFile));
 
