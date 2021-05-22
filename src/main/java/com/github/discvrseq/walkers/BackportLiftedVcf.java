@@ -204,32 +204,35 @@ public class BackportLiftedVcf extends VariantWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        writeSortedOutput(outputHeader, sorter);
+        writeSortedOutput();
 
         return null;
     }
 
-    private void writeSortedOutput(final VCFHeader outputHeader, final SortingCollection<VariantContext> sortedOutput) {
+    private void writeSortedOutput() {
         final ProgressLogger writeProgress = new ProgressLogger(log, 25000, "wrote", "records");
         final EnumSet<Options> options = createOutputVariantIndex ? EnumSet.of(Options.INDEX_ON_THE_FLY) : EnumSet.noneOf(Options.class);
         if (lenientVCFProcessing) {
             options.add(Options.ALLOW_MISSING_FIELDS_IN_HEADER);
         }
 
-        final VariantContextWriter out = GATKVariantContextUtils.createVCFWriter(
+        try (final VariantContextWriter out = GATKVariantContextUtils.createVCFWriter(
                 new File(outFile).toPath(),
                 outputHeader.getSequenceDictionary(),
                 createOutputVariantMD5,
-                options.toArray(new Options[options.size()]));
+                options.toArray(new Options[options.size()]));CloseableIterator<VariantContext> it = sorter.iterator()) {
 
-        out.writeHeader(outputHeader);
-        for (final VariantContext variantContext : sortedOutput) {
-            out.add(variantContext);
-            writeProgress.record(variantContext.getContig(), variantContext.getStart());
+            out.writeHeader(outputHeader);
+            while (it.hasNext())
+            {
+                VariantContext variantContext = it.next();
+                out.add(variantContext);
+                writeProgress.record(variantContext.getContig(), variantContext.getStart());
+            }
         }
-
-        out.close();
-        sortedOutput.cleanup();
+        finally {
+            sorter.cleanup();
+        }
     }
 
     @Override
