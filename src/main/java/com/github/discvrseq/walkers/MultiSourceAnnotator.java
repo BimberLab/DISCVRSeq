@@ -182,7 +182,10 @@ public class MultiSourceAnnotator extends VariantWalker {
             "OMIMM",
             "OMIMC",
             "OMIMD",
-            "OMIMMUS"
+            "OMIMMUS",
+            "LiftedContig",
+            "LiftedStart",
+            "LiftedStop"
     );
 
     private long clinvar = 0L;

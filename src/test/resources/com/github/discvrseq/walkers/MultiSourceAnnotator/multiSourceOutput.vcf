@@ -122,6 +122,9 @@
 ##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description="Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation">
 ##INFO=<ID=LF,Number=1,Type=String,Description="Could not be lifted to alternate genome">
 ##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected'">
+##INFO=<ID=LiftedContig,Number=.,Type=String,Description="The name of the contig/chromosome after liftover.">
+##INFO=<ID=LiftedStart,Number=.,Type=Integer,Description="The start position of the variant on the lifted contig.">
+##INFO=<ID=LiftedStop,Number=.,Type=Integer,Description="The end position of the variant on the lifted contig.">
 ##INFO=<ID=MAF,Number=1,Type=Float,Description="The minor allele frequency (frequency of second most common allele), derived from the AF field.">
 ##INFO=<ID=MB,Number=.,Type=String,Description="Motif_breaking: whether variant breaks a known motif (in-house script).">
 ##INFO=<ID=MLEAC,Number=A,Type=Integer,Description="Maximum likelihood expectation (MLE) for the allele counts (not necessarily the same as the AC), for each ALT allele, in the same order as listed">
