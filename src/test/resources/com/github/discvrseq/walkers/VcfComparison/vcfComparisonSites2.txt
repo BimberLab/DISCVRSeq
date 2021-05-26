@@ -1,0 +1,2 @@
+1	72	Discordant Genotype: Sample1
+1	73	SiteMissingRelativeToRef
