@@ -1,0 +1,6 @@
+Metric	Value
+NovelSitesRelativeToRef	0
+SitesMissingRelativeToRef	1
+RefFilteredNotSample	0
+SampleFilteredNotRef	0
+DiscordantGenotypes	1
