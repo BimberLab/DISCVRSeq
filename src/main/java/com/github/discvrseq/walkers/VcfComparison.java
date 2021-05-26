@@ -99,6 +99,8 @@ public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
     }
 
     private static final class VcfComparisonArgumentCollection extends MultiVariantInputArgumentCollection.DefaultMultiVariantInputArgumentCollection {
+        private static final long serialVersionUID = 1L;
+
         @Argument(doc = "Reference VCF", fullName = "referenceVCF", shortName = "rv", optional = false)
         public FeatureInput<VariantContext> refVariants = null;
 
