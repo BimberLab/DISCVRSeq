@@ -54,6 +54,9 @@ import java.util.stream.Collectors;
  * VCF and then run SelectVariants to extract the common records with `-select 'set == "Intersection"'`, as worked out
  * in the detailed example in the documentation guide.</p>
  *
+ * <p>Important! If you select defined intervals, by default (in most GATK4-based walkers), any variant spanning the start site will be included
+ * If you are running scatter/gather jobs, this is probably not what you want. You can specify --ignore-variants-starting-outside-interval to
+ * force MergeVcfsAndGenotypes to only consider sites that start within the target intervals.</p>
  * <h3>Input</h3>
  * <p>
  * Two or more variant sets to combine.
@@ -73,6 +76,8 @@ import java.util.stream.Collectors;
  *   -R reference.fasta \
  *   --variant input1.vcf \
  *   --variant input2.vcf \
+ *   --ignore-variants-starting-outside-interval \
+ *   -L 1:1000-202029 \
  *   -O output.vcf \
  *   -genotypeMergeOption UNIQUIFY
  * </pre>

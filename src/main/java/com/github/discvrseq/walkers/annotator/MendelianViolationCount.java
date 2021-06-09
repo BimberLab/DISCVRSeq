@@ -4,10 +4,10 @@ package com.github.discvrseq.walkers.annotator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCompoundHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
-import org.broadinstitute.barclay.argparser.ArgumentCollection;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.tools.walkers.annotator.InfoFieldAnnotation;
@@ -18,6 +18,7 @@ import org.broadinstitute.hellbender.utils.samples.Sample;
 import org.broadinstitute.hellbender.utils.samples.SampleDB;
 import org.broadinstitute.hellbender.utils.samples.Sex;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 /**
@@ -51,6 +52,7 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     @Override
     public void setArgumentCollection(MendelianViolationArgumentCollection args) {
         this.args = args;
+        sampleDB = args.getSampleDB(getPedigreeFile());;
     }
 
     @Override
@@ -68,7 +70,9 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
             }
 
             attributeMap.put(MV_NUM, totalViolations);
-            attributeMap.put(MV_SAMPLES, StringUtils.join(violations.toArray(new String[0]), ","));
+            if (!violations.isEmpty()) {
+                attributeMap.put(MV_SAMPLES, StringUtils.join(violations.toArray(new String[0]), ","));
+            }
         }
 
         return attributeMap;
@@ -83,7 +87,11 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
         return ret.isViolation() ? 1 : 0;
     }
 
-    public static MV getMendelianViolation(Sample subject, VariantContext vc, double minGenotypeQuality) {
+    public static MV getMendelianViolation(@Nullable Sample subject, VariantContext vc, double minGenotypeQuality) {
+        if (subject == null) {
+            return null;
+        }
+
         Genotype gChild = vc.getGenotype(subject.getID());
         if (gChild == null || !gChild.isCalled()){
             return null;  //cant make call
@@ -167,10 +175,11 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     // return the descriptions used for the VCF INFO meta field
     public List<String> getKeyNames() { return Arrays.asList(MV_NUM, MV_SAMPLES); }
 
-    public List<VCFInfoHeaderLine> getDescriptions() { return Arrays.asList(
+    public List<VCFCompoundHeaderLine> getDescriptions() { return Arrays.asList(
             new VCFInfoHeaderLine(MV_NUM, 1, VCFHeaderLineType.Integer, "Number of mendelian violations across all samples."),
             new VCFInfoHeaderLine(MV_SAMPLES, 1, VCFHeaderLineType.String, "Samples where a mendelian violation was observed.")
-    ); }
+        );
+    }
 
     public static class NoCallGenotype extends Genotype {
         private static final long serialVersionUID = 1L;

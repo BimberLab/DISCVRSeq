@@ -5,6 +5,7 @@ package com.github.discvrseq.walkers.annotator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextUtils;
+import htsjdk.variant.vcf.VCFCompoundHeaderLine;
 import htsjdk.variant.vcf.VCFConstants;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
@@ -73,7 +74,7 @@ public class MinorAlleleFrequency implements InfoFieldAnnotation, StandardAnnota
     // return the descriptions used for the VCF INFO meta field
     public List<String> getKeyNames() { return Collections.singletonList(MAF_KEY); }
 
-    public List<VCFInfoHeaderLine> getDescriptions() { return Collections.singletonList(
+    public List<VCFCompoundHeaderLine> getDescriptions() { return Collections.singletonList(
             new VCFInfoHeaderLine(MAF_KEY, 1, VCFHeaderLineType.Float, "The minor allele frequency (frequency of second most common allele), derived from the AF field."));
     }
 }
