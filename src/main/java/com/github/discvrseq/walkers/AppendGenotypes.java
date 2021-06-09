@@ -59,7 +59,7 @@ public class AppendGenotypes extends VariantWalker {
         }
 
         Set<VCFHeaderLine> headerLines = VCFUtils.smartMergeHeaders(headers, true);
-        headerLines.addAll(Arrays.asList(ChromosomeCounts.descriptions));
+        GATKVariantContextUtils.addChromosomeCountsToHeader(headerLines);
 
         VCFHeader vcfHeader = new VCFHeader(headerLines, samples);
 

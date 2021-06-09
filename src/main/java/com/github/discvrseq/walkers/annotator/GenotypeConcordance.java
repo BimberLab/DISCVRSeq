@@ -4,10 +4,9 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.GenotypeBuilder;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCompoundHeaderLine;
 import htsjdk.variant.vcf.VCFFormatHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
-import org.broadinstitute.barclay.argparser.ArgumentCollection;
-import org.broadinstitute.hellbender.engine.FeatureManager;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.tools.walkers.annotator.GenotypeAnnotation;
@@ -85,7 +84,7 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
     }
 
     @Override
-    public List<VCFFormatHeaderLine> getDescriptions() {
+    public List<VCFCompoundHeaderLine> getDescriptions() {
         return Arrays.asList(
                 new VCFFormatHeaderLine(KEY, 1, VCFHeaderLineType.Integer, "Flags genotypes (as 1) discordant with those from the same sample/position in the provided VCF file.  Concordant genotypes are flagged a 0.  Genotypes not called in either VCF are ignored."),
                 new VCFFormatHeaderLine(D_KEY, 1, VCFHeaderLineType.String, "When comparing genotypes against an alternate VCF, this will store the genotype of this sample in that alternate VCF, if discordant.  Genotypes not called in either VCF are ignored.")

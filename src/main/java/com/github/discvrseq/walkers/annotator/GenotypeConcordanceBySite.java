@@ -3,10 +3,9 @@ package com.github.discvrseq.walkers.annotator;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFCompoundHeaderLine;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import org.broadinstitute.barclay.argparser.ArgumentCollection;
-import org.broadinstitute.hellbender.engine.FeatureManager;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.tools.walkers.annotator.InfoFieldAnnotation;
@@ -90,7 +89,7 @@ public class GenotypeConcordanceBySite extends PedigreeAnnotation implements Inf
     }
 
     @Override
-    public List<VCFInfoHeaderLine> getDescriptions() {
+    public List<VCFCompoundHeaderLine> getDescriptions() {
         return Arrays.asList(
                 new VCFInfoHeaderLine(DISCORD_KEY, 1, VCFHeaderLineType.Integer, "The total number of genotypes discordant with those from the same sample/position in the provided VCF file.  Genotypes not called in either VCF are ignored."),
                 new VCFInfoHeaderLine(CONCORD_KEY, 1, VCFHeaderLineType.Integer, "The total number of genotypes concordant with those from the same sample/position in the provided VCF file.  Genotypes not called in either VCF are ignored.")
