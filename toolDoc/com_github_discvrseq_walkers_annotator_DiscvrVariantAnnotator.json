@@ -560,6 +560,30 @@
       "options": []
     },
     {
+      "summary": "The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT",
+      "name": "--pedigreeValidationType",
+      "synonyms": "-pedValidationType",
+      "type": "PedigreeValidationType",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "STRICT",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": [
+        {
+          "summary": "",
+          "name": "STRICT"
+        },
+        {
+          "summary": "",
+          "name": "SILENT"
+        }
+      ]
+    },
+    {
       "summary": "Whether to suppress job-summary info on System.err.",
       "name": "--QUIET",
       "synonyms": "NA",
