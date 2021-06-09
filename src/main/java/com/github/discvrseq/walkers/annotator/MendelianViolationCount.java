@@ -70,7 +70,9 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
             }
 
             attributeMap.put(MV_NUM, totalViolations);
-            attributeMap.put(MV_SAMPLES, StringUtils.join(violations.toArray(new String[0]), ","));
+            if (!violations.isEmpty()) {
+                attributeMap.put(MV_SAMPLES, StringUtils.join(violations.toArray(new String[0]), ","));
+            }
         }
 
         return attributeMap;
@@ -176,7 +178,8 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     public List<VCFCompoundHeaderLine> getDescriptions() { return Arrays.asList(
             new VCFInfoHeaderLine(MV_NUM, 1, VCFHeaderLineType.Integer, "Number of mendelian violations across all samples."),
             new VCFInfoHeaderLine(MV_SAMPLES, 1, VCFHeaderLineType.String, "Samples where a mendelian violation was observed.")
-    ); }
+        );
+    }
 
     public static class NoCallGenotype extends Genotype {
         private static final long serialVersionUID = 1L;
