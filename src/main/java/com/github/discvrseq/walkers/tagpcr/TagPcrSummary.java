@@ -4,7 +4,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.util.SequenceMatcher;
 import htsjdk.samtools.*;
 import htsjdk.samtools.reference.ReferenceSequence;
@@ -62,30 +62,121 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
  * </ul>
  *
- * <h3>Usage example:</h3>
+ * <h3>Simplest Usage:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar TagPcrSummary \
+ *     -R currentGenome.fasta \
+ *     -b myBam.bam \
+ *     --output-table output.txt \
+ *     --insertNames
+ * </pre>
+ *
+ * <h3>Using More Advanced Features to Reconstruct Transgene/Genome Sequences and Design PCR primers:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar TagPcrSummary \
  *     -R currentGenome.fasta \
  *     -b myBam.bam \
  *     --output-table output.txt \
  *     --primer-pair-table primer_summary.txt \
- *     --prime3-path /usr/bin/primer3_core \
- *     --genbank-output output.gb
+ *     --primer3-path /usr/bin/primer3_core \
+ *     --genbank-output output.gb \
+ *     --insert-name lentivirus
  * </pre>
- *
- * To get the complete output, the tool requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. Below are two examples:
+
+ * To generate the full tool output, TagPcrSummary requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. TagPcrSummary include two built-in
+ * transgene schemes, and these can be output to a file as a reference:
  *
  * <pre>
- *
- *
+ *  java -jar DISCVRseq.jar TagPcrSummary \
+ *     --write-default-descriptors outputFile.yml
  * </pre>
  *
+ *  which creates:
+ * <pre>
+ * name: Lentivirus
+ * junctions:
+ * - name: LV-3LTR
+ *   searchStrings: [ AGTGTGGAAAATCTCTAGCA ]
+ *   invertHitOrientation: false
+ * - name: LV-5LTR
+ *   searchStrings: [ TGGAAGGGCTAATTCACTCC ]
+ *   invertHitOrientation: true
+ * insertUpstreamRegion:
+ *   name: LV-5LTR
+ *   sequence: TGGAAGGGCTAATTCACTCCCAAAGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA
+ * insertDownstreamRegion:
+ *   name: LV-3LTR
+ *   sequence: TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA
+ * internalPrimers:
+ * - name: LV-3LTR-Outer
+ *   sequence: GAGAGCTGCATCCGGAGTAC
+ * - name: LV-3LTR-Inner
+ *   sequence: TAGTGTGTGCCCGTCTGTTG
+ * - name: LV-5LTR-Outer
+ *   sequence: TCCTCTGGTTTCCCTTTCGC
+ * - name: LV-5LTR-Inner
+ *   sequence: AAGCAGTGGGTTCCCTAGTT
+ * </pre>
+ *
+ * <pre>
+ * name: PiggyBac
+ * junctions:
+ * - name: PB-3TR
+ *   searchStrings: [ GCAGACTATCTTTCTAGGGTTAA ]
+ *   invertHitOrientation: false
+ * - name: PB-5TR
+ *   searchStrings: [ ATGATTATCTTTCTAGGGTTAA ]
+ *   invertHitOrientation: true
+ * insertUpstreamRegion:
+ *   name: PB-5TR
+ *   sequence: TTAACCCTAGAAAGATAATCATATTGTGACGTACGTTAAAGATAATCATGTGTAAAATTGACGCATGTGTTTTATCGGTCTGTATATCGAGGTTTATTTATTAATTTGAATAGATATTAAGTTTTATTATATTTACACTTACATACTAATAATAAATTCAACAAACAATTTATTTATGTTTATTTATTTATTAAAAAAAACAAAAACTCAAAATTTCTTCTATAAAGTAACAAAACTTTTATGAGGGACAGCCCCCCCCCAAAGCCCCCAGGGATGTAATTACGTCCCTCCCCCGCTAGGGGGCAGCAGCGAGCCGCCCGGGGCTCCGCTCCGGTCCGGCGCTCCCCCCGCATCCCCGAGCCGGCAGCGTGCGGGGACAGCCCGGGCACGGGGAAGGTGGCACGGGATCGCTTTCCTCTGAACGCTTCTCGCTGCTCTTTGAGCCTGCAGACACCTGGGGGGATA
+ * insertDownstreamRegion:
+ *   name: PB-3TR
+ *   sequence: CGTAAAAGATAATCATGCGTCATTTTGACTCACGCGGTCGTTATAGTTCAAAATCAGTGACACTTACCGCATTGACAAGCACGCCTCACGGGAGCTCCAAGCGGCGACTGAGATGTCCTAAATGCACAGCGACGGATTCGCGCTATTTAGAAAGAGAGAGCAATATTTCAAGAATGCATGCGTCAATTTTACGCAGACTATCTTTCTAGGGTTAA
+ * internalPrimers:
+ * - name: PB-3TR-Nested4
+ *   sequence: CATTGACAAGCACGCCTCAC
+ * - name: PB-NTSR2-R2
+ *   sequence: GCGACGGATTCGCGCTATTT
+ * - name: PB-3TR-Nested
+ *   sequence: ATTTCAAGAATGCATGCGTCA
+ * - name: PB-5TR-New
+ *   sequence: CACATGATTATCTTTAACGTACGTCAC
+ * - name: PB-RCR1
+ *   sequence: GACCGATAAAACACATGCGTCA
+ * backboneSearchStrings: [ TCTAGCTGCATCAGGATCAT, TCAGGATCATATCGTCGGGT, TCTAGCTGCGTGTTCTGCAG, GTGTTCTGCAGCGTGTCGAG ]
+ * </pre>
+ *
+ * Each block represents the definition of one transgene type, and many sections are optional (although required for certain functions). For the simplest usage (creating a link of integration sites), relatively little is needed. If you want the tool to reconstruct the flanking sequence and/or generate primers, a more complete definition is needed. Pay attention to the orientation of the sequences:
+ *
+ * <ul>
+ *     <li>name: required. A name for this transgene type</li>
+ *     <li>junctions: required. this lists each junction type to inspect (typically the 5' and 3' junctions. Each junction contains the properties:</li>
+ *     <ul>
+ *         <li>name: A name to identify it. Should be used consistently with insertUpstreamRegion and insertDownstreamRegion</li>
+ *         <li>searchStrings: These are sequence that mark the expected termination of the transgene. The orientation of the sequence is important. Assuming the transgene integrates in the forward orientation, the sequence representing the 3' (downstream) end of the transgene insert should be in the forward orientation. The sequence representing the 5' (upstream) end of the transgene should be reverse-complemented relative to the transgene sequence, but with invertHitOrientation=true. This is necessary to create the proper orientation when concatenating the transgene and genomic flanking region.</li>
+ *         <li>invertHitOrientation: optional. If true, a forward orientation match of the search string denotes an inverted integration event. This is generally what you want for the 5' junction of the transgene.</li>
+ *     </ul>
+ *     <li>insertUpstreamRegion: If provided, when attempting to reconstruct the genome/transgene border, this sequence is concatenated to the flanking genomic sequence, like: (GenomicFlank)(insertUpstreamRegion).  In the PiggyBac PB-5TR, the starting TTAA represents the expected integration border.</li>
+ *     <li>insertDownstreamRegion: If provided, when attempting to reconstruct the genome/transgene border, this sequence is concatenated to the flanking genomic sequence, like: (insertDownstreamRegion)(GenomicFlank).  In the PiggyBac PB-3TR, the ending TTAA represents the expected integration border.</li>
+ *     <li>internalPrimers: An optional list of existing internal PCR primers for the transgene. If primer prediction is selected, these primers will be annotated in the resulting genbank output, which can be useful for selection of primer pairs.</li>
+ *     <li>backboneSearchStrings: An optional list of strings to use to identify non-integrated transgene (such as the source plasmid). If a given read contains any of these sequences, which could typically be short fragments representing the vector backbone, it will be flagged as such.</li>
+ * </ul>
+ *
+ * <h3>Finally, it can be run using a custom transgene definition:</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar TagPcrSummary \
+ *     -R currentGenome.fasta \
+ *     -b myBam.bam \
+ *     --output-table output.txt \
+ *     --insert-definition outputFile.yml
+ * </pre>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
         summary = "The is a specialist tool designed to summarize and interpret integration sites of a transgene into a genome",
         oneLineSummary = "Detect and summarize transgene integration",
-        programGroup = DiscvrSeqDevProgramGroup.class
+        programGroup = DiscvrSeqProgramGroup.class
 )
 public class TagPcrSummary extends GATKTool {
     @Argument(fullName = "bam", shortName = "b", doc = "A BAM file with alignments to be inspected", common = false, optional = true)
@@ -124,7 +215,7 @@ public class TagPcrSummary extends GATKTool {
     @Argument(doc="If BLAST will be used, this value is passed to the -num_threads argument of blastn.", fullName = "blast-threads", shortName = "bt", optional = true)
     public Integer blastThreads = null;
 
-    @Argument(doc="One or more files describing the insert and transgene/genome junctions. See --show-default-descriptors and --validate-descriptor-only", fullName = "insert-definition", shortName = "id", optional = true)
+    @Argument(doc="One or more files describing the insert and transgene/genome junctions. See --write-default-descriptors and --validate-descriptor-only", fullName = "insert-definition", shortName = "id", optional = true)
     public List<File> insertDescriptorFiles = null;
 
     @Argument(doc="The name of one of the built-in insert descriptors to use. See --write-default-descriptors for available types", fullName = "insert-name", optional = true)
