@@ -13,16 +13,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class TagPcrSummaryIntegrationTest extends BaseIntegrationTest {
+public class IntegrationSiteMapperIntegrationTest extends BaseIntegrationTest {
     @Test
     public void testYamlParsing() throws Exception {
-        Resource yml1 = new Resource("pENTR-PB511-Repro.yml", TagPcrSummary.class);
+        Resource yml1 = new Resource("pENTR-PB511-Repro.yml", IntegrationSiteMapper.class);
         File tmp1 = createTempFile("piggyBac", ".yml");
         try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(tmp1)) {
             IOUtils.copy(yml1.getResourceContentsAsStream(), writer, StandardCharsets.UTF_8);
         }
 
-        Resource yml2 = new Resource("Lentivirus.yml", TagPcrSummary.class);
+        Resource yml2 = new Resource("Lentivirus.yml", IntegrationSiteMapper.class);
         File tmp2 = createTempFile("lentivirus", ".yml");
         try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(tmp2)) {
             IOUtils.copy(yml2.getResourceContentsAsStream(), writer, StandardCharsets.UTF_8);
