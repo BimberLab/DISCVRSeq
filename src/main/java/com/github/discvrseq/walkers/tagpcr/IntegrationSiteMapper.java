@@ -48,8 +48,12 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This tool is designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
- * providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
+ * This tool was originally designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
+ * providing similar data.  At a high level, it uses the terminal sequence(s) of your transgene to inspect BAM reads for those containing genome-transgene junctions. It determines the orientation of the
+ * integration event, and can create a table of these locations. It can additionally reconstruct the genome/transgene sequences for each unique site (which can be tricky when considering orientation). Finally,
+ * it can optionally uses these reconstructed sequences to design PCR validation primers (using Primer3), and BLAST those primers against the host genome as validation.
+ *
+ * It provides a very detailed output, but makes some assumptions and requires specific inputs:
  *
  * <ul>
  *     <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is the reference for that organism. It is possible for this to also contain the transgene and/or delivery vector but this is not necessarily needed and can be more complicated to maintain</li>
@@ -64,7 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <h3>Simplest Usage:</h3>
  * <pre>
- *  java -jar DISCVRseq.jar TagPcrSummary \
+ *  java -jar DISCVRseq.jar IntegrationSiteMapper \
  *     -R currentGenome.fasta \
  *     -b myBam.bam \
  *     --output-table output.txt \
@@ -73,7 +77,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <h3>Using More Advanced Features to Reconstruct Transgene/Genome Sequences and Design PCR primers:</h3>
  * <pre>
- *  java -jar DISCVRseq.jar TagPcrSummary \
+ *  java -jar DISCVRseq.jar IntegrationSiteMapper \
  *     -R currentGenome.fasta \
  *     -b myBam.bam \
  *     --output-table output.txt \
@@ -83,11 +87,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     --insert-name lentivirus
  * </pre>
 
- * To generate the full tool output, TagPcrSummary requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. TagPcrSummary include two built-in
+ * To generate the full tool output, IntegrationSiteMapper requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. IntegrationSiteMapper include two built-in
  * transgene schemes, and these can be output to a file as a reference:
  *
  * <pre>
- *  java -jar DISCVRseq.jar TagPcrSummary \
+ *  java -jar DISCVRseq.jar IntegrationSiteMapper \
  *     --write-default-descriptors outputFile.yml
  * </pre>
  *
@@ -165,7 +169,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * <h3>Finally, it can be run using a custom transgene definition:</h3>
  * <pre>
- *  java -jar DISCVRseq.jar TagPcrSummary \
+ *  java -jar DISCVRseq.jar IntegrationSiteMapper \
  *     -R currentGenome.fasta \
  *     -b myBam.bam \
  *     --output-table output.txt \
@@ -178,7 +182,7 @@ import java.util.concurrent.atomic.AtomicInteger;
         oneLineSummary = "Detect and summarize transgene integration",
         programGroup = DiscvrSeqProgramGroup.class
 )
-public class TagPcrSummary extends GATKTool {
+public class IntegrationSiteMapper extends GATKTool {
     @Argument(fullName = "bam", shortName = "b", doc = "A BAM file with alignments to be inspected", common = false, optional = true)
     public File inputBam;
 
@@ -262,7 +266,7 @@ public class TagPcrSummary extends GATKTool {
         }
 
         public InputStream getStream() {
-            Resource yml = new Resource(fileName, TagPcrSummary.class);
+            Resource yml = new Resource(fileName, IntegrationSiteMapper.class);
 
             return yml.getResourceContentsAsStream();
         }

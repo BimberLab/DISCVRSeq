@@ -22,7 +22,7 @@ public class InsertDescriptor {
 
     }
 
-    public String getFeatureLabel(TagPcrSummary.END_TYPE type) {
+    public String getFeatureLabel(IntegrationSiteMapper.END_TYPE type) {
         switch (type) {
             case upstream:
                 return insertUpstreamRegion.getName();

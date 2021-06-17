@@ -41,8 +41,8 @@ public class InsertJunctionDescriptor {
         return searchStrings;
     }
 
-    public Map<String, TagPcrSummary.JunctionMatch> getMatches(SAMRecord rec, InsertDescriptor id, Logger log, int maxRecordsToStore) {
-        Map<String, TagPcrSummary.JunctionMatch> matches = new HashMap<>();
+    public Map<String, IntegrationSiteMapper.JunctionMatch> getMatches(SAMRecord rec, InsertDescriptor id, Logger log, int maxRecordsToStore) {
+        Map<String, IntegrationSiteMapper.JunctionMatch> matches = new HashMap<>();
 
         //Forward orientation.
         for (String query : getSearchStrings(false)) {
@@ -59,7 +59,7 @@ public class InsertJunctionDescriptor {
                 }
 
                 if (pos > 0) {
-                    TagPcrSummary.JunctionMatch jm = new TagPcrSummary.JunctionMatch(log, id, this, rec.getContig(), pos, false, rec, maxRecordsToStore);
+                    IntegrationSiteMapper.JunctionMatch jm = new IntegrationSiteMapper.JunctionMatch(log, id, this, rec.getContig(), pos, false, rec, maxRecordsToStore);
                     matches.put(jm.getKey(), jm);
                 }
             }
@@ -78,7 +78,7 @@ public class InsertJunctionDescriptor {
                 }
 
                 if (pos > 0) {
-                    TagPcrSummary.JunctionMatch jm = new TagPcrSummary.JunctionMatch(log, id, this, rec.getContig(), pos, true, rec, maxRecordsToStore);
+                    IntegrationSiteMapper.JunctionMatch jm = new IntegrationSiteMapper.JunctionMatch(log, id, this, rec.getContig(), pos, true, rec, maxRecordsToStore);
                     matches.put(jm.getKey(), jm);
                 }
             }
