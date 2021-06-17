@@ -1,10 +1,10 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>TagPcrSummary</title>
+<title>IntegrationSiteMapper</title>
 <div class='row-fluid' id="top">
 
 
 
-	<?php $group = 'Development/Pre-production Tools'; ?>
+	<?php $group = 'Public/Stable Tools'; ?>
 
 	<section class="span4">
 		<a href="index.html"><h4><i class='fa fa-chevron-left'></i> Back to Tool Docs Index</h4></a>
@@ -13,17 +13,21 @@
 
 	<div class="span8">
 
-			<h1>TagPcrSummary</h1>
+			<h1>IntegrationSiteMapper</h1>
 
 		<p>Detect and summarize transgene integration</p>
 
 			<h3>Category
-				<small> Development/Pre-production Tools</small>
+				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool is designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
- providing similar data.  It provides a very detailed output, but makes some assumptions and requires specific inputs:
+		This tool was originally designed to inspect the results of Tag-PCR (an assay to measure transgene integration into the genome); however, in theory it could be used with any assay
+ providing similar data.  At a high level, it uses the terminal sequence(s) of your transgene to inspect BAM reads for those containing genome-transgene junctions. It determines the orientation of the
+ integration event, and can create a table of these locations. It can additionally reconstruct the genome/transgene sequences for each unique site (which can be tricky when considering orientation). Finally,
+ it can optionally uses these reconstructed sequences to design PCR validation primers (using Primer3), and BLAST those primers against the host genome as validation.
+
+ It provides a very detailed output, but makes some assumptions and requires specific inputs:
 
  <ul>
      <li>The BAM is queryName sorted and the alignments per read inspected.  The tool assumes the genome is the reference for that organism. It is possible for this to also contain the transgene and/or delivery vector but this is not necessarily needed and can be more complicated to maintain</li>
@@ -36,22 +40,114 @@
      <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
  </ul>
 
- <h3>Usage example:</h3>
+ <h3>Simplest Usage:</h3>
  <pre>
-  java -jar DISCVRseq.jar TagPcrSummary \
+  java -jar DISCVRseq.jar IntegrationSiteMapper \
+     -R currentGenome.fasta \
+     -b myBam.bam \
+     --output-table output.txt \
+     --insertNames
+ </pre>
+
+ <h3>Using More Advanced Features to Reconstruct Transgene/Genome Sequences and Design PCR primers:</h3>
+ <pre>
+  java -jar DISCVRseq.jar IntegrationSiteMapper \
      -R currentGenome.fasta \
      -b myBam.bam \
      --output-table output.txt \
      --primer-pair-table primer_summary.txt \
-     --prime3-path /usr/bin/primer3_core \
-     --genbank-output output.gb
+     --primer3-path /usr/bin/primer3_core \
+     --genbank-output output.gb \
+     --insert-name lentivirus
  </pre>
 
- To get the complete output, the tool requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. Below are two examples:
+ To generate the full tool output, IntegrationSiteMapper requires a file with a detailed description of the transgene and expected junction sites. Depending on your delivery system, this is likely specific to your plasmid/vector. IntegrationSiteMapper include two built-in
+ transgene schemes, and these can be output to a file as a reference:
 
  <pre>
+  java -jar DISCVRseq.jar IntegrationSiteMapper \
+     --write-default-descriptors outputFile.yml
+ </pre>
 
+  which creates:
+ <pre>
+ name: Lentivirus
+ junctions:
+ - name: LV-3LTR
+   searchStrings: [ AGTGTGGAAAATCTCTAGCA ]
+   invertHitOrientation: false
+ - name: LV-5LTR
+   searchStrings: [ TGGAAGGGCTAATTCACTCC ]
+   invertHitOrientation: true
+ insertUpstreamRegion:
+   name: LV-5LTR
+   sequence: TGGAAGGGCTAATTCACTCCCAAAGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA
+ insertDownstreamRegion:
+   name: LV-3LTR
+   sequence: TGGAAGGGCTAATTCACTCCCAACGAAGACAAGATATCCTTGATCTGTGGATCTACCACACACAAGGCTACTTCCCTGATTAGCAGAACTACACACCAGGGCCAGGGGTCAGATATCCACTGACCTTTGGATGGTGCTACAAGCTAGTACCAGTTGAGCCAGATAAGGTAGAAGAGGCCAATAAAGGAGAGAACACCAGCTTGTTACACCCTGTGAGCCTGCATGGGATGGATGACCCGGAGAGAGAAGTGTTAGAGTGGAGGTTTGACAGCCGCCTAGCATTTCATCACGTGGCCCGAGAGCTGCATCCGGAGTACTTCAAGAACTGCTGATATCGAGCTTGCTACAAGGGACTTTCCGCTGGGGACTTTCCAGGGAGGCGTGGCCTGGGCGGGACTGGGGAGTGGCGAGCCCTCAGATCCTGCATATAAGCAGCTGCTTTTTGCCTGTACTGGGTCTCTCTGGTTAGACCAGATCTGAGCCTGGGAGCTCTCTGGCTAACTAGGGAACCCACTGCTTAAGCCTCAATAAAGCTTGCCTTGAGTGCTTCAAGTAGTGTGTGCCCGTCTGTTGTGTGACTCTGGTAACTAGAGATCCCTCAGACCCTTTTAGTCAGTGTGGAAAATCTCTAGCA
+ internalPrimers:
+ - name: LV-3LTR-Outer
+   sequence: GAGAGCTGCATCCGGAGTAC
+ - name: LV-3LTR-Inner
+   sequence: TAGTGTGTGCCCGTCTGTTG
+ - name: LV-5LTR-Outer
+   sequence: TCCTCTGGTTTCCCTTTCGC
+ - name: LV-5LTR-Inner
+   sequence: AAGCAGTGGGTTCCCTAGTT
+ </pre>
 
+ <pre>
+ name: PiggyBac
+ junctions:
+ - name: PB-3TR
+   searchStrings: [ GCAGACTATCTTTCTAGGGTTAA ]
+   invertHitOrientation: false
+ - name: PB-5TR
+   searchStrings: [ ATGATTATCTTTCTAGGGTTAA ]
+   invertHitOrientation: true
+ insertUpstreamRegion:
+   name: PB-5TR
+   sequence: TTAACCCTAGAAAGATAATCATATTGTGACGTACGTTAAAGATAATCATGTGTAAAATTGACGCATGTGTTTTATCGGTCTGTATATCGAGGTTTATTTATTAATTTGAATAGATATTAAGTTTTATTATATTTACACTTACATACTAATAATAAATTCAACAAACAATTTATTTATGTTTATTTATTTATTAAAAAAAACAAAAACTCAAAATTTCTTCTATAAAGTAACAAAACTTTTATGAGGGACAGCCCCCCCCCAAAGCCCCCAGGGATGTAATTACGTCCCTCCCCCGCTAGGGGGCAGCAGCGAGCCGCCCGGGGCTCCGCTCCGGTCCGGCGCTCCCCCCGCATCCCCGAGCCGGCAGCGTGCGGGGACAGCCCGGGCACGGGGAAGGTGGCACGGGATCGCTTTCCTCTGAACGCTTCTCGCTGCTCTTTGAGCCTGCAGACACCTGGGGGGATA
+ insertDownstreamRegion:
+   name: PB-3TR
+   sequence: CGTAAAAGATAATCATGCGTCATTTTGACTCACGCGGTCGTTATAGTTCAAAATCAGTGACACTTACCGCATTGACAAGCACGCCTCACGGGAGCTCCAAGCGGCGACTGAGATGTCCTAAATGCACAGCGACGGATTCGCGCTATTTAGAAAGAGAGAGCAATATTTCAAGAATGCATGCGTCAATTTTACGCAGACTATCTTTCTAGGGTTAA
+ internalPrimers:
+ - name: PB-3TR-Nested4
+   sequence: CATTGACAAGCACGCCTCAC
+ - name: PB-NTSR2-R2
+   sequence: GCGACGGATTCGCGCTATTT
+ - name: PB-3TR-Nested
+   sequence: ATTTCAAGAATGCATGCGTCA
+ - name: PB-5TR-New
+   sequence: CACATGATTATCTTTAACGTACGTCAC
+ - name: PB-RCR1
+   sequence: GACCGATAAAACACATGCGTCA
+ backboneSearchStrings: [ TCTAGCTGCATCAGGATCAT, TCAGGATCATATCGTCGGGT, TCTAGCTGCGTGTTCTGCAG, GTGTTCTGCAGCGTGTCGAG ]
+ </pre>
+
+ Each block represents the definition of one transgene type, and many sections are optional (although required for certain functions). For the simplest usage (creating a link of integration sites), relatively little is needed. If you want the tool to reconstruct the flanking sequence and/or generate primers, a more complete definition is needed. Pay attention to the orientation of the sequences:
+
+ <ul>
+     <li>name: required. A name for this transgene type</li>
+     <li>junctions: required. this lists each junction type to inspect (typically the 5' and 3' junctions. Each junction contains the properties:</li>
+     <ul>
+         <li>name: A name to identify it. Should be used consistently with insertUpstreamRegion and insertDownstreamRegion</li>
+         <li>searchStrings: These are sequence that mark the expected termination of the transgene. The orientation of the sequence is important. Assuming the transgene integrates in the forward orientation, the sequence representing the 3' (downstream) end of the transgene insert should be in the forward orientation. The sequence representing the 5' (upstream) end of the transgene should be reverse-complemented relative to the transgene sequence, but with invertHitOrientation=true. This is necessary to create the proper orientation when concatenating the transgene and genomic flanking region.</li>
+         <li>invertHitOrientation: optional. If true, a forward orientation match of the search string denotes an inverted integration event. This is generally what you want for the 5' junction of the transgene.</li>
+     </ul>
+     <li>insertUpstreamRegion: If provided, when attempting to reconstruct the genome/transgene border, this sequence is concatenated to the flanking genomic sequence, like: (GenomicFlank)(insertUpstreamRegion).  In the PiggyBac PB-5TR, the starting TTAA represents the expected integration border.</li>
+     <li>insertDownstreamRegion: If provided, when attempting to reconstruct the genome/transgene border, this sequence is concatenated to the flanking genomic sequence, like: (insertDownstreamRegion)(GenomicFlank).  In the PiggyBac PB-3TR, the ending TTAA represents the expected integration border.</li>
+     <li>internalPrimers: An optional list of existing internal PCR primers for the transgene. If primer prediction is selected, these primers will be annotated in the resulting genbank output, which can be useful for selection of primer pairs.</li>
+     <li>backboneSearchStrings: An optional list of strings to use to identify non-integrated transgene (such as the source plasmid). If a given read contains any of these sequences, which could typically be short fragments representing the vector backbone, it will be flagged as such.</li>
+ </ul>
+
+ <h3>Finally, it can be run using a custom transgene definition:</h3>
+ <pre>
+  java -jar DISCVRseq.jar IntegrationSiteMapper \
+     -R currentGenome.fasta \
+     -b myBam.bam \
+     --output-table output.txt \
+     --insert-definition outputFile.yml
  </pre>
 
 		<hr>
@@ -61,12 +157,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by TagPcrSummary.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by IntegrationSiteMapper.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>TagPcrSummary specific arguments</h3>
+				<h3>IntegrationSiteMapper specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -214,7 +310,7 @@
 					</td>
 					<!--<td>List[File]</td> -->
 					<td>[]</td>
-					<td>One or more files describing the insert and transgene/genome junctions. See --show-default-descriptors and --validate-descriptor-only</td>
+					<td>One or more files describing the insert and transgene/genome junctions. See --write-default-descriptors and --validate-descriptor-only</td>
 				</tr>
 				<tr>
 					<td><a href="#--insert-name">--insert-name</a><br />
@@ -857,7 +953,7 @@
 			 / <small>-id</small>
 		</h3>
 		<p class="args">
-			<b>One or more files describing the insert and transgene/genome junctions. See --show-default-descriptors and --validate-descriptor-only</b><br />
+			<b>One or more files describing the insert and transgene/genome junctions. See --write-default-descriptors and --validate-descriptor-only</b><br />
 			
 		</p>
 		<p>
@@ -1301,7 +1397,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.29 built at 09-24-2021 04:24:25.
+        <p class="version">DISCVR-Seq version 1.30 built at 17-33-2021 02:33:59.
         </p>
 
 </div></div>
