@@ -216,7 +216,8 @@ public class ClipOverlappingAlignments extends ReadWalker {
                     return;
                 }
 
-                int readEnd = rec.getReadPositionAtReferencePosition(newAlignEnd);
+                //NOTE: this reports the first base to clip, not the last to retain
+                int readEnd = rec.getReadPositionAtReferencePosition(newAlignEnd) + 1;
                 int numBasesToClip = rec.getAlignmentEnd() - newAlignEnd;
 
                 try {

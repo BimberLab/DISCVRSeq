@@ -1,0 +1,2 @@
+FeatureContig	FeatureStart	FeatureEnd	TotalAlignmentsClippedAt5Prime	Total5PrimeBasesClipped	TotalAlignmentsClippedAt3Prime	Total3PrimeBasesClipped
+chr1	250	1000	0	0	1	1
