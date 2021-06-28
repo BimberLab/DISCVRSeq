@@ -5,6 +5,7 @@ import org.broadinstitute.hellbender.engine.FeatureManager;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalArgumentCollection;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalEngine;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.VariantEvaluator;
+import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.EvaluationContext;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
 
@@ -14,11 +15,16 @@ import java.util.*;
 public class ExtendedVariantEvalEngine extends VariantEvalEngine {
 
     private final List<String> infoFields = new ArrayList<>();
+    private final int maxContigs;
+    private final List<String> contigsToRetain;
 
-    public ExtendedVariantEvalEngine(VariantEvalArgumentCollection variantEvalArgs, FeatureManager features, List<SimpleInterval> traversalIntervals, SAMSequenceDictionary samSequenceDictionaryForDrivingVariants, @Nullable Collection<String> samples, List<String> infoFields) {
+    public ExtendedVariantEvalEngine(VariantEvalArgumentCollection variantEvalArgs, FeatureManager features, List<SimpleInterval> traversalIntervals, SAMSequenceDictionary samSequenceDictionaryForDrivingVariants, @Nullable Collection<String> samples, List<String> infoFields, int maxContigs, List<String> contigsToRetain) {
         super(variantEvalArgs, features, traversalIntervals, samSequenceDictionaryForDrivingVariants, samples);
 
         this.infoFields.addAll(infoFields);
+        this.maxContigs = maxContigs;
+        this.contigsToRetain = contigsToRetain;
+
         this.doValidateAndInitialize(samples);
     }
 
@@ -44,5 +50,14 @@ public class ExtendedVariantEvalEngine extends VariantEvalEngine {
                 getEvaluationInstances().add(new InfoFieldEvaluator(engine, field));
             }
         }
+    }
+
+    @Override
+    public VariantStratifier createVariantStratifier(Class<? extends VariantStratifier> clazz) {
+        if (org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.Contig.class == clazz) {
+            return new Contig(this, maxContigs, contigsToRetain);
+        }
+
+        return super.createVariantStratifier(clazz);
     }
 }
