@@ -107,6 +107,21 @@
       "options": []
     },
     {
+      "summary": "If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.",
+      "name": "--contigsToRetain",
+      "synonyms": "NA",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[MT]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.",
       "name": "--create-output-bam-index",
       "synonyms": "-OBI",
@@ -455,7 +470,7 @@
       "options": []
     },
     {
-      "summary": "Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.",
+      "summary": "Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain",
       "name": "--maxContigs",
       "synonyms": "-maxContigs",
       "type": "int",

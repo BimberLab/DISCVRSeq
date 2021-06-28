@@ -201,6 +201,13 @@
 					<td>Size of the cloud-only prefetch buffer (in MB; 0 to disable).</td>
 				</tr>
 				<tr>
+					<td><a href="#--contigsToRetain">--contigsToRetain</a><br />
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[MT]</td>
+					<td>If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.</td>
+				</tr>
+				<tr>
 					<td><a href="#--disable-bam-index-caching">--disable-bam-index-caching</a><br />
 								&nbsp;<em>-DBIC</em>
 					</td>
@@ -259,7 +266,7 @@
 					</td>
 					<!--<td>int</td> -->
 					<td>40</td>
-					<td>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</td>
+					<td>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain</td>
 				</tr>
 				<tr>
 					<td><a href="#--pedigree">--pedigree</a><br />
@@ -626,6 +633,18 @@
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--contigsToRetain">--contigsToRetain </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[MT]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--create-output-bam-index">--create-output-bam-index </a>
 			 / <small>-OBI</small>
 		</h3>
@@ -935,7 +954,7 @@
 			 / <small>-maxContigs</small>
 		</h3>
 		<p class="args">
-			<b>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.</b><br />
+			<b>Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain</b><br />
 			
 		</p>
 		<p>
@@ -1234,7 +1253,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.1 built at 18-41-2021 06:41:46.
+        <p class="version">DISCVR-Seq version 1.3.2 built at 28-53-2021 11:53:05.
         </p>
 
 </div></div>
