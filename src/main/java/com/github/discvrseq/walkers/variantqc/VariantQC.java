@@ -238,7 +238,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         List<ReportConfig> ret = new ArrayList<>();
 
         VCFHeader header = getHeaderForVariants();
-        Map<String, Class<? extends VariantStratifier>> classMap = VariantEvalEngine.getStratifierClasses();
+        Map<String, Class<? extends VariantStratifier>> classMap = new HashMap<>(VariantEvalEngine.getStratifierClasses());
         classMap.put(Contig.class.getSimpleName(), Contig.class);
 
         try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
