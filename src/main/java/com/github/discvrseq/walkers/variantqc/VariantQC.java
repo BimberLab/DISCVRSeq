@@ -2,8 +2,6 @@ package com.github.discvrseq.walkers.variantqc;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -26,7 +24,6 @@ import org.broadinstitute.hellbender.tools.walkers.varianteval.evaluators.Varian
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.AnalysisModuleScanner;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.DataPoint;
-import org.broadinstitute.hellbender.utils.SimpleInterval;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
@@ -160,8 +157,11 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
     @Argument(fullName = "additionalReportFile", shortName = "arf", doc="This is an advanced usage feature.  The user can define additional reports to display.  Each report will read the value of the supplied INFO field, and make a table summarizing the number of variants for each value of this field.  For example, if your VCF has the INFO field '', and this has values of , a table will be created summarizing the number of variants for each state.  These will be stratified as defined in your file.  Only INFO fields of type character, string and integer can be used.  The file itself should be a tab-delimited file with one report per line, no header, and 4 columns: Section Label, Report Label, Stratification(s), and name of the INFO field to summarize.  The TSV file is described in greater detail in the Advanced Usage section.", optional=true)
     public File additionalReportFile = null;
 
-    @Argument(fullName = "maxContigs", shortName = "maxContigs", doc="Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs. This can be increased using this argument.", optional=true)
+    @Argument(fullName = "maxContigs", shortName = "maxContigs", doc="Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain", optional=true)
     public int maxContigs = 40;
+
+    @Argument(fullName = "contigsToRetain", doc="If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.", optional=true)
+    public List<String> contigsToRetain = new ArrayList<>(Collections.singletonList("MT"));
 
     private SampleDB sampleDB = null;
 
@@ -239,6 +239,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
 
         VCFHeader header = getHeaderForVariants();
         Map<String, Class<? extends VariantStratifier>> classMap = VariantEvalEngine.getStratifierClasses();
+        classMap.put(Contig.class.getSimpleName(), Contig.class);
 
         try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
             String[] line;
@@ -338,29 +339,6 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         for (VariantEvalWrapper wrapper : this.wrappers){
             wrapper.configureEngine(this);
         }
-    }
-
-    protected boolean hasCustomIntervalsForVariantEval = false;
-
-    @Override
-    public List<SimpleInterval> getTraversalIntervals() {
-        if (!hasUserSuppliedIntervals()) {
-            SAMSequenceDictionary dict = getBestAvailableSequenceDictionary();
-            if (dict.size() > maxContigs) {
-                logger.info("Reference has too many contigs, subsetting to the first " + maxContigs);
-                List<SAMSequenceRecord> sequences = dict.getSequences().subList(0, maxContigs);
-                List<SimpleInterval> ret = new ArrayList<>();
-                sequences.forEach(s -> {
-                    ret.add(new SimpleInterval(s.getSequenceName()));
-                });
-
-                hasCustomIntervalsForVariantEval = true;
-
-                return ret;
-            }
-        }
-
-        return super.getTraversalIntervals();
     }
 
     @Override
@@ -499,7 +477,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
             args.pedigreeFile = variantQC.pedigreeFile;
             args.pedigreeValidationType = variantQC.pedigreeValidationType;
 
-            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), variantQC.getSequenceDictionaryForDrivingVariants(), variantQC.getSamplesForVariants(), infoFields);
+            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), variantQC.getSequenceDictionaryForDrivingVariants(), variantQC.getSamplesForVariants(), infoFields, variantQC.maxContigs, variantQC.contigsToRetain);
         }
     }
 

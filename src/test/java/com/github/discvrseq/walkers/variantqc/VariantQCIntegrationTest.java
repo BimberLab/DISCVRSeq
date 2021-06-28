@@ -217,4 +217,62 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
 
         spec.executeTest(name, this);
     }
+
+    @Test
+    public void testMaxContigs2() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testMaxContigs2.html"));
+
+        ArgumentsBuilder args = new ArgumentsBuilder();
+        args.addRaw("--variant");
+        File input = new File(testBaseDir, "vcfTwoContigs.vcf");
+        args.addRaw(normalizePath(input));
+        ensureVcfIndex(input);
+
+        File fasta = getHg19Micro();
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
+
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
+
+        args.add("maxContigs", 1);
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testMaxContigs2", this);
+        expected.delete();
+    }
+
+    @Test
+    public void testMaxContigsWithRecovery() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testMaxContigs3.html"));
+
+        ArgumentsBuilder args = new ArgumentsBuilder();
+        args.addRaw("--variant");
+        File input = new File(testBaseDir, "vcfTwoContigs.vcf");
+        args.addRaw(normalizePath(input));
+        ensureVcfIndex(input);
+
+        File fasta = getHg19Micro();
+        args.addRaw("-R");
+        args.addRaw(normalizePath(fasta));
+
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
+
+        args.add("maxContigs", 1);
+        args.add("contigsToRetain", "2");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testMaxContigs3", this);
+        expected.delete();
+    }
+
 }
