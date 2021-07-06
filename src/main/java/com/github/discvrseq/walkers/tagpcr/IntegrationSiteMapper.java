@@ -414,6 +414,7 @@ public class IntegrationSiteMapper extends GATKTool {
 
     private Map<String, Integer> primaryAlignmentsMatchingInsert = new HashMap<>();
     private Map<String, Integer> secondaryAlignmentsMatchingInsert = new HashMap<>();
+    private Map<String, Integer> unmappedMatchingInsert = new HashMap<>();
 
     private void inspectForInsert(SAMRecord rec) {
         final String read = rec.getReadString().toUpperCase();
@@ -421,7 +422,12 @@ public class IntegrationSiteMapper extends GATKTool {
             for (String ss : id.getAllBackboneSearchStrings()) {
                 Integer isMatch = SequenceMatcher.fuzzyMatch(ss.toUpperCase(), read, id.getBackboneSearchEditDistance());
                 if (isMatch != null) {
-                    if (rec.isSecondaryOrSupplementary()) {
+                    if (rec.getReadUnmappedFlag()) {
+                        int total = unmappedMatchingInsert.getOrDefault(id.getName(), 0);
+                        total++;
+                        unmappedMatchingInsert.put(id.getName(), total);
+                    }
+                    else if (rec.isSecondaryOrSupplementary()) {
                         int total = secondaryAlignmentsMatchingInsert.getOrDefault(id.getName(), 0);
                         total++;
                         secondaryAlignmentsMatchingInsert.put(id.getName(), total);
@@ -534,24 +540,32 @@ public class IntegrationSiteMapper extends GATKTool {
         Set<String> inserts = new TreeSet<>();
         inserts.addAll(primaryAlignmentsMatchingInsert.keySet());
         inserts.addAll(secondaryAlignmentsMatchingInsert.keySet());
-        logger.info("Total primary/secondary alignments matching insert/transgene:");
+        inserts.addAll(unmappedMatchingInsert.keySet());
+        logger.info("Total primary/secondary alignments or unmapped matching insert/transgene:");
         int totalPrimaryAlignmentsMatchingInsert = 0;
         int totalSecondaryAlignmentsMatchingInsert = 0;
+        int totalUnmappedMatchingInsert = 0;
         for (String key : inserts) {
             logger.info(key + ", primary: " + primaryAlignmentsMatchingInsert.getOrDefault(key, 0));
             totalPrimaryAlignmentsMatchingInsert += primaryAlignmentsMatchingInsert.getOrDefault(key, 0);
 
             logger.info(key + ", secondary: " + secondaryAlignmentsMatchingInsert.getOrDefault(key, 0));
             totalSecondaryAlignmentsMatchingInsert += secondaryAlignmentsMatchingInsert.getOrDefault(key, 0);
+
+            logger.info(key + ", unmapped: " + unmappedMatchingInsert.getOrDefault(key, 0));
+            totalUnmappedMatchingInsert += unmappedMatchingInsert.getOrDefault(key, 0);
+
         }
 
-        metricsMap.put("TotalPrimaryAlignmentsMatchingInsert", totalPrimaryAlignmentsMatchingInsert);
+        metricsMap.put("TotalPrimaryAlignmentsMatchingInsertBackbone", totalPrimaryAlignmentsMatchingInsert);
 
         NumberFormat format1 = DecimalFormat.getNumberInstance();
         format1.setMaximumFractionDigits(2);
         format1.setMinimumFractionDigits(2);
-        metricsMap.put("FractionPrimaryAlignmentsMatchingInsert", format1.format((double)totalPrimaryAlignmentsMatchingInsert / uniqueReads));
-        metricsMap.put("TotalSecondaryAlignmentsMatchingInsert", totalSecondaryAlignmentsMatchingInsert);
+        metricsMap.put("FractionPrimaryAlignmentsMatchingInsertBackbone", format1.format((double)totalPrimaryAlignmentsMatchingInsert / uniqueReads));
+        metricsMap.put("TotalSecondaryAlignmentsMatchingInsertBackbone", totalSecondaryAlignmentsMatchingInsert);
+        metricsMap.put("TotalUnmappedReadsMatchingInsertBackbone", totalUnmappedMatchingInsert);
+        metricsMap.put("TotalMatchingInsertBackbone", totalPrimaryAlignmentsMatchingInsert + totalSecondaryAlignmentsMatchingInsert + totalUnmappedMatchingInsert);
 
         int totalMinusStrand = 0;
         List<DNASequence> amplicons = new ArrayList<>();
