@@ -595,7 +595,7 @@ public class IntegrationSiteMapper extends GATKTool {
         NumberFormat format1 = DecimalFormat.getNumberInstance();
         format1.setMaximumFractionDigits(2);
         format1.setMinimumFractionDigits(2);
-        metricsMap.put("FractionPrimaryAlignmentsMatchingInsertBackbone", format1.format((double)totalPrimaryAlignmentsMatchingInsert / uniqueReads));
+        metricsMap.put("FractionPrimaryAlignmentsMatchingInsertBackbone", uniqueReads == 0 ? 0 : format1.format((double)totalPrimaryAlignmentsMatchingInsert / uniqueReads));
         metricsMap.put("TotalSecondaryAlignmentsMatchingInsertBackbone", totalSecondaryAlignmentsMatchingInsert);
         metricsMap.put("TotalUnmappedReadsMatchingInsertBackbone", totalUnmappedMatchingInsert);
         metricsMap.put("TotalMatchingInsertBackbone", totalPrimaryAlignmentsMatchingInsert + totalSecondaryAlignmentsMatchingInsert + totalUnmappedMatchingInsert);
