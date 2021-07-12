@@ -32,6 +32,21 @@
       "options": []
     },
     {
+      "summary": "Allow alignments where MAPQ\u003d0. Some aligners, like BWA-mem, report multi-mapping reads as MAPQ\u003d0",
+      "name": "--allow-zero-mapq",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "read one or more arguments files and add them to the command line",
       "name": "--arguments_file",
       "synonyms": "NA",
@@ -567,6 +582,21 @@
       "required": "no",
       "fulltext": "",
       "defaultValue": "0.0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "The minimum MAPQ to consider an alignment",
+      "name": "--min-mapq",
+      "synonyms": "-mmq",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "20",
       "minValue": "-Infinity",
       "maxValue": "Infinity",
       "minRecValue": "NA",

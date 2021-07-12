@@ -188,6 +188,13 @@
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
 			</tr>
 				<tr>
+					<td><a href="#--allow-zero-mapq">--allow-zero-mapq</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Allow alignments where MAPQ=0. Some aligners, like BWA-mem, report multi-mapping reads as MAPQ=0</td>
+				</tr>
+				<tr>
 					<td><a href="#--arguments_file">--arguments_file</a><br />
 					</td>
 					<!--<td>List[File]</td> -->
@@ -358,6 +365,14 @@
 					<!--<td>double</td> -->
 					<td>0.0</td>
 					<td>Only sites with at least this fraction of total reads will be reported</td>
+				</tr>
+				<tr>
+					<td><a href="#--min-mapq">--min-mapq</a><br />
+								&nbsp;<em>-mmq</em>
+					</td>
+					<!--<td>int</td> -->
+					<td>20</td>
+					<td>The minimum MAPQ to consider an alignment</td>
 				</tr>
 				<tr>
 					<td><a href="#--output-table">--output-table</a><br />
@@ -650,6 +665,18 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--allow-zero-mapq">--allow-zero-mapq </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Allow alignments where MAPQ=0. Some aligners, like BWA-mem, report multi-mapping reads as MAPQ=0</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--arguments_file">--arguments_file </a>
@@ -1119,6 +1146,20 @@
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--min-mapq">--min-mapq </a>
+			 / <small>-mmq</small>
+		</h3>
+		<p class="args">
+			<b>The minimum MAPQ to consider an alignment</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">20</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output-table">--output-table </a>
 			 / <small>-o</small>
 		</h3>
@@ -1397,7 +1438,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.2 built at 06-30-2021 08:30:41.
+        <p class="version">DISCVR-Seq version 1.3.3 built at 12-31-2021 06:31:55.
         </p>
 
 </div></div>
