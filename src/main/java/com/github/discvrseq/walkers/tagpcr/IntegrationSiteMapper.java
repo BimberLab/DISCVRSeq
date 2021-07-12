@@ -195,6 +195,12 @@ public class IntegrationSiteMapper extends GATKTool {
     @Argument(doc="Only sites with at least this fraction of total reads will be reported", fullName = "min-fraction", shortName = "mf", optional = true)
     public double MIN_FRACTION = 0.0;
 
+    @Argument(doc="The minimum MAPQ to consider an alignment", fullName = "min-mapq", shortName = "mmq", optional = true)
+    public int MIN_MAPQ = 20;
+
+    @Argument(doc="Allow alignments where MAPQ=0. Some aligners, like BWA-mem, report multi-mapping reads as MAPQ=0", fullName = "allow-zero-mapq", optional = true)
+    public boolean ALLOW_MAPQ_ZERO = false;
+
     @Argument(doc="If greater than zero, up to this many reads will be written as a FASTA file for each site.  This can be useful to validate the junction border", fullName = "reads-to-output", shortName = "ro", optional = true)
     public int READS_PER_SITE = 0;
 
@@ -458,6 +464,7 @@ public class IntegrationSiteMapper extends GATKTool {
         fact.referenceSequence(referenceArguments.getReferencePath());
 
         int totalAlignments = 0;
+        int totalPassingAlignments = 0;
         int uniqueReads = 0;
         int numReadsSpanningJunction = 0;
         int splitAlignments = 0;
@@ -467,6 +474,9 @@ public class IntegrationSiteMapper extends GATKTool {
         Map<String, Object> metricsMap = new HashMap<>();
 
         int reverseReadsSkipped = 0;
+        int totalMapq0 = 0;
+        int totalMapq0Skipped = 0;
+        int lowMapq = 0;
 
         try (SamReader bamReader = fact.open(bam); SAMRecordIterator it = bamReader.iterator()) {
 
@@ -475,11 +485,29 @@ public class IntegrationSiteMapper extends GATKTool {
                 SAMRecord rec = it.next();
                 if (rec.getReadUnmappedFlag()) {
                     inspectForInsert(rec);
+                    continue;
                 }
 
                 // Skip reverse reads
                 if (rec.getReadPairedFlag() && rec.getSecondOfPairFlag()) {
                     reverseReadsSkipped++;
+                    continue;
+                }
+
+                totalAlignments++;
+
+                // NOTE: MAPQ=0 is used by BWA to denote multi-mapping reads
+                if (rec.getMappingQuality() == 0) {
+                    totalMapq0++;
+
+                    if (!ALLOW_MAPQ_ZERO) {
+                        totalMapq0Skipped++;
+                        continue;
+                    }
+                }
+                else if (rec.getMappingQuality() < MIN_MAPQ)
+                {
+                    lowMapq++;
                     continue;
                 }
 
@@ -489,7 +517,7 @@ public class IntegrationSiteMapper extends GATKTool {
                     numReadsSpanningJunction += processAlignmentsForRead(alignmentsForRead, totalMatches);
                 }
 
-                totalAlignments++;
+                totalPassingAlignments++;
                 alignmentsForRead.add(rec);
 
                 if (includeSupplementalAlignments && rec.hasAttribute("SA")) {
@@ -532,10 +560,15 @@ public class IntegrationSiteMapper extends GATKTool {
         logger.info("Total reads spanning a junction: " + numReadsSpanningJunction + " of " + uniqueReads + " (" + pf.format(pct) + ")");
 
         metricsMap.put("TotalAlignments", totalAlignments);
+        metricsMap.put("TotalPassingAlignments", totalPassingAlignments);
         metricsMap.put("SplitAlignments", splitAlignments);
         metricsMap.put("DistinctReads", uniqueReads);
         metricsMap.put("NumReadsSpanningJunction", numReadsSpanningJunction);
         metricsMap.put("PctReadsSpanningJunction", pct);
+        metricsMap.put("LowMapq", lowMapq);
+        metricsMap.put("TotalMapq0", totalMapq0);
+        metricsMap.put("SkippedMapq0", totalMapq0Skipped);
+        metricsMap.put("ReverseReadsSkipped", reverseReadsSkipped);
 
         Set<String> inserts = new TreeSet<>();
         inserts.addAll(primaryAlignmentsMatchingInsert.keySet());
