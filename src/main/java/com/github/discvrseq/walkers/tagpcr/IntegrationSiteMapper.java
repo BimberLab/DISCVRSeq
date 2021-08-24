@@ -574,20 +574,24 @@ public class IntegrationSiteMapper extends GATKTool {
         inserts.addAll(primaryAlignmentsMatchingInsert.keySet());
         inserts.addAll(secondaryAlignmentsMatchingInsert.keySet());
         inserts.addAll(unmappedMatchingInsert.keySet());
-        logger.info("Total primary/secondary alignments or unmapped matching insert/transgene:");
         int totalPrimaryAlignmentsMatchingInsert = 0;
         int totalSecondaryAlignmentsMatchingInsert = 0;
         int totalUnmappedMatchingInsert = 0;
-        for (String key : inserts) {
-            logger.info(key + ", primary: " + primaryAlignmentsMatchingInsert.getOrDefault(key, 0));
-            totalPrimaryAlignmentsMatchingInsert += primaryAlignmentsMatchingInsert.getOrDefault(key, 0);
+        if (!inserts.isEmpty()) {
+            logger.info("Total primary/secondary alignments or unmapped matching insert/transgene:");
+            for (String key : inserts) {
+                logger.info(key + ", primary: " + primaryAlignmentsMatchingInsert.getOrDefault(key, 0));
+                totalPrimaryAlignmentsMatchingInsert += primaryAlignmentsMatchingInsert.getOrDefault(key, 0);
 
-            logger.info(key + ", secondary: " + secondaryAlignmentsMatchingInsert.getOrDefault(key, 0));
-            totalSecondaryAlignmentsMatchingInsert += secondaryAlignmentsMatchingInsert.getOrDefault(key, 0);
+                logger.info(key + ", secondary: " + secondaryAlignmentsMatchingInsert.getOrDefault(key, 0));
+                totalSecondaryAlignmentsMatchingInsert += secondaryAlignmentsMatchingInsert.getOrDefault(key, 0);
 
-            logger.info(key + ", unmapped: " + unmappedMatchingInsert.getOrDefault(key, 0));
-            totalUnmappedMatchingInsert += unmappedMatchingInsert.getOrDefault(key, 0);
-
+                logger.info(key + ", unmapped: " + unmappedMatchingInsert.getOrDefault(key, 0));
+                totalUnmappedMatchingInsert += unmappedMatchingInsert.getOrDefault(key, 0);
+            }
+        }
+        else {
+            logger.info("No reads matched insert/transgene");
         }
 
         metricsMap.put("TotalPrimaryAlignmentsMatchingInsertBackbone", totalPrimaryAlignmentsMatchingInsert);
@@ -679,6 +683,9 @@ public class IntegrationSiteMapper extends GATKTool {
 
             if (blastDatabase != null && primerPairTable != null) {
                 runBlastN(primerPairTable, amplicons);
+            }
+            else {
+                logger.info("Will not run BLAST on primers");
             }
         }
         else {
