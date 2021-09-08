@@ -235,7 +235,7 @@ public class ImmunoGenotyper extends ReadWalker {
         //write out tables
         Path outputFile = IOUtils.getPath(outPrefix + GENOTYPE_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(outputFile.toFile()));
-        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(outputFile.toFile()))){
+        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(outputFile.toFile()))){
             outWriter.println(StringUtils.join(Arrays.asList("RefNames", "Lineage/Allotypes", "TotalReads", "PercentOfTotal", "PercentOfTotalIncludingUnmapped"), "\t"));
 
             messages.add("Exporting final groups:");
@@ -272,7 +272,7 @@ public class ImmunoGenotyper extends ReadWalker {
 
         Path summaryFile = IOUtils.getPath(outPrefix + SUMMARY_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(summaryFile.toFile()));
-        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(summaryFile.toFile()))){
+        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(summaryFile.toFile()))){
             messages.forEach(message -> outWriter.println(message));
         }
 
@@ -281,7 +281,7 @@ public class ImmunoGenotyper extends ReadWalker {
 
         Path mismatchFile = IOUtils.getPath(outPrefix + MISMATCH_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(mismatchFile.toFile()));
-        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedWriting(mismatchFile.toFile()))){
+        try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(mismatchFile.toFile()))){
             outWriter.println(StringUtils.join(Arrays.asList("RefName", "TotalReads", "ReasonForFailure"), "\t"));
             for (String refName : refTracker.mismatchMap.keySet()){
                 AlignmentMismatch am = refTracker.mismatchMap.get(refName);

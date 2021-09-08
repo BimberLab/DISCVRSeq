@@ -20,8 +20,8 @@ import java.util.*;
 public class TableReportDescriptor extends ReportDescriptor {
     private Set<String> skippedColNames = new HashSet<>();
 
-    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName, Collection<String> skippedSamples, @Nullable PivotingTransformer transformer) {
-        super(reportLabel, sectionLabel, SectionJsonDescriptor.PlotType.data_table, evaluatorModuleName, transformer);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, boolean isMultiVcf, String evaluatorModuleName, Collection<String> skippedSamples, @Nullable PivotingTransformer transformer) {
+        super(reportLabel, sectionLabel, SectionJsonDescriptor.PlotType.data_table, evaluatorModuleName, transformer, isMultiVcf);
         skippedColNames.add(evaluatorModuleName);
         skippedColNames.add("EvalFeatureInput");
         skippedColNames.add("CompFeatureInput");
@@ -30,16 +30,16 @@ public class TableReportDescriptor extends ReportDescriptor {
         }
     }
 
-    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName, Collection<String> skippedSamples) {
-        this(reportLabel, sectionLabel, evaluatorModuleName, skippedSamples, null);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, boolean isMultiVcf, String evaluatorModuleName, Collection<String> skippedSamples) {
+        this(reportLabel, sectionLabel, isMultiVcf, evaluatorModuleName, skippedSamples, null);
     }
 
-    public TableReportDescriptor(String reportLabel, String sectionLabel, String evaluatorModuleName) {
-        this(reportLabel, sectionLabel, evaluatorModuleName, null, null);
+    public TableReportDescriptor(String reportLabel, String sectionLabel, boolean isMultiVcf, String evaluatorModuleName) {
+        this(reportLabel, sectionLabel, isMultiVcf, evaluatorModuleName, null, null);
     }
 
-    public static TableReportDescriptor getCountVariantsTable(String sectionLabel, boolean skipAll) {
-        TableReportDescriptor ret = new TableReportDescriptor("Variant Summary", sectionLabel, "CountVariants", skipAll ? Arrays.asList("all") : null, null);
+    public static TableReportDescriptor getCountVariantsTable(String sectionLabel, boolean isMultiVcf, boolean skipAll) {
+        TableReportDescriptor ret = new TableReportDescriptor("Variant Summary", sectionLabel, isMultiVcf, "CountVariants", skipAll ? Arrays.asList("all") : null, null);
 
         //JsonObject myColJson = new JsonObject();
         //myColJson.addProperty("dmin", 0);
@@ -49,8 +49,8 @@ public class TableReportDescriptor extends ReportDescriptor {
         return ret;
     }
 
-    public static TableReportDescriptor getIndelTable(String sectionLabel) {
-        TableReportDescriptor ret = new TableReportDescriptor("SNP/Indel Summary", sectionLabel, "IndelSummary", Arrays.asList("all"), null);
+    public static TableReportDescriptor getIndelTable(String sectionLabel, boolean isMultiVcf) {
+        TableReportDescriptor ret = new TableReportDescriptor("SNP/Indel Summary", sectionLabel, isMultiVcf, "IndelSummary", Arrays.asList("all"), null);
         ret.skippedColNames.add("n_indels_matching_gold_standard");
         ret.skippedColNames.add("gold_standard_matching_rate");
 
@@ -174,8 +174,8 @@ public class TableReportDescriptor extends ReportDescriptor {
     public static class InfoFieldTableReportDescriptor extends TableReportDescriptor {
         private final String infoFieldName;
 
-        public InfoFieldTableReportDescriptor(String reportLabel, String sectionLabel, String infoFieldName) {
-            super(reportLabel, sectionLabel, getEvalModuleSimpleName(infoFieldName), null, null);
+        public InfoFieldTableReportDescriptor(String reportLabel, String sectionLabel, boolean isMultiVcf, String infoFieldName) {
+            super(reportLabel, sectionLabel, isMultiVcf, getEvalModuleSimpleName(infoFieldName), null, null);
 
             this.infoFieldName = infoFieldName;
         }

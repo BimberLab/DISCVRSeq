@@ -25,14 +25,16 @@ abstract class ReportDescriptor {
     protected Set<String> skippedSamples = new HashSet<>();
     protected Map<String, String> descriptionMap;
     protected GATKReportTableTransformer transformer;
+    protected boolean isMultiVcf;
 
-    protected ReportDescriptor(String reportLabel, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, @Nullable GATKReportTableTransformer transformer) {
+    protected ReportDescriptor(String reportLabel, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, @Nullable GATKReportTableTransformer transformer, boolean isMultiVcf) {
         this.sectionLabel = sectionLabel;
         this.reportLabel = reportLabel;
         this.plotType = plotType;
         this.evaluatorModuleName = evaluatorModuleName;
         this.columnInfoMap = new HashMap<>();
         this.transformer = transformer;
+        this.isMultiVcf = isMultiVcf;
     }
 
     public String getEvaluatorModuleName() {
@@ -67,7 +69,7 @@ abstract class ReportDescriptor {
         if (columnsInSampleName == null){
             List<String> ret = new ArrayList<>();
             for (GATKReportColumn col : table.getColumnInfo()){
-                if (sectionConfig.stratifications.contains(col.getColumnName())){
+                if (sectionConfig.stratifications.contains(col.getColumnName()) || (isMultiVcf && "EvalFeatureInput".equals(col.getColumnName()))){
                     ret.add(col.getColumnName());
                 }
             }

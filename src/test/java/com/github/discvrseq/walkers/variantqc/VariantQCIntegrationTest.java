@@ -18,8 +18,12 @@ import java.util.Collections;
 
 public class VariantQCIntegrationTest extends BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs(boolean limitToChr1) {
+        return(getBaseArgs(limitToChr1, null));
+    }
+
+    private ArgumentsBuilder getBaseArgs(boolean limitToChr1, String vcfName) {
         ArgumentsBuilder args = new ArgumentsBuilder();
-        args.addRaw("--variant");
+        args.addRaw("--variant" + (vcfName == null ? "" : ":" + vcfName));
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         args.addRaw(normalizePath(input));
 
@@ -48,6 +52,21 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
                 args.getString(), Arrays.asList(expected.getPath()));
 
         spec.executeTest("testBasicOperation", this);
+        expected.delete();
+    }
+
+    @Test
+    public void testMultiVcf() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testMultiVcf.html"));
+        ArgumentsBuilder args = getBaseArgs(true, "vcf1");
+        args.addRaw("--variant:vcf2");
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        args.addRaw(normalizePath(input));
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testMultiVcf", this);
         expected.delete();
     }
 
