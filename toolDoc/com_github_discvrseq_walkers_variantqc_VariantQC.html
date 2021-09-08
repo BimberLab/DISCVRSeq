@@ -49,6 +49,16 @@
      -O output.html
  </pre>
 
+ <h4>Report With Multiple Input VCFs (not well tested). Note: you can supply a name for each VCF in the argument:</h4>
+ <pre>
+ java -jar DISCVRSeq.jar VariantQC \
+     -R human_g1k_v37.fasta \
+     -ped myPedigree.ped \
+     -V:vcf1 input1.vcf \
+     -V:vcf2 input2.vcf \
+     -O output.html
+ </pre>
+
  <h3>Variant QC Output Report:</h3>
  Below is an image of an example report, showing a VCF summarized by sample.  The left-hand navigation allows the user to toggle between different stratifications (entire VCF, sample, contig, etc.).
  A complete example HTML report can be <a href="resources/variantQCSampleReport.html">viewed here</a>.  The report contains a series of tables or graphs summarizing different aspects of the data.  Below are the main types:
@@ -1253,7 +1263,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.3 built at 24-22-2021 09:22:54.
+        <p class="version">DISCVR-Seq version 1.3.4 built at 08-25-2021 07:25:33.
         </p>
 
 </div></div>
