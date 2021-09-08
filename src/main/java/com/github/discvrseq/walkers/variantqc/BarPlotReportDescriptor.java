@@ -18,8 +18,8 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
     private String[] columnsToPlot;
     private String yLabel;
 
-    public BarPlotReportDescriptor(String plotTitle, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, String[] columnsToPlot, String yLabel, Collection<String> skippedSamples, PivotingTransformer transformer) {
-        super(plotTitle, sectionLabel, plotType, evaluatorModuleName, transformer);
+    public BarPlotReportDescriptor(String plotTitle, String sectionLabel, boolean isMultiVcf, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, String[] columnsToPlot, String yLabel, Collection<String> skippedSamples, PivotingTransformer transformer) {
+        super(plotTitle, sectionLabel, plotType, evaluatorModuleName, transformer, isMultiVcf);
         this.columnsToPlot = columnsToPlot;
         this.yLabel = yLabel;
         if (skippedSamples != null){
@@ -31,12 +31,12 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
         return Arrays.asList(columnsToPlot);
     }
 
-    public static BarPlotReportDescriptor getVariantTypeBarPlot(String sectionLabel) {
-        return new BarPlotReportDescriptor("Variant Type", sectionLabel, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", new String[]{"nSNPs", "nMNPs", "nInsertions", "nDeletions", "nComplex", "nSymbolic", "nMixed"}, "# Variants", Arrays.asList("all"), null);
+    public static BarPlotReportDescriptor getVariantTypeBarPlot(String sectionLabel, boolean isMultiVcf) {
+        return new BarPlotReportDescriptor("Variant Type", sectionLabel, isMultiVcf, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", new String[]{"nSNPs", "nMNPs", "nInsertions", "nDeletions", "nComplex", "nSymbolic", "nMixed"}, "# Variants", Arrays.asList("all"), null);
     }
 
-    public static BarPlotReportDescriptor getSiteFilterTypeBarPlot(String sectionLabel, PivotingTransformer transformer) {
-        return new BarPlotReportDescriptor("Filter Type", sectionLabel, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", null, "# Variants", Arrays.asList("all"), transformer){
+    public static BarPlotReportDescriptor getSiteFilterTypeBarPlot(String sectionLabel, boolean isMultiVcf, PivotingTransformer transformer) {
+        return new BarPlotReportDescriptor("Filter Type", sectionLabel, isMultiVcf, SectionJsonDescriptor.PlotType.bar_graph, "CountVariants", null, "# Variants", Arrays.asList("all"), transformer){
             @Override
             public List<String> getColumnsToPlot(GATKReportTable table){
                 List<String> ret = new ArrayList<>();

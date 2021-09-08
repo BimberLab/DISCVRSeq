@@ -20,13 +20,22 @@ public class PivotingTransformer implements GATKReportTableTransformer {
     private final String evalModuleName;
     private final boolean showGender;
 
-    public PivotingTransformer(String evalModuleName, List<String> groupBy, List<Pivot> colsToPivot){
-        this(evalModuleName, groupBy, colsToPivot, false);
+    public PivotingTransformer(String evalModuleName, List<String> groupBy, boolean isMultiVcf, List<Pivot> colsToPivot){
+        this(evalModuleName, groupBy, isMultiVcf, colsToPivot, false);
     }
 
-    public PivotingTransformer(String evalModuleName, List<String> groupBy, List<Pivot> colsToPivot, boolean showGender){
+    public PivotingTransformer(String evalModuleName, List<String> groupBy, boolean isMultiVcf, List<Pivot> colsToPivot, boolean showGender){
         this.evalModuleName = evalModuleName;
-        this.groupBy = groupBy;
+        if (isMultiVcf) {
+            this.groupBy = new ArrayList<>(groupBy);
+            if (!this.groupBy.contains("EvalFeatureInput")) {
+                this.groupBy.add("EvalFeatureInput");
+            }
+        }
+        else {
+            this.groupBy = groupBy;
+        }
+
         this.colsToPivot = colsToPivot;
         this.showGender = showGender;
     }

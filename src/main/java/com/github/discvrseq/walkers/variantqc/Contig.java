@@ -29,7 +29,7 @@ public class Contig extends VariantStratifier {
      */
     private Set<String> getContigNames(int maxContigs, List<String> contigsToRetain) {
         if (_contigNames == null) {
-            final Set<String> contigs = new LinkedHashSet<>();
+            final Set<String> contigs = new TreeSet<>(Comparator.naturalOrder());
             if (getEngine().getTraversalIntervals() == null) {
                 getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
