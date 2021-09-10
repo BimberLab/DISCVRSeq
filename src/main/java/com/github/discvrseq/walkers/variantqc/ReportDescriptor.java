@@ -1,8 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import htsjdk.samtools.util.StringUtil;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;
@@ -26,6 +24,7 @@ abstract class ReportDescriptor {
     protected Map<String, String> descriptionMap;
     protected GATKReportTableTransformer transformer;
     protected boolean isMultiVcf;
+    protected Comparator<String> comparator = Comparator.naturalOrder(); //new NaturalSortComparator();
 
     protected ReportDescriptor(String reportLabel, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, @Nullable GATKReportTableTransformer transformer, boolean isMultiVcf) {
         this.sectionLabel = sectionLabel;
@@ -35,6 +34,10 @@ abstract class ReportDescriptor {
         this.columnInfoMap = new HashMap<>();
         this.transformer = transformer;
         this.isMultiVcf = isMultiVcf;
+    }
+
+    protected void setComparator(Comparator<String> comparator) {
+        this.comparator = comparator;
     }
 
     public String getEvaluatorModuleName() {
@@ -74,6 +77,11 @@ abstract class ReportDescriptor {
                 }
             }
 
+            // Ensure this column is first:
+            if (isMultiVcf && ret.contains("EvalFeatureInput")) {
+                ret.remove("EvalFeatureInput");
+                ret.add(0, "EvalFeatureInput");
+            }
             columnsInSampleName = ret;
         }
 
@@ -122,19 +130,14 @@ abstract class ReportDescriptor {
         return hasSampleColumn;
     }
 
-    protected JsonArray getSampleNames(){
-        Set<String> sampleNames = new LinkedHashSet<>();
+    protected Map<String, Integer> getSampleToRowIdx(){
+        Map<String, Integer> sampleToRowIdx = new TreeMap<>(comparator);
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
             if (!shouldSkipRow(rowIdx)){
-                sampleNames.add(getSampleNameForRow(rowIdx));
+                sampleToRowIdx.put(getSampleNameForRow(rowIdx), rowIdx);
             }
         }
 
-        JsonArray ret = new JsonArray();
-        for (String sn : sampleNames){
-            ret.add(new JsonPrimitive(sn));
-        }
-
-        return ret;
+        return sampleToRowIdx;
     }
 }

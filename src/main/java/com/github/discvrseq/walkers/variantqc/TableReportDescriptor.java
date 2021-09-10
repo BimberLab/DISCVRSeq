@@ -1,9 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -67,10 +64,15 @@ public class TableReportDescriptor extends ReportDescriptor {
 
         dataObj.addProperty("plot_type", plotType.name());
 
-        dataObj.add("samples", getSampleNames());//Ordering of sample names must correspond with dataset order
+        Map<String, Integer> sampleToRowIdx = getSampleToRowIdx();
+
+        JsonArray samples = new JsonArray();
+        sampleToRowIdx.keySet().stream().map(JsonPrimitive::new).forEach(samples::add);
+        dataObj.add("samples", samples);
+        //dataObj.getAsJsonArray("samples").add(samples);
 
         List<JsonArray> datasetsJson = new ArrayList<>();
-        for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
+        for (int rowIdx : sampleToRowIdx.values()) {
             List<Object> rowList = new ArrayList<>();
             if (shouldSkipRow(rowIdx)){
                 continue;
@@ -86,12 +88,6 @@ public class TableReportDescriptor extends ReportDescriptor {
 
             datasetsJson.add(new GsonBuilder().create().toJsonTree(rowList).getAsJsonArray());
         }
-
-        //Note: this needs more testing and better example data.  By sorting, we also potentially place the 'all' item behind numeric contigs, which is not ideal
-        //natural sort order:
-        //datasetsJson.sort((o1, o2) -> {
-        //    return ComparatorUtils.<String>naturalComparator().compare(o1.get(0).getAsString(), o2.get(0).getAsString());
-        //});
 
         dataObj.add("datasets", new GsonBuilder().create().toJsonTree(datasetsJson).getAsJsonArray());
 
