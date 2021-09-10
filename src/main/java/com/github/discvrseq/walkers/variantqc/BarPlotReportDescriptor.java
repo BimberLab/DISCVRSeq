@@ -62,17 +62,20 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
 
         dataObj.addProperty("plot_type", plotType.name());
 
+        Map<String, Integer> sampleToRowIdx = getSampleToRowIdx();
+
+        JsonArray samples = new JsonArray();
+        sampleToRowIdx.keySet().stream().map(JsonPrimitive::new).forEach(samples::add);
         dataObj.add("samples", new JsonArray());
-        dataObj.getAsJsonArray("samples").add(getSampleNames());
+        dataObj.getAsJsonArray("samples").add(samples);
 
         JsonArray datasetsJson = new JsonArray();
-
         for (String colName : getColumnsToPlot(table)) {
             JsonObject datasetJson = new JsonObject();
             datasetJson.addProperty("name", colName);
 
             JsonArray data = new JsonArray();
-            for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
+            for (int rowIdx : sampleToRowIdx.values()) {
                 if (shouldSkipRow(rowIdx)){
                     continue;
                 }

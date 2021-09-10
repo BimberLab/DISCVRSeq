@@ -4,10 +4,13 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.VariantContextUtils;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -38,6 +41,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
 /**
  * VariantQC will generate a user-friendly HTML report that aggregates data from a VCF file by site, filter status, sample, and other stratifiers in order
  * to provide various summary tables and graphs.  In most cases the tables overlay bar graphs for numeric columns in order to help identify outliers.
@@ -66,7 +72,7 @@ import java.util.*;
  *     -O output.html
  * </pre>
  *
- * <h4>Report With Multiple Input VCFs (not well tested). Note: you can supply a name for each VCF in the argument:</h4>
+ * <h4>Report With Multiple Input VCFs (not well tested). Note: you must supply a name for each VCF in the argument:</h4>
  * <pre>
  * java -jar DISCVRSeq.jar VariantQC \
  *     -R human_g1k_v37.fasta \
@@ -173,6 +179,9 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
     @Argument(fullName = "contigsToRetain", doc="If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.", optional=true)
     public List<String> contigsToRetain = new ArrayList<>(Collections.singletonList("MT"));
 
+    @Argument(fullName = "threads", doc="The number of threads to use.", optional=true)
+    public int threads = 1;
+
     private SampleDB sampleDB = null;
 
     private List<ReportConfig> getStandardWrappers(boolean hasSamples, boolean isMultiVcf) {
@@ -223,7 +232,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
 
     private Collection<VariantEvalWrapper> initializeReports()  {
         List<ReportConfig> configs = new ArrayList<>();
-        configs.addAll(getStandardWrappers(!getSamplesForVariants().isEmpty(), getDrivingVariantsFeatureInputs().size() > 1));
+        configs.addAll(getStandardWrappers(!getSamplesForVariants().isEmpty(), isMultiVcf()));
 
         if (additionalReportFile != null) {
             IOUtil.assertFileIsReadable(additionalReportFile);
@@ -244,6 +253,10 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         return reports.values();
     }
 
+    private boolean isMultiVcf() {
+        return getDrivingVariantsFeatureInputs().size() > 1;
+    }
+
     private List<ReportConfig> parseReportFile(File input) {
         List<ReportConfig> ret = new ArrayList<>();
 
@@ -251,7 +264,6 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         Map<String, Class<? extends VariantStratifier>> classMap = new HashMap<>(VariantEvalEngine.getStratifierClasses());
         classMap.put(Contig.class.getSimpleName(), Contig.class);
 
-        boolean isMultiVcf = getDrivingVariantsFeatureInputs().size() > 1;
         try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
             String[] line;
             int i = 0;
@@ -283,7 +295,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
                     throw new UserException.BadInput("Field " + infoField + " was not a supported type (line " + i + " of report config file).  Currently supported types are Character, String and Integer");
                 }
 
-                TableReportDescriptor rd = new TableReportDescriptor.InfoFieldTableReportDescriptor(reportLabel, sectionLabel, isMultiVcf, infoField);
+                TableReportDescriptor rd = new TableReportDescriptor.InfoFieldTableReportDescriptor(reportLabel, sectionLabel, isMultiVcf(), infoField);
                 List<String> stratList = new ArrayList<>(Arrays.asList(stratifiers.split(",")));
 
                 //allow user-friendly translation:
@@ -343,6 +355,20 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
 
         sampleDB = initializeSampleDB();
 
+        if (isMultiVcf()) {
+            Set<String> unique = new HashSet<>();
+            Set<String> duplicates = new HashSet<>();
+            getDrivingVariantsFeatureInputs().stream().map(x -> x.hasUserSuppliedName() ? x.getName() : "eval").forEach(x -> {
+                if (!unique.add(x)) {
+                    duplicates.add(x);
+                }
+            });
+
+            if (!duplicates.isEmpty()) {
+                throw new UserException("When supplying multiple input VCFs, they must each be assigned a unique name on the command line, such as: '--variant:vcf1 myVcf.vcf.gz'");
+            }
+        }
+
         this.wrappers = initializeReports();
 
         //configure the child walkers
@@ -350,17 +376,64 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         for (VariantEvalWrapper wrapper : this.wrappers){
             wrapper.configureEngine(this);
         }
+
+        if (threads > 1) {
+            executor = Executors.newScheduledThreadPool(threads);
+        }
     }
 
+    ScheduledExecutorService executor = null;
+
     @Override
-    public void apply(List<VariantContext> list, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
-        for (VariantEvalWrapper wrapper : this.wrappers) {
+    public void apply(final List<VariantContext> list, final ReferenceContext referenceContext, final List<ReadsContext> readsContexts) {
+        if (executor != null) {
+            CompletionService<Boolean> completionService = new ExecutorCompletionService<>(executor);
+            List<Future<?>> tasks = new ArrayList<>();
+            for (final VariantEvalWrapper wrapper : this.wrappers) {
+                tasks.add(completionService.submit(new ApplyRunner(list, referenceContext, logger, wrapper)));
+            }
+
+            boolean finished = false;
+            while (!finished) {
+                finished = !tasks.stream().filter(x -> !x.isDone()).findFirst().isPresent();
+            }
+
+            logger.info("Done!");
+        }
+        else {
+            for (VariantEvalWrapper wrapper : this.wrappers) {
+                wrapper.engine.apply(list, referenceContext);
+            }
+        }
+    }
+
+    public static class ApplyRunner implements Callable<Boolean> {
+        final List<VariantContext> list;
+        final ReferenceContext referenceContext;
+        final Logger logger;
+        final VariantEvalWrapper wrapper;
+
+        public ApplyRunner(final List<VariantContext> list, final ReferenceContext referenceContext, Logger logger, VariantEvalWrapper wrapper) {
+            this.list = list.stream().map(vc -> new VariantContextBuilder(vc).make()).collect(Collectors.toList());
+            this.referenceContext = new ReferenceContext(referenceContext, referenceContext.getInterval());
+            this.logger = logger;
+            this.wrapper = wrapper;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
             wrapper.engine.apply(list, referenceContext);
+
+            return true;
         }
     }
 
     @Override
     public Object onTraversalSuccess() {
+        if (executor != null) {
+            executor.shutdown();
+        }
+
         //TODO: option to write to disk
         for (VariantEvalWrapper wrapper : this.wrappers){
             wrapper.engine.finalizeReport(wrapper.getOutFile());

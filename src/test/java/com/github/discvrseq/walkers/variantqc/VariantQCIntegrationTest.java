@@ -18,10 +18,10 @@ import java.util.Collections;
 
 public class VariantQCIntegrationTest extends BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs(boolean limitToChr1) {
-        return(getBaseArgs(limitToChr1, null));
+        return(getBaseArgs(limitToChr1, null, 1));
     }
 
-    private ArgumentsBuilder getBaseArgs(boolean limitToChr1, String vcfName) {
+    private ArgumentsBuilder getBaseArgs(boolean limitToChr1, String vcfName, int threads) {
         ArgumentsBuilder args = new ArgumentsBuilder();
         args.addRaw("--variant" + (vcfName == null ? "" : ":" + vcfName));
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
@@ -41,6 +41,10 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         args.addRaw("--tmp-dir");
         args.addRaw(getTmpDir());
 
+        if (threads > 1) {
+            args.add("threads", threads);
+        }
+
         return args;
     }
 
@@ -56,9 +60,20 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    public void testBasicOperationThreaded() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
+        ArgumentsBuilder args = getBaseArgs(true);
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testBasicOperationThreaded", this);
+        expected.delete();
+    }
+
+    @Test
     public void testMultiVcf() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testMultiVcf.html"));
-        ArgumentsBuilder args = getBaseArgs(true, "vcf1");
+        ArgumentsBuilder args = getBaseArgs(true, "vcf1", 1);
         args.addRaw("--variant:vcf2");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         args.addRaw(normalizePath(input));
@@ -67,6 +82,21 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
                 args.getString(), Arrays.asList(expected.getPath()));
 
         spec.executeTest("testMultiVcf", this);
+        expected.delete();
+    }
+
+    @Test
+    public void testMultiVcfThreaded() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testMultiVcf.html"));
+        ArgumentsBuilder args = getBaseArgs(true, "vcf1", 2);
+        args.addRaw("--variant:vcf2");
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        args.addRaw(normalizePath(input));
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testMultiVcfThreaded", this);
         expected.delete();
     }
 
@@ -293,5 +323,4 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         spec.executeTest("testMaxContigs3", this);
         expected.delete();
     }
-
 }

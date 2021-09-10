@@ -5,6 +5,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.NaturalSortComparator;
 import com.github.discvrseq.util.SequenceMatcher;
 import htsjdk.samtools.*;
 import htsjdk.samtools.reference.ReferenceSequence;
@@ -617,7 +618,7 @@ public class IntegrationSiteMapper extends GATKTool {
                 }
                 Map<String, ReferenceSequence> refMap = new HashMap<>();
                 List<String> sortedKeys = new ArrayList<>(totalMatches.keySet());
-                sortedKeys.sort(ComparatorUtils.naturalComparator());
+                sortedKeys.sort(new NaturalSortComparator());
 
                 AtomicInteger totalHits = new AtomicInteger();
                 totalMatches.forEach((x, y) -> totalHits.getAndAdd(y.totalReads));
