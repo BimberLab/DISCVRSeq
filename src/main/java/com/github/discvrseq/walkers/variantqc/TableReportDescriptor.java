@@ -1,7 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import com.google.gson.*;
-import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
@@ -64,15 +63,14 @@ public class TableReportDescriptor extends ReportDescriptor {
 
         dataObj.addProperty("plot_type", plotType.name());
 
-        Map<String, Integer> sampleToRowIdx = getSampleToRowIdx();
+        Map<Integer, String> rowIdxToSample = getSortedRows();
 
         JsonArray samples = new JsonArray();
-        sampleToRowIdx.keySet().stream().map(JsonPrimitive::new).forEach(samples::add);
+        rowIdxToSample.values().stream().map(JsonPrimitive::new).forEach(samples::add);
         dataObj.add("samples", samples);
-        //dataObj.getAsJsonArray("samples").add(samples);
 
         List<JsonArray> datasetsJson = new ArrayList<>();
-        for (int rowIdx : sampleToRowIdx.values()) {
+        for (int rowIdx : rowIdxToSample.keySet()) {
             List<Object> rowList = new ArrayList<>();
             if (shouldSkipRow(rowIdx)){
                 continue;
@@ -182,6 +180,11 @@ public class TableReportDescriptor extends ReportDescriptor {
 
         public static String getEvalModuleSimpleName(String infoFieldName) {
             return InfoFieldEvaluator.class.getSimpleName() + "-" + infoFieldName;
+        }
+
+        @Override
+        protected Map<Integer, String> getSortedRows() {
+            return super.getSortedRows();
         }
     }
 }
