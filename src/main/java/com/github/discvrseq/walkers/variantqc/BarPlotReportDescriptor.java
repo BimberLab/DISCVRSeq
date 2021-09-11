@@ -62,10 +62,10 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
 
         dataObj.addProperty("plot_type", plotType.name());
 
-        Map<String, Integer> sampleToRowIdx = getSampleToRowIdx();
+        Map<Integer, String> rowIdxToSample = getSortedRows();
 
         JsonArray samples = new JsonArray();
-        sampleToRowIdx.keySet().stream().map(JsonPrimitive::new).forEach(samples::add);
+        rowIdxToSample.values().stream().map(JsonPrimitive::new).forEach(samples::add);
         dataObj.add("samples", new JsonArray());
         dataObj.getAsJsonArray("samples").add(samples);
 
@@ -75,7 +75,7 @@ public class BarPlotReportDescriptor extends ReportDescriptor {
             datasetJson.addProperty("name", colName);
 
             JsonArray data = new JsonArray();
-            for (int rowIdx : sampleToRowIdx.values()) {
+            for (int rowIdx : rowIdxToSample.keySet()) {
                 if (shouldSkipRow(rowIdx)){
                     continue;
                 }

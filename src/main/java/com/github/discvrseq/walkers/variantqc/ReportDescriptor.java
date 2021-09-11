@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
+import com.github.discvrseq.util.NaturalSortComparator;
 import com.google.gson.JsonObject;
 import htsjdk.samtools.util.StringUtil;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
@@ -13,6 +14,8 @@ import java.util.*;
  * Created by bimber on 5/22/2017.
  */
 abstract class ReportDescriptor {
+    private static final Comparator<String> NATURAL_SORT = new NaturalSortComparator();
+
     protected final String sectionLabel;
     protected final String reportLabel;
     protected final SectionJsonDescriptor.PlotType plotType;
@@ -24,7 +27,6 @@ abstract class ReportDescriptor {
     protected Map<String, String> descriptionMap;
     protected GATKReportTableTransformer transformer;
     protected boolean isMultiVcf;
-    protected Comparator<String> comparator = Comparator.naturalOrder(); //new NaturalSortComparator();
 
     protected ReportDescriptor(String reportLabel, String sectionLabel, SectionJsonDescriptor.PlotType plotType, String evaluatorModuleName, @Nullable GATKReportTableTransformer transformer, boolean isMultiVcf) {
         this.sectionLabel = sectionLabel;
@@ -34,10 +36,6 @@ abstract class ReportDescriptor {
         this.columnInfoMap = new HashMap<>();
         this.transformer = transformer;
         this.isMultiVcf = isMultiVcf;
-    }
-
-    protected void setComparator(Comparator<String> comparator) {
-        this.comparator = comparator;
     }
 
     public String getEvaluatorModuleName() {
@@ -62,13 +60,8 @@ abstract class ReportDescriptor {
 
     protected List<String> columnsInSampleName = null;
 
-    /**
-     * This provides the opportunity for subclasses to supply custom logic to parse the sampleName from rows.
-     * This can return null, in which case that row will be ignored, for example if specific states should not be included.
-     * @param rowIdx The row index to parse
-     * @return the parsed sample name
-     */
-    protected String getSampleNameForRow(int rowIdx){
+    protected List<String> getColumnsInSampleName()
+    {
         if (columnsInSampleName == null){
             List<String> ret = new ArrayList<>();
             for (GATKReportColumn col : table.getColumnInfo()){
@@ -85,8 +78,18 @@ abstract class ReportDescriptor {
             columnsInSampleName = ret;
         }
 
+        return columnsInSampleName;
+    }
+
+    /**
+     * This provides the opportunity for subclasses to supply custom logic to parse the sampleName from rows.
+     * This can return null, in which case that row will be ignored, for example if specific states should not be included.
+     * @param rowIdx The row index to parse
+     * @return the parsed sample name
+     */
+    protected String getSampleNameForRow(int rowIdx){
         List<String> tokens = new ArrayList<>();
-        for (String colName : columnsInSampleName){
+        for (String colName : getColumnsInSampleName()){
             tokens.add(table.get(rowIdx, colName).toString());
         }
 
@@ -130,11 +133,44 @@ abstract class ReportDescriptor {
         return hasSampleColumn;
     }
 
-    protected Map<String, Integer> getSampleToRowIdx(){
-        Map<String, Integer> sampleToRowIdx = new TreeMap<>(comparator);
+    protected Map<Integer, String> getSortedRows(){
+        Map<Integer, List<String>> sortValues = new HashMap<>();
         for (int rowIdx = 0;rowIdx<table.getNumRows();rowIdx++){
+            List<String> vals = new ArrayList<>();
+            for (String col : getColumnsInSampleName()) {
+                vals.add(String.valueOf(table.get(rowIdx, col)));
+            }
+
+            sortValues.put(rowIdx, vals);
+        }
+
+        List<Integer> rowIdxs = new ArrayList<>(sortValues.keySet());
+        Collections.sort(rowIdxs, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                List<String> l1 = sortValues.get(o1);
+                List<String> l2 = sortValues.get(o2);
+
+                for (int idx=0;idx<l1.size();idx++) {
+                    // special-case all to show first
+                    if ("all".equalsIgnoreCase(l1.get(idx)) && !"all".equalsIgnoreCase(l2.get(idx))) {
+                        return 1;
+                    }
+
+                    int sortVal = NATURAL_SORT.compare(l1.get(idx), l2.get(idx));
+                    if (sortVal != 0) {
+                        return sortVal;
+                    }
+                }
+
+                return 0;
+            }
+        });
+
+        Map<Integer, String> sampleToRowIdx = new LinkedHashMap<>();
+        for (int rowIdx : rowIdxs){
             if (!shouldSkipRow(rowIdx)){
-                sampleToRowIdx.put(getSampleNameForRow(rowIdx), rowIdx);
+                sampleToRowIdx.put(rowIdx, getSampleNameForRow(rowIdx));
             }
         }
 
