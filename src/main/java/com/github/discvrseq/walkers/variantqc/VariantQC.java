@@ -390,15 +390,13 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
             CompletionService<Boolean> completionService = new ExecutorCompletionService<>(executor);
             List<Future<?>> tasks = new ArrayList<>();
             for (final VariantEvalWrapper wrapper : this.wrappers) {
-                tasks.add(completionService.submit(new ApplyRunner(list, referenceContext, logger, wrapper)));
+                tasks.add(completionService.submit(new ApplyRunner(list, referenceContext, wrapper)));
             }
 
             boolean finished = false;
             while (!finished) {
                 finished = !tasks.stream().filter(x -> !x.isDone()).findFirst().isPresent();
             }
-
-            logger.info("Done!");
         }
         else {
             for (VariantEvalWrapper wrapper : this.wrappers) {
@@ -410,13 +408,11 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
     public static class ApplyRunner implements Callable<Boolean> {
         final List<VariantContext> list;
         final ReferenceContext referenceContext;
-        final Logger logger;
         final VariantEvalWrapper wrapper;
 
-        public ApplyRunner(final List<VariantContext> list, final ReferenceContext referenceContext, Logger logger, VariantEvalWrapper wrapper) {
+        public ApplyRunner(final List<VariantContext> list, final ReferenceContext referenceContext, VariantEvalWrapper wrapper) {
             this.list = list.stream().map(vc -> new VariantContextBuilder(vc).make()).collect(Collectors.toList());
             this.referenceContext = new ReferenceContext(referenceContext, referenceContext.getInterval());
-            this.logger = logger;
             this.wrapper = wrapper;
         }
 
