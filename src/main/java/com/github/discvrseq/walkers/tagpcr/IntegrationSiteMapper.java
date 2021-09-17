@@ -65,6 +65,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>If --primer3-path and --primer-pair-table are provided, the tool will iterate each passing integration site, extract the upstream and downstream region (+/- 1000bp), and design primer pairs that site inside the transgene and flanking genomic region.</li>
  *     <li>If --blastn-path and --blast-db-path are provided, the tool will BLAST putative primers against the reference database and any primer with multiple hits will be flagged/discarded, along with non full-length primers that have a perfect match at the 3' end.</li>
  *     <li>To aid in inspecting the results, a genbank file can also be created (--genbank-output), which has one record per insert region, with the transgene region highlighted.  If primers were designed, these will also appear.</li>
+ *     <li>An optional table can be produced with summary stats for the run (see --metrics-table)</li>
+ *     <li>Putative hits can be filtered, see: --reads-to-output, --min-alignments, --min-fraction, and --min-mapq</li>
  * </ul>
  *
  * <h3>Simplest Usage:</h3>
@@ -73,8 +75,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     -R currentGenome.fasta \
  *     -b myBam.bam \
  *     --output-table output.txt \
- *     --insertNames
+ *     --insert-name piggybac
  * </pre>
+ *
+ * The file output.txt will contain a table summarizing the predicted integration sites.
  *
  * <h3>Using More Advanced Features to Reconstruct Transgene/Genome Sequences and Design PCR primers:</h3>
  * <pre>
@@ -168,7 +172,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *     <li>backboneSearchStrings: An optional list of strings to use to identify non-integrated transgene (such as the source plasmid). If a given read contains any of these sequences, which could typically be short fragments representing the vector backbone, it will be flagged as such.</li>
  * </ul>
  *
- * <h3>Finally, it can be run using a custom transgene definition:</h3>
+ * <h3>Finally, IntegrationSiteMapper can be run using a custom transgene definition:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar IntegrationSiteMapper \
  *     -R currentGenome.fasta \
