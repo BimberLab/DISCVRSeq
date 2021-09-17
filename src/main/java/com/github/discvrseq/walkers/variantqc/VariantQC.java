@@ -370,6 +370,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         }
 
         this.wrappers = initializeReports();
+        logger.info("Total VariantEval instances: " + this.wrappers.size());
 
         //configure the child walkers
         this.getTraversalIntervals(); //initialize potential contig override
@@ -387,15 +388,16 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
     @Override
     public void apply(final List<VariantContext> list, final ReferenceContext referenceContext, final List<ReadsContext> readsContexts) {
         if (executor != null) {
-            CompletionService<Boolean> completionService = new ExecutorCompletionService<>(executor);
-            List<Future<?>> tasks = new ArrayList<>();
+            List<ApplyRunner> toRun = new ArrayList<>();
             for (final VariantEvalWrapper wrapper : this.wrappers) {
-                tasks.add(completionService.submit(new ApplyRunner(list, referenceContext, wrapper)));
+                toRun.add(new ApplyRunner(list, referenceContext, wrapper));
             }
 
-            boolean finished = false;
-            while (!finished) {
-                finished = !tasks.stream().filter(x -> !x.isDone()).findFirst().isPresent();
+            try {
+                executor.invokeAll(toRun);
+            }
+            catch (InterruptedException e) {
+                throw new IllegalStateException("Error running VariantQC", e);
             }
         }
         else {
