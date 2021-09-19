@@ -1,8 +1,6 @@
 package com.github.discvrseq.walkers.annotator;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.github.discvrseq.walkers.annotator.GenotypeConcordanceArgumentCollection;
-import com.github.discvrseq.walkers.annotator.MendelianViolationArgumentCollection;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import org.broadinstitute.barclay.argparser.ArgumentCollection;
 import org.broadinstitute.barclay.argparser.CommandLineException;
 import org.broadinstitute.barclay.argparser.CommandLinePluginDescriptor;
@@ -64,7 +62,7 @@ import java.util.*;
  */
 @CommandLineProgramProperties(summary="Tool for adding annotations to VCF files",
         oneLineSummary = "Tool for adding annotations to VCF files",
-        programGroup = DiscvrSeqProgramGroup.class)
+        programGroup = VariantManipulationProgramGroup.class)
 
 @DocumentedFeature
 public class DiscvrVariantAnnotator extends VariantAnnotator {

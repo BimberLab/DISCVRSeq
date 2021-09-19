@@ -1,6 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;

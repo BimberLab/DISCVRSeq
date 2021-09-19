@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import htsjdk.tribble.bed.BEDFeature;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -40,7 +40,7 @@ import java.util.List;
 @CommandLineProgramProperties(
         summary = "This tool accepts a BED file with a list of sites, where sample name is the feature name (i.e. 4th column).  If the VCF has a variant at any of these positions, the sample(s) will have their genotypes converted to no-call.  The BED file can have multiple lines per site if more than one sample needs to be filtered.",
         oneLineSummary = "Filters genotypes based on an input list of samples/sites",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = VariantManipulationProgramGroup.class
 )
 public class GenotypeFilterBySample extends VariantWalker {
 

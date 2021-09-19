@@ -1,16 +1,14 @@
 package com.github.discvrseq.walkers.variantqc;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
-import htsjdk.variant.variantcontext.VariantContextUtils;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -41,7 +39,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -154,7 +154,7 @@ import java.util.stream.Collectors;
 @CommandLineProgramProperties(
         summary = "This will generate an HTML summary report for a given VCF, analogous to the report FastQC creates for raw read data.",
         oneLineSummary = "Generate HTML summary report for a VCF",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = VariantManipulationProgramGroup.class
 )
 public class VariantQC extends MultiVariantWalkerGroupedOnStart {
 

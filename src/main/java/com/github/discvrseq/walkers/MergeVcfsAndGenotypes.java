@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.*;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -105,7 +105,7 @@ import java.util.stream.Collectors;
 @CommandLineProgramProperties(
         summary = "This will merge two or more input VCF files at the site and genotype level.",
         oneLineSummary = "Generate a merged VCF from one or more inputs",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = VariantManipulationProgramGroup.class
 )
 public class MergeVcfsAndGenotypes extends MultiVariantWalkerGroupedOnStart {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)

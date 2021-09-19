@@ -1,7 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import htsjdk.variant.variantcontext.Allele;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -25,7 +24,7 @@ import java.util.List;
 @CommandLineProgramProperties(
         summary = "Merge multiple VCFs to produce one with all unique sites.  All genotypes will be dropped.",
         oneLineSummary = "Merge multiple VCFs to produce one with all unique sites",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = VariantManipulationProgramGroup.class
 )
 public class MergeVariantSites extends MultiVariantWalker {
 

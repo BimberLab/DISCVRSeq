@@ -1,7 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import com.github.discvrseq.walkers.annotator.MendelianViolationCount;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
@@ -36,7 +36,7 @@ import java.util.*;
  */
 @CommandLineProgramProperties(summary="Tool for creating a summary of MVs per sample from a VCF",
         oneLineSummary = "Tool for creating a summary of MVs per sample from a VCF",
-        programGroup = DiscvrSeqProgramGroup.class)
+        programGroup = VariantManipulationProgramGroup.class)
 public class MendelianViolationReport extends VariantWalker {
     @Argument(doc="File to which the report should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;

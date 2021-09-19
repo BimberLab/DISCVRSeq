@@ -1,6 +1,6 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import com.opencsv.CSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @CommandLineProgramProperties(
         summary = "This tool will compare two VCFs at the site and genotype level, producing a summary table of concordance.",
         oneLineSummary = "Produces a concordance report between two VCFs at the site and genotype level",
-        programGroup = DiscvrSeqProgramGroup.class
+        programGroup = VariantManipulationProgramGroup.class
 )
 public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
     @Argument(doc = "File to which the output table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
