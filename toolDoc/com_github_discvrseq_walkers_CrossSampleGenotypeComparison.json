@@ -712,7 +712,7 @@
   ],
   "description": "This tool was originally created to help identify possible sample mix-ups. It accepts an input VCF, reference VCF and list of samples to consider.  It will compare each sample in this list from the VCF against every samples in the reference VCF, \n and produce a summary table about concordance.\n\n \u003ch3\u003eUsage example Without Sample List (will compare all):\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar CrossSampleGenotypeComparison \\\n     -R currentGenome.fasta \\\n     -V myVCF.vcf \\\n     -rv referenceData.vcf.gz \\\n     -O outputTable.txt \\\n     --summaryTable summaryTable.txt\n \u003c/pre\u003e\n \u003ch3\u003eUsage Example With Sample List:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar CrossSampleGenotypeComparison \\\n     -R currentGenome.fasta \\\n     -V myVCF.vcf \\\n     -rv referenceData.vcf.gz \\\n     -O outputTable.txt \\\n     --summaryTable summaryTable.txt \\\n     -s Sample1 \\\n     -s Sample2 \\\n     -s Sample13\n \u003c/pre\u003e",
   "name": "CrossSampleGenotypeComparison",
-  "group": "Public/Stable Tools",
+  "group": "Variant Manipulation",
   "beta": false,
   "experimental": false
 }

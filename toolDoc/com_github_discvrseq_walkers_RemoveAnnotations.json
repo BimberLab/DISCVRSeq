@@ -802,7 +802,7 @@
   ],
   "description": "This tool will iterate a VCF and selectively remove annotations using using a whitelist or blacklist.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar RemoveAnnotations \\\n     -V myVCF.vcf.gz \\\n     -A AF \\\n     -XA MAF \\\n     --sitesOnly \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
   "name": "RemoveAnnotations",
-  "group": "Public/Stable Tools",
+  "group": "Variant Manipulation",
   "beta": false,
   "experimental": false
 }

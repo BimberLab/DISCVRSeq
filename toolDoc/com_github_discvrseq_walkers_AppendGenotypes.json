@@ -682,7 +682,7 @@
   ],
   "description": "",
   "name": "AppendGenotypes",
-  "group": "Public/Stable Tools",
+  "group": "Variant Manipulation",
   "beta": false,
   "experimental": false
 }

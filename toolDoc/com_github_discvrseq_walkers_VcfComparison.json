@@ -757,7 +757,7 @@
   ],
   "description": "This tool will compare the sites and genotypes between two VCFs. It will output site-level differences, including number of sites filtered/not between the query and reference VCF, and sites present/absent in either.\n For each site that is present in both and not filtered, it will output the total number of genotypes that are discordant (which does not consider no-calls/filtered genotypes).\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VcfComparison \\\n     -R currentGenome.fasta \\\n     -V myVCF.vcf \\\n     -rv referenceData.vcf.gz \\\n     -O outputTable.txt \\\n     -sites-output sitesTable.txt.gz\n \u003c/pre\u003e",
   "name": "VcfComparison",
-  "group": "Public/Stable Tools",
+  "group": "Variant Manipulation",
   "beta": false,
   "experimental": false
 }
