@@ -3,10 +3,7 @@ package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
 import com.github.discvrseq.util.CigarPositionIterable;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.*;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.util.IOUtil;
@@ -74,10 +71,16 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
     private Double requiredCoverageFraction  = 0.0;
 
     @Argument(fullName = "minQual", shortName = "mq", doc = "If specified, bases with quality lower than this value will be converted to N")
-    final int minQual = 0;
+    private int minQual = 0;
 
     @Argument(fullName = "minMappingQual", shortName = "mmq", doc = "If specified, only alignments with mapping quality above this value will be included")
-    final int minMappingQual = 10;
+    private int minMappingQual = 10;
+
+    @Argument(fullName = "minReadsToReport", shortName = "mr", doc = "If specified, only haplotypes with at least this many reads will be reported")
+    private int minReadsToReport = 0;
+
+    @Argument(fullName = "minReadFractionToReport", shortName = "mrf", doc = "If specified, only haplotypes representing at least this fraction of total haplotypes will be reported")
+    private double minReadFractionToReport = 0.0;
 
     private PrintStream outputStream = null;
 
@@ -227,13 +230,19 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         CigarPositionIterable cpi = new CigarPositionIterable(r);
         CigarPositionIterable.CigarIterator ci = cpi.iterator();
 
+        if (r.getCigar().containsOperator(CigarOperator.I)) {
+            logger.info("ii");
+        }
         int effectiveInsertIdx = 0;
         while (ci.hasNext())
         {
             CigarPositionIterable.PositionInfo pi = ci.next();
+            if (pi.getCigarOperator() == CigarOperator.I) {
+                logger.info("indel");
+            }
 
             //note: getRefPosition is 0-based, interval is 1-based
-            if (pi.getRefPosition() + 1 < interval.getStart())
+            if (pi.getLastRefPosition() + 1 < interval.getStart())
             {
                 continue;
             }
@@ -241,7 +250,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             {
                 continue;
             }
-            else if (pi.getRefPosition() + 1 > interval.getEnd())
+            else if (pi.getLastRefPosition() + 1 > interval.getEnd())
             {
                 break;
             }
@@ -252,12 +261,14 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
                 effectiveInsertIdx = 0;
             }
 
-            //getRefPosition() is 0-based
-            int arrayPos = pi.getRefPosition() + offset + 1;
-
-
+            //getLastRefPosition() is 0-based
+            int arrayPos = pi.getLastRefPosition() + offset + 1;
             if (pi.isIndel())
             {
+                if (pi.isInsertion()) {
+                    logger.info("indel");
+                }
+
                 if (pi.isDel())
                 {
                     if (arr[arrayPos] == null)
@@ -323,6 +334,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             else if (existingQual == qual)
             {
                 logger.warn("conflicting forward/reverse read bases: " + pi.getRecord().getReadName() + ", " + pi.getRefPosition() + ", " + arrayPos + ", " + idx + ", " + existing + ", " + base + ", " + qual);
+                arr[arrayPos][idx] = 'X';
             }
         }
     }
@@ -366,6 +378,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             {
                 ReferenceSequence ref = idx.getSubsequenceAt(i.getContig(), i.getStart(), i.getEnd());
                 Map<Character[][], Integer> haplotypes = resultMap.get(i);
+                haplotypes = filterHaplotypes(haplotypes);
                 Map<Integer, TreeSet<Integer>> indels = getInsertionMap(haplotypes);
                 String referenceSequence = getReferenceSequence(ref, indels);
                 outputStream.println(referenceSequence);
@@ -403,6 +416,52 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         }
 
         return super.onTraversalSuccess();
+    }
+
+    private Map<Character[][], Integer> filterHaplotypes(Map<Character[][], Integer> haplotypes) {
+        AtomicInteger totalHaplotypes = new AtomicInteger();
+        haplotypes.forEach((x, y) -> {totalHaplotypes.addAndGet(y);});
+
+        if (minReadsToReport > 0) {
+            Map<Character[][], Integer> ret = new HashMap<>();
+            int totalDropped  = 0;
+            for (Character[][] key : haplotypes.keySet()) {
+                if (haplotypes.get(key) >= minReadsToReport) {
+                    ret.put(key, haplotypes.get(key));
+                }
+                else {
+                    totalDropped++;
+                }
+            }
+
+            if (totalDropped > 0) {
+                logger.info("Total haplotypes dropped due to min read filter: " + totalDropped);
+            }
+
+            haplotypes = ret;
+        }
+
+        if (minReadFractionToReport > 0) {
+            Map<Character[][], Integer> ret = new HashMap<>();
+            int totalDropped  = 0;
+            for (Character[][] key : haplotypes.keySet()) {
+                double val = haplotypes.get(key) / (double)totalHaplotypes.get();
+                if (val >= minReadFractionToReport) {
+                    ret.put(key, haplotypes.get(key));
+                }
+                else {
+                    totalDropped++;
+                }
+            }
+
+            if (totalDropped > 0) {
+                logger.info("Total haplotypes dropped due to min read fraction filter: " + totalDropped);
+            }
+
+            haplotypes = ret;
+        }
+
+        return haplotypes;
     }
 
     private String getPairLabel(Integer reads) {
