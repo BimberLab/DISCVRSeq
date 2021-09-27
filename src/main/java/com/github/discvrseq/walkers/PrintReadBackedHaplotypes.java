@@ -323,6 +323,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             else if (existingQual == qual)
             {
                 logger.warn("conflicting forward/reverse read bases: " + pi.getRecord().getReadName() + ", " + pi.getRefPosition() + ", " + arrayPos + ", " + idx + ", " + existing + ", " + base + ", " + qual);
+                arr[arrayPos][idx] = 'X';
             }
         }
     }
