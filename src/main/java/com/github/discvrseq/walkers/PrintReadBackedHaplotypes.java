@@ -18,6 +18,7 @@ import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.IntervalWalker;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.filters.MappingQualityReadFilter;
 import org.broadinstitute.hellbender.engine.filters.ReadFilter;
 import org.broadinstitute.hellbender.engine.filters.ReadFilterLibrary;
 import org.broadinstitute.hellbender.exceptions.GATKException;
@@ -74,6 +75,9 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
 
     @Argument(fullName = "minQual", shortName = "mq", doc = "If specified, bases with quality lower than this value will be converted to N")
     final int minQual = 0;
+
+    @Argument(fullName = "minMappingQual", shortName = "mmq", doc = "If specified, only alignments with mapping quality above this value will be included")
+    final int minMappingQual = 10;
 
     private PrintStream outputStream = null;
 
@@ -318,7 +322,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             }
             else if (existingQual == qual)
             {
-                logger.info("conflicting bases: " + pi.getRecord().getReadName() + ", " + pi.getRefPosition() + ", " + arrayPos + ", " + idx + ", " + existing + ", " + base + ", " + qual);
+                logger.warn("conflicting forward/reverse read bases: " + pi.getRecord().getReadName() + ", " + pi.getRefPosition() + ", " + arrayPos + ", " + idx + ", " + existing + ", " + base + ", " + qual);
             }
         }
     }
@@ -328,6 +332,12 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         List<ReadFilter> ret = new ArrayList<>();
         ret.addAll(super.getDefaultReadFilters());
         ret.add(new ReadFilterLibrary.MappedReadFilter());
+
+        if (minMappingQual > 0) {
+            ret.add(new MappingQualityReadFilter(minMappingQual));
+        }
+
+        ret.add(new ReadFilterLibrary.PrimaryLineReadFilter());
 
         return Collections.unmodifiableList(ret);
     }
