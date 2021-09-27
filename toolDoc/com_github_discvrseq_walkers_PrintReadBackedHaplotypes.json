@@ -425,6 +425,36 @@
       "options": []
     },
     {
+      "summary": "If specified, only haplotypes representing at least this fraction of total haplotypes will be reported",
+      "name": "--minReadFractionToReport",
+      "synonyms": "-mrf",
+      "type": "double",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0.0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
+      "summary": "If specified, only haplotypes with at least this many reads will be reported",
+      "name": "--minReadsToReport",
+      "synonyms": "-mr",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "Output file (if not provided, defaults to STDOUT)",
       "name": "--output",
       "synonyms": "-O",
