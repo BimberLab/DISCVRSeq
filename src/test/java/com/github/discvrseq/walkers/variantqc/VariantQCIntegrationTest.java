@@ -62,7 +62,7 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     @Test
     public void testBasicOperationThreaded() throws Exception {
         File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
-        ArgumentsBuilder args = getBaseArgs(true);
+        ArgumentsBuilder args = getBaseArgs(true, null, 2);
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(), Arrays.asList(expected.getPath()));
 
