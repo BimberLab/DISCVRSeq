@@ -41,6 +41,7 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
                         " -O " + "%s" +
                         " -rc " + "0.75" +
                         " -mq " + "20" +
+                        " -mr " + "4" +
                         " -L " + normalizePath(intervals) +
                         " --tmp-dir " + getTmpDir(),
                 Arrays.asList(getTestFile("filteredTest.txt").getPath()));
@@ -57,7 +58,7 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
         File intervals = new File(getTmpDir(), "test.intervals");
         try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(intervals))
         {
-            writer.write("080_pRR_Reporter_U24:3566-3685\n");
+            writer.write("080_pRR_Reporter_U24:3610-3650\n");
             writer.write("080_pRR_Reporter_U24:3864-3983\n");
         }
 
@@ -68,6 +69,7 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
                         " -rc " + "0.95" +
                         " -mq " + "20" +
                         " -mmq " + "20" +
+                        " -mrf " + "0.02" +
                         " -L " + normalizePath(intervals) +
                         " --tmp-dir " + getTmpDir(),
                 Arrays.asList(getTestFile("filteredTest2.txt").getPath()));
@@ -121,6 +123,6 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
     }
 
     private File getInput(){
-        return new File(testBaseDir, "Population_vii.overlapping.bam");
+        return new File(testBaseDir, "Population_iv.overlapping.bam");
     }
 }
