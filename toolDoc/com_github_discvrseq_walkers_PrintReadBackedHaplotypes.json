@@ -395,6 +395,21 @@
       "options": []
     },
     {
+      "summary": "If specified, only alignments with mapping quality above this value will be included",
+      "name": "--minMappingQual",
+      "synonyms": "-mmq",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "10",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "If specified, bases with quality lower than this value will be converted to N",
       "name": "--minQual",
       "synonyms": "-mq",
