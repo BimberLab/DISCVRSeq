@@ -165,7 +165,7 @@ public class MendelianViolationReport extends VariantWalker {
             for(String sn :additionalSamplesToReport) {
                 MVSummary summary = sampleMap.get(sn);
                 if (summary != null) {
-                    reportSample(sn, summary, Collections.emptySet(), writer);
+                    reportSample(sn, summary, new HashSet<>(), writer);
                 }
             }
         }
