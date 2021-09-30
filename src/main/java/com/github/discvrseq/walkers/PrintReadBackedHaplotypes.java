@@ -230,16 +230,10 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         CigarPositionIterable cpi = new CigarPositionIterable(r);
         CigarPositionIterable.CigarIterator ci = cpi.iterator();
 
-        if (r.getCigar().containsOperator(CigarOperator.I)) {
-            logger.info("ii");
-        }
         int effectiveInsertIdx = 0;
         while (ci.hasNext())
         {
             CigarPositionIterable.PositionInfo pi = ci.next();
-            if (pi.getCigarOperator() == CigarOperator.I) {
-                logger.info("indel");
-            }
 
             //note: getRefPosition is 0-based, interval is 1-based
             if (pi.getLastRefPosition() + 1 < interval.getStart())
@@ -265,10 +259,6 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             int arrayPos = pi.getLastRefPosition() + offset + 1;
             if (pi.isIndel())
             {
-                if (pi.isInsertion()) {
-                    logger.info("indel");
-                }
-
                 if (pi.isDel())
                 {
                     if (arr[arrayPos] == null)
@@ -283,8 +273,6 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
                 }
                 else if (pi.isInsertion() && pi.getBaseQuality() >= minQual)
                 {
-                    logger.info("indel: " + pi.getRecord().getReadName() + ", " + pi.getRefPosition());
-                    //TODO: account for second mate
                     effectiveInsertIdx++;
                     Character[] posArr = arr[arrayPos];
                     if (posArr == null)
