@@ -145,26 +145,27 @@ abstract class ReportDescriptor {
         }
 
         List<Integer> rowIdxs = new ArrayList<>(sortValues.keySet());
-        Collections.sort(rowIdxs, new Comparator<Integer>() {
-            @Override
-            public int compare(Integer o1, Integer o2) {
-                List<String> l1 = sortValues.get(o1);
-                List<String> l2 = sortValues.get(o2);
+        rowIdxs.sort((o1, o2) -> {
+            List<String> l1 = sortValues.get(o1);
+            List<String> l2 = sortValues.get(o2);
 
-                for (int idx=0;idx<l1.size();idx++) {
-                    // special-case all to show first
-                    if ("all".equalsIgnoreCase(l1.get(idx)) && !"all".equalsIgnoreCase(l2.get(idx))) {
-                        return 1;
-                    }
-
-                    int sortVal = NATURAL_SORT.compare(l1.get(idx), l2.get(idx));
-                    if (sortVal != 0) {
-                        return sortVal;
-                    }
+            for (int idx = 0; idx < l1.size(); idx++) {
+                // special-case all
+                if ("all".equalsIgnoreCase(l1.get(idx)) && !"all".equalsIgnoreCase(l2.get(idx))) {
+                    return 1;
+                } else if (!"all".equalsIgnoreCase(l1.get(idx)) && "all".equalsIgnoreCase(l2.get(idx))) {
+                    return -1;
                 }
 
-                return 0;
+                String val1 = l1.get(idx);
+                String val2 = l2.get(idx);
+                int sortVal = NATURAL_SORT.compare(val1, val2);
+                if (sortVal != 0) {
+                    return sortVal;
+                }
             }
+
+            return 0;
         });
 
         Map<Integer, String> sampleToRowIdx = new LinkedHashMap<>();
