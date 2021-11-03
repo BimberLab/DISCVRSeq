@@ -13,7 +13,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
       - name: Docker meta
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v3.5.0
