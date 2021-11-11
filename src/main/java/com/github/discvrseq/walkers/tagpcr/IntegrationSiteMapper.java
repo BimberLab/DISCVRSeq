@@ -221,6 +221,9 @@ public class IntegrationSiteMapper extends GATKTool {
     @Argument(doc="File to which a TSV of summary metrics should be written", fullName = "metrics-table", shortName = "mt", optional = true)
     public File metricsFile = null;
 
+    @Argument(doc="By default, reverse reads are skipped. If true, reverse reads will be included, which might be necessary for some chemistries.", fullName = "include-reverse-reads", shortName = "ir", optional = true)
+    public boolean includeReverseReads = false;
+
     @Argument(doc="The path to the blastn executable.  This is required for BLAST validation to be perform against putative primers. If blastn is in your $PATH, it will be picked up. Alternately, the environment variable BLASTN_PATH can be set, pointing to the blastn executable.", fullName = "blastn-path", shortName = "bn", optional = true)
     public String blastnPath = null;
 
@@ -494,7 +497,7 @@ public class IntegrationSiteMapper extends GATKTool {
                 }
 
                 // Skip reverse reads
-                if (rec.getReadPairedFlag() && rec.getSecondOfPairFlag()) {
+                if (!includeReverseReads && rec.getReadPairedFlag() && rec.getSecondOfPairFlag()) {
                     reverseReadsSkipped++;
                     continue;
                 }
