@@ -377,6 +377,21 @@
       "options": []
     },
     {
+      "summary": "By default, reverse reads are skipped. If true, reverse reads will be included, which might be necessary for some chemistries.",
+      "name": "--include-reverse-reads",
+      "synonyms": "-ir",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "If provided, this tool will inspect reads for supplemental alignments (SA tag) and parse these as well",
       "name": "--include-sa",
       "synonyms": "-sa",
