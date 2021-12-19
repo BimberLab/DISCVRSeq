@@ -53,9 +53,9 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.2.0.0-36-gc84eaee-SNAPSHOT'
-final htsjdkVersion = System.getProperty('htsjdk.version','2.24.0')
-final barclayVersion = System.getProperty('barclay.version','4.0.1')
+final gatkVersion = '4.2.4.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','2.24.1')
+final barclayVersion = System.getProperty('barclay.version','4.0.2')
 final testNGVersion = '7.0.0'
 final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.117.0-alpha:shaded'
 
