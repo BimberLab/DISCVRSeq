@@ -470,6 +470,21 @@
       "options": []
     },
     {
+      "summary": "If non-zero, partitions VCF output into shards, each containing up to the given number of records.",
+      "name": "--max-variants-per-shard",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "0.0",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "options": []
+    },
+    {
       "summary": "Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain",
       "name": "--maxContigs",
       "synonyms": "-maxContigs",

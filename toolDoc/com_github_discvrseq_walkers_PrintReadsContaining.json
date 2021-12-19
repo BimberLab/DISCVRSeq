@@ -485,6 +485,21 @@
       "options": []
     },
     {
+      "summary": "If non-zero, partitions VCF output into shards, each containing up to the given number of records.",
+      "name": "--max-variants-per-shard",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "0.0",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "options": []
+    },
+    {
       "summary": "The output file for the first FASTQ file",
       "name": "--output",
       "synonyms": "NA",
