@@ -187,12 +187,10 @@ tasks.withType(Javadoc) {
 
 javadoc {
     // This is a hack to disable the java 8 default javadoc lint until we fix the html formatting
-    // We only want to do this for the javadoc task, not toolDoc
+    // We only want to do this for the javadoc task, not gatkDoc
     options.addStringOption('Xdoclint:none', '-quiet')
     source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
-    include '**com/github/discvrseq/**/*.java'
-    include '**org/broadinstitute/hellbender/cmdline/argumentcollections/**/*.java'
-    include '**org/broadinstitute/hellbender/cmdline/**/*.java'
+    include '**/*.java'
 }
 
 // Generate Online Doc
