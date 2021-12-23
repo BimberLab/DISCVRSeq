@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("removal")
 public class DISCVRSeqHelpDoclet extends GATKHelpDoclet {
     public DISCVRSeqHelpDoclet() {
 

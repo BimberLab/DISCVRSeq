@@ -1,11 +1,10 @@
-# Using OpenJDK 8
-FROM ubuntu:18.04
+FROM adoptopenjdk/openjdk11
 
 # See: https://stackoverflow.com/questions/44331836/apt-get-install-tzdata-noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-    && apt-get install -y wget ncbi-blast+ build-essential g++ cmake git-all openjdk-8-jdk \
+    && apt-get install -y wget ncbi-blast+ build-essential g++ cmake git-all \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

@@ -2,14 +2,13 @@
 buildscript {
     repositories {
         mavenCentral()
-        jcenter() // for shadow plugin
     }
 }
 
 plugins {
     id "java"
     id "application"
-    id "com.github.johnrengelman.shadow" version "5.0.0"    //used to build the shadow and sparkJars
+    id "com.github.johnrengelman.shadow" version "7.1.1"    //used to build the shadow and sparkJars
     id 'com.palantir.git-version' version '0.5.1' //version helper
 }
 
@@ -21,9 +20,8 @@ apply plugin: 'java'
 
 repositories {
     mavenCentral()
-    jcenter()
     maven {
-        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot-local/"
+        url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
     }
 }
 
@@ -82,57 +80,57 @@ configurations.all {
 // Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
 // test execution, and toolDoc generation, but we don't want them as part of the runtime
 // classpath and we don't want to redistribute them in the uber jar.
-final javadocJDKFiles = files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
+final javadocJDKFiles = ToolProvider.getSystemToolClassLoader() == null ? files([]) : files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
 
 dependencies {
     // javadoc utilities; compile/test only to prevent redistribution of sdk jars
     compileOnly(javadocJDKFiles)
-    testCompile(javadocJDKFiles)
+    testImplementation(javadocJDKFiles)
 
-    compile 'org.broadinstitute:barclay:' + barclayVersion
+    implementation 'org.broadinstitute:barclay:' + barclayVersion
 
     // use the same GATK dependency for compile and documentation
     final gatkDependency = 'org.broadinstitute:gatk:' + gatkVersion
-    compile (gatkDependency) {
+    implementation (gatkDependency) {
         exclude module: 'jgrapht' // this is not required
     }
     externalSourceConfiguration 'org.broadinstitute:gatk:' + gatkVersion + ':sources'
 
-    compile group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
-    compile group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
-    compile googleCloudNioDependency
+    implementation group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
+    implementation group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
+    implementation googleCloudNioDependency
 
     // Required for SV Discovery machine learning
-    compile group: 'biz.k11i', name: 'xgboost-predictor', version: '0.3.0'
+    implementation group: 'biz.k11i', name: 'xgboost-predictor', version: '0.3.0'
 
     // this comes built-in when running on Google Dataproc, but the library
     // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
     // should we want to)
-    compile 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
+    implementation 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
 
-    compile group: 'com.milaboratory', name: 'milib', version: '1.11'
+    implementation group: 'com.milaboratory', name: 'milib', version: '1.11'
     
     // compilation for testing
-    testCompile 'org.testng:testng:' + testNGVersion
+    testImplementation 'org.testng:testng:' + testNGVersion
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    compile group: 'org.apache.commons', name: 'commons-text', version: '1.8'
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.8'
 
-    compile 'org.biojava:biojava-core:5.4.0'
+    implementation 'org.biojava:biojava-core:6.0.2'
 
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.0'
 }
 
 wrapper {
-    gradleVersion = '5.6'
+    gradleVersion = '7.3.2'
 }
 
 tasks.withType(Jar) {
     manifest {
         attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
-                'Implementation-Version': version,
+                'Implementation-Version': archiveVersion,
                 'Main-Class': mainClassName,
                 'GATK-Version': gatkVersion,
                 'htsjdk-Version': htsjdkVersion
@@ -141,7 +139,7 @@ tasks.withType(Jar) {
 
 tasks.withType(ShadowJar) {
     from(project.sourceSets.main.output)
-    baseName = project.name
+    archiveBaseName = project.name
     mergeServiceFiles()
     relocate 'com.google.common', 'org.broadinstitute.hellbender.relocated.com.google.common'
     zip64 true
@@ -157,9 +155,9 @@ tasks.withType(ShadowJar) {
 }
 
 shadowJar {
-    configurations = [project.configurations.runtime]
-    baseName = project.name
-    classifier = ''
+    configurations = [project.configurations.runtimeClasspath]
+    archiveBaseName = project.name
+    archiveClassifier = ''
     mergeServiceFiles('reference.conf')
 }
 
@@ -167,7 +165,7 @@ task localJar{ dependsOn shadowJar }
 
 task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
-    classifier = 'sources'
+    archiveClassifier = 'sources'
 }
 
 task copyShadowJar(type: Copy) {
@@ -192,9 +190,7 @@ javadoc {
     // We only want to do this for the javadoc task, not toolDoc
     options.addStringOption('Xdoclint:none', '-quiet')
     source = sourceSets.main.allJava + files(configurations.externalSourceConfiguration.collect { zipTree(it) })
-    include '**com/github/discvrseq/**/*.java'
-    include '**org/broadinstitute/hellbender/cmdline/argumentcollections/**/*.java'
-    include '**org/broadinstitute/hellbender/cmdline/**/*.java'
+    include '**/*.java'
 }
 
 // Generate Online Doc
@@ -248,6 +244,9 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
     options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/docTemplates");
     options.addStringOption("absolute-version", getVersion())
     options.addStringOption("build-timestamp", new Date().format("dd-mm-yyyy hh:mm:ss"))
+
+    //gradle 6.x+ defaults to setting this true which breaks the barclay doclet
+    options.noTimestamp(false)
 }
 
 test {

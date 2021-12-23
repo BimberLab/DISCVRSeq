@@ -412,8 +412,9 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         final ReferenceContext referenceContext;
         final VariantEvalWrapper wrapper;
 
-        public ApplyRunner(final List<VariantContext> list, final ReferenceContext referenceContext, VariantEvalWrapper wrapper) {
-            this.list = list.stream().map(vc -> new VariantContextBuilder(vc).make()).collect(Collectors.toList());
+        public ApplyRunner(final List<VariantContext> list, final ReferenceContext referenceContext, final VariantEvalWrapper wrapper) {
+            // NOTE: ensureAnnotations() mutates the VC, so call this one time, upfront:
+            this.list = list.stream().map(vc -> wrapper.engine.ensureAnnotations(vc, vc)).collect(Collectors.toList());
             this.referenceContext = new ReferenceContext(referenceContext, referenceContext.getInterval());
             this.wrapper = wrapper;
         }
