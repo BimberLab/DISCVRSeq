@@ -1,15 +1,18 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
-import htsjdk.samtools.util.IOUtil;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.engine.FeatureInput;
+import org.broadinstitute.hellbender.engine.MultiVariantWalkerGroupedOnStart;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.SimpleInterval;
 import org.broadinstitute.hellbender.utils.Utils;
@@ -17,7 +20,6 @@ import org.broadinstitute.hellbender.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +95,7 @@ public class VcfFilterComparison extends MultiVariantWalkerGroupedOnStart {
 
     @Override
     public Object onTraversalSuccess() {
-        try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(new File(outFile))) {
             List<String> header = new ArrayList<>();
             drivingVariantNames.forEach(fi -> {
                 header.add(fi);

@@ -3,7 +3,7 @@ package com.github.discvrseq.walkers.variantqc;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.broadinstitute.hellbender.utils.report.GATKReportColumn;
 import org.broadinstitute.hellbender.utils.report.GATKReportDataType;
 import org.broadinstitute.hellbender.utils.report.GATKReportTable;

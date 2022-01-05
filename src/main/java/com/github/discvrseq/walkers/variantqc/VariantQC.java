@@ -1,10 +1,11 @@
 package com.github.discvrseq.walkers.variantqc;
 
-import au.com.bytecode.opencsv.CSVReader;
 import com.github.discvrseq.tools.VariantManipulationProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
@@ -264,7 +265,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
         Map<String, Class<? extends VariantStratifier>> classMap = new HashMap<>(VariantEvalEngine.getStratifierClasses());
         classMap.put(Contig.class.getSimpleName(), Contig.class);
 
-        try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(input), '\t')) {
+        try (CSVReader reader = CsvUtils.getTsvReader(input)) {
             String[] line;
             int i = 0;
             while ((line = reader.readNext()) != null) {
@@ -321,14 +322,14 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
                 ret.add(new ReportConfig(stratList, rd));
             }
         }
-        catch (IOException e) {
+        catch (CsvValidationException | IOException e) {
             throw new UserException.BadInput("Unable to parse report file", e);
         }
 
         return ret;
     }
 
-    public class ReportConfig {
+    public static class ReportConfig {
         ArrayList<String> stratifiers;
         ReportDescriptor rd;
 

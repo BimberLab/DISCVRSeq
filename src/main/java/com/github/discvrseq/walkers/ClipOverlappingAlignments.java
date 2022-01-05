@@ -1,7 +1,8 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.*;
 import htsjdk.samtools.util.CigarUtil;
 import htsjdk.samtools.util.FileExtensions;
@@ -360,7 +361,7 @@ public class ClipOverlappingAlignments extends ReadWalker {
         logger.info("Total alignments dropped due to lack of reference coverage after clipping: " + readsDropped);
 
         if (reportFile != null) {
-            try (CSVWriter csvWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(reportFile), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+            try (ICSVWriter csvWriter = CsvUtils.getTsvWriter(reportFile)) {
                 csvWriter.writeNext(new String[]{"FeatureContig", "FeatureStart", "FeatureEnd","TotalAlignmentsClippedAt5Prime", "Total5PrimeBasesClipped","TotalAlignmentsClippedAt3Prime", "Total3PrimeBasesClipped"});
                 for (String key : summary.keySet()) {
                     HitTracker tracker = summary.get(key);

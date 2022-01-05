@@ -1,8 +1,8 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.VariantManipulationProgramGroup;
-import com.opencsv.CSVWriter;
-import htsjdk.samtools.util.IOUtil;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -144,7 +144,7 @@ public class CrossSampleGenotypeComparison extends VariantWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.NO_QUOTE_CHARACTER); CSVWriter summaryWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(summaryOutFile)), '\t', CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.NO_QUOTE_CHARACTER)){
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(new File(outFile)); ICSVWriter summaryWriter = CsvUtils.getTsvWriter(new File(summaryOutFile))){
             writer.writeNext(new String[]{"SampleName", "RefSampleName", "TotalCalledGenotypes", "TotalComparedToRef", "TotalDiscordant", "FractionDiscordant"});
 
             List<String> summaryHeader = new ArrayList<>();
