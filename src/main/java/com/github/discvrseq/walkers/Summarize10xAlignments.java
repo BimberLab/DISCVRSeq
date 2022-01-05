@@ -1,7 +1,8 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
@@ -95,7 +96,7 @@ public class Summarize10xAlignments extends ReadWalker {
         NumberFormat fmt = NumberFormat.getNumberInstance();
         fmt.setMaximumFractionDigits(2);
 
-        try (CSVWriter csvWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (ICSVWriter csvWriter = CsvUtils.getTsvWriter(new File(outFile))) {
             csvWriter.writeNext(new String[]{"Type", "Gene", "TotalReads", "MultiMappedReads", "FractionMultiMapped", "OverlappingGenes"});
 
             Set<String> features = new TreeSet<>(readsPerGene.keySet());

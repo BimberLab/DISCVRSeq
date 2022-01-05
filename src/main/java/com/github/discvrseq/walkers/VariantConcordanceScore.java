@@ -1,7 +1,8 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Allele;
@@ -200,7 +201,7 @@ public class VariantConcordanceScore extends VariantWalker {
         NumberFormat format = NumberFormat.getInstance();
         format.setMaximumFractionDigits(2);
 
-        try (CSVWriter output = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (ICSVWriter output = CsvUtils.getTsvWriter(new File(outFile))) {
             output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersMatched", "MarkersMismatched", "FractionMatched", "TotalMarkersForSet", "FractionWithData"});
 
             for (String sample : sampleMap.keySet()) {

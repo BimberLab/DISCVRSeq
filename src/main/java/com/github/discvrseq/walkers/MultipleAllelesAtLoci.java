@@ -3,7 +3,7 @@ package com.github.discvrseq.walkers;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.util.IOUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Advanced;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;

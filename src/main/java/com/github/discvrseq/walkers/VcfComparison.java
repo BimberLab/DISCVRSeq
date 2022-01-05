@@ -1,7 +1,8 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.VariantManipulationProgramGroup;
-import com.opencsv.CSVWriter;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -46,7 +47,7 @@ public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
     @Argument(doc = "If provided, a tab-delimited list of each site with a discrepancy will be written", fullName = "sites-output", optional = true)
     public GATKPath siteOutput = null;
 
-    private CSVWriter siteWriter = null;
+    private ICSVWriter siteWriter = null;
 
     @Override
     public void onTraversalStart() {
@@ -56,7 +57,7 @@ public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
         if (siteOutput != null) {
             IOUtil.assertFileIsWritable(siteOutput.toPath().toFile());
 
-            siteWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(siteOutput.toPath()), '\t', CSVWriter.NO_QUOTE_CHARACTER);
+            siteWriter = CsvUtils.getTsvWriter(siteOutput.toPath());
         }
 
         if (getVcfComparisonArgumentCollection().drivingVariantPaths.size() > 1) {
@@ -204,7 +205,7 @@ public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
 
     @Override
     public Object onTraversalSuccess() {
-        try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(outFile.toPath()), '\t', CSVWriter.NO_ESCAPE_CHARACTER, CSVWriter.NO_QUOTE_CHARACTER)){
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(outFile.toPath())){
             writer.writeNext(new String[]{"Metric", "Value"});
 
             writer.writeNext(new String[]{"NovelSitesRelativeToRef", String.valueOf(novelSitesRelativeToRef)});

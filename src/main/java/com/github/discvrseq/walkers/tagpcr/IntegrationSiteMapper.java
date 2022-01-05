@@ -1,12 +1,14 @@
 package com.github.discvrseq.walkers.tagpcr;
 
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
 import com.github.discvrseq.util.NaturalSortComparator;
 import com.github.discvrseq.util.SequenceMatcher;
+import com.opencsv.CSVReader;
+import com.opencsv.ICSVWriter;
+import com.opencsv.exceptions.CsvValidationException;
 import htsjdk.samtools.*;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.reference.ReferenceSequenceFile;
@@ -15,7 +17,6 @@ import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.Interval;
 import htsjdk.samtools.util.SequenceUtil;
 import htsjdk.samtools.util.StringUtil;
-import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -618,7 +619,7 @@ public class IntegrationSiteMapper extends GATKTool {
         if (!totalMatches.isEmpty()) {
             NumberFormat format = DecimalFormat.getNumberInstance();
             format.setMaximumFractionDigits(6);
-            try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(outputTsv), '\t', CSVWriter.NO_QUOTE_CHARACTER); CSVWriter primerWriter = primerPairTable == null ? null : new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primerPairTable), '\t', CSVWriter.NO_QUOTE_CHARACTER); ReferenceSequenceFile refSeq = ReferenceSequenceFileFactory.getReferenceSequenceFile(referenceArguments.getReferencePath())) {
+            try (ICSVWriter writer = CsvUtils.getTsvWriter(outputTsv); ICSVWriter primerWriter = primerPairTable == null ? null : CsvUtils.getTsvWriter(primerPairTable); ReferenceSequenceFile refSeq = ReferenceSequenceFileFactory.getReferenceSequenceFile(referenceArguments.getReferencePath())) {
                 writer.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Chr", "Position", "Strand", "Total", "Fraction"});
                 if (primerWriter != null) {
                     primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start"});
@@ -712,7 +713,7 @@ public class IntegrationSiteMapper extends GATKTool {
         }
 
         if (metricsFile != null && !metricsMap.isEmpty()) {
-            try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(metricsFile), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+            try (ICSVWriter writer = CsvUtils.getTsvWriter(metricsFile)) {
                 writer.writeNext(new String[]{"MetricName", "MetricValue"});
                 metricsMap.forEach((key, value) -> writer.writeNext(new String[]{key, String.valueOf(value)}));
             }
@@ -848,7 +849,7 @@ public class IntegrationSiteMapper extends GATKTool {
             return isTransgeneInverted() ? "Minus" : "Plus";
         }
 
-        public Pair<DNASequence, DNASequence> getAmplicons(ReferenceSequenceFile refSeq, Map<String, ReferenceSequence> refMap, String siteName, CSVWriter primerWriter, File outDir, String primer3ExePath) {
+        public Pair<DNASequence, DNASequence> getAmplicons(ReferenceSequenceFile refSeq, Map<String, ReferenceSequence> refMap, String siteName, ICSVWriter primerWriter, File outDir, String primer3ExePath) {
             ReferenceSequence ref = refMap.get(contigName);
             if (ref == null) {
                 ref = refSeq.getSequence(contigName);
@@ -974,7 +975,7 @@ public class IntegrationSiteMapper extends GATKTool {
             }
         }
 
-        private void runPrimer3(String siteName, String junctionName, DNASequence sequence, int junctionSite, File outDir, CSVWriter primerWriter, String primer3ExePath) {
+        private void runPrimer3(String siteName, String junctionName, DNASequence sequence, int junctionSite, File outDir, ICSVWriter primerWriter, String primer3ExePath) {
             log.info("Running primer3 for: " + siteName + ", " + junctionName);
 
             String seqString = sequence.getSequenceAsString();
@@ -1096,7 +1097,7 @@ public class IntegrationSiteMapper extends GATKTool {
         Map<String, String> idxToPrimer = new HashMap<>();
         int primersSkipped = 0;
         int idx = 0;
-        try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(primer3Table), '\t');PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(blastInput))) {
+        try (CSVReader reader = CsvUtils.getTsvReader(primer3Table); PrintWriter writer = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(blastInput))) {
             String[] line;
             Set<String> primerSeqs = new HashSet<>();
 
@@ -1135,7 +1136,7 @@ public class IntegrationSiteMapper extends GATKTool {
 
             logger.info("Duplicate primers collapsed before BLAST: " + primersSkipped + " of " + (idx *2) + ".  Unique primers to BLAST: " + idxToPrimer.size());
         }
-        catch (IOException e) {
+        catch (IOException | CsvValidationException e) {
             throw new GATKException(e.getMessage(), e);
         }
 
@@ -1187,7 +1188,7 @@ public class IntegrationSiteMapper extends GATKTool {
 
         File blastOutputTable = new File(outDir, "blastResults.txt");
         Map<String, Boolean> failedPrimers = new HashMap<>();
-        try (CSVReader reader = new CSVReader(IOUtil.openFileForBufferedUtf8Reading(blastOutput), '\t');CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(blastOutputTable), '\t', CSVWriter.NO_QUOTE_CHARACTER);) {
+        try (CSVReader reader = CsvUtils.getTsvReader(blastOutput);ICSVWriter writer = CsvUtils.getTsvWriter(blastOutputTable)) {
             String[] line;
 
             writer.writeNext(new String[]{"PrimerName", "Hit", "Start", "End", "Strand", "QueryStart", "QueryEnd", "EValue", "BitScore", "HitLength", "NumIdents", "FullLengthHit", "EndMatch"});
@@ -1226,7 +1227,7 @@ public class IntegrationSiteMapper extends GATKTool {
                 }
             });
         }
-        catch (IOException e) {
+        catch (IOException | CsvValidationException e) {
             throw new GATKException(e.getMessage(), e);
         }
 
@@ -1235,7 +1236,7 @@ public class IntegrationSiteMapper extends GATKTool {
 
         //Now write updated output:
         Set<String> primerNamesToFlag = new HashSet<>();
-        try (CSVWriter primerWriter = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(primer3Table), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (ICSVWriter primerWriter = CsvUtils.getTsvWriter(primer3Table)) {
             primerWriter.writeNext(new String[]{"SiteName", "JunctionName", "Orientation", "Primer-F-Name", "Primer-F-Seq", "Primer-F-Start", "Primer-R-Name", "Primer-R-Seq", "Primer-R-Start", "ForwardPassedBlast", "ReversePassedBlast", "BothPassedBlast"});
             for (String[] line : primerLines) {
                 boolean forwardPass = !failedPrimers.containsKey(line[4].toUpperCase());

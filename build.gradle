@@ -106,10 +106,14 @@ dependencies {
     // this comes built-in when running on Google Dataproc, but the library
     // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
     // should we want to)
-    implementation 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
+    //implementation 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
 
     implementation group: 'com.milaboratory', name: 'milib', version: '1.11'
-    
+
+    implementation 'com.opencsv:opencsv:5.5.2'
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
     // compilation for testing
     testImplementation 'org.testng:testng:' + testNGVersion
 

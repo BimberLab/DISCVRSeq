@@ -1,8 +1,9 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.VariantManipulationProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
 import com.github.discvrseq.walkers.annotator.MendelianViolationCount;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -147,7 +148,7 @@ public class MendelianViolationReport extends VariantWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        try (CSVWriter writer = new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(new File(outFile)), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(new File(outFile))) {
             writer.writeNext(new String[]{"SampleName","TotalCalled","TotalViolations","MotherInconsistent","FatherInconsistent","InconsistentCombined","Mother","MotherHasData","MotherMVs","Father","FatherHasData","FatherMVs"});
 
             Set<String> samplesReported = new HashSet<>();
@@ -176,7 +177,7 @@ public class MendelianViolationReport extends VariantWalker {
         return super.onTraversalSuccess();
     }
 
-    private void reportSample(String sn, MVSummary summary, Set<String> additionalSamplesToReport, CSVWriter writer){
+    private void reportSample(String sn, MVSummary summary, Set<String> additionalSamplesToReport, ICSVWriter writer){
         Sample sample = sampleDB.getSample(sn);
         List<String> line = new ArrayList<>(Arrays.asList(
                 sn,

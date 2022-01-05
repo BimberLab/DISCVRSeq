@@ -1,14 +1,14 @@
 package com.github.discvrseq.walkers;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
 import com.github.discvrseq.util.SequenceMatcher;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.fastq.FastqWriter;
 import htsjdk.samtools.fastq.FastqWriterFactory;
 import htsjdk.samtools.util.IOUtil;
-import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -259,7 +259,7 @@ public class PrintReadsContaining extends GATKTool {
 
         long totalReads = 0L;
         long written = 0L;
-        try (FastqReader reader1 = fileToFastqReader(FASTQ); FastqReader reader2 = FASTQ2 == null ? null : fileToFastqReader(FASTQ2); FastqWriter writer1 = fact.newWriter(outputFile1); FastqWriter writer2 = FASTQ2 == null ? null : fact.newWriter(outputFile2); CSVWriter csvWriter = SUMMARY_FILE == null ? null : new CSVWriter(IOUtil.openFileForBufferedUtf8Writing(SUMMARY_FILE), '\t', CSVWriter.NO_QUOTE_CHARACTER)) {
+        try (FastqReader reader1 = fileToFastqReader(FASTQ); FastqReader reader2 = FASTQ2 == null ? null : fileToFastqReader(FASTQ2); FastqWriter writer1 = fact.newWriter(outputFile1); FastqWriter writer2 = FASTQ2 == null ? null : fact.newWriter(outputFile2); ICSVWriter csvWriter = SUMMARY_FILE == null ? null : CsvUtils.getTsvWriter(SUMMARY_FILE)) {
             if (csvWriter != null) {
                 csvWriter.writeNext(new String[]{"ReadName", "ReadType", "ExpressionName", "Start", "End", "TotalHitsForPair"});
             }
@@ -301,7 +301,7 @@ public class PrintReadsContaining extends GATKTool {
         }
     }
 
-    private void writeMatchSummary(SeqPairMatch matches, FastqRecord fq1, FastqRecord fq2, CSVWriter csvWriter) {
+    private void writeMatchSummary(SeqPairMatch matches, FastqRecord fq1, FastqRecord fq2, ICSVWriter csvWriter) {
         for (SeqMatch m : matches.matches) {
             String readType = m.rt.name();
             csvWriter.writeNext(new String[]{fq1.getReadName(), readType, m.exprName, String.valueOf(m.start0), String.valueOf(m.end0), String.valueOf(matches.matches.size())});
