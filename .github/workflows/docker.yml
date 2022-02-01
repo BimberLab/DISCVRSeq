@@ -5,12 +5,12 @@ on:
     - cron:  "0 4 * * *"
   push:
     branches:
-      - master
+      - main
 jobs:
   generate:
     name: Build Docker
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v2.4.0
