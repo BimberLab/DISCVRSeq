@@ -12,16 +12,11 @@ While DISCVR-seq contains many useful tools that will not be published, a handfu
 ## Getting Started
 DISCVR-seq Toolkit is a java program distributed as a single JAR.  You can download the latest JAR from our [release page](https://github.com/BimberLab/DISCVRSeq/releases).  Running tools is analogous to GATK4.
 
-While we recommend [our documentation](toolDoc/index.html) to learn about available tools and options, one can also view a list of tools and/or arguments from the command line:
+While we recommend [our documentation](toolDoc/index.html) to learn about available tools and options, one can also list arguments from the command line:
 
 ```
-
-# List available tools:
-java -jar DISCVRseq.jar --list 
-
 # View arguments for a specific tool (VariantQC in this example):
 java -jar DISCVRseq.jar VariantQC --help
-
 ```
 
 Please note that any tool that uses a reference genome requires this genome to be indexed with samtools and to have a sequence dictionary created with Picard.  These requirements are identical to most tools from GATK or Picard.  [See here for more information](toolDoc/resources/genomeRequirements.html)
@@ -45,6 +40,6 @@ docker pull ghcr.io/bimberlab/discvrseq:latest
 docker pull ghcr.io/bimberlab/discvrseq
 
 # Running the container will automatically run DISCVRseq (equivalent to java -jar DISCVRseq.jar ...):
-docker run ghcr.io/bimberlab/discvrseq --list
+docker run ghcr.io/bimberlab/discvrseq VariantQC --help
 
 ```
