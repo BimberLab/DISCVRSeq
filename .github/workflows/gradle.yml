@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Gradle Build/Test
     steps:
-    - uses: actions/checkout@v2.4.0
+    - uses: actions/checkout@v3
     - name: Set up JDK
       uses: actions/setup-java@v2
       with:
