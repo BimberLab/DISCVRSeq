@@ -247,7 +247,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
 
     options.addStringOption("settings-dir", "src/main/resources/com/github/discvrseq/util/docTemplates");
     options.addStringOption("absolute-version", getVersion())
-    options.addStringOption("build-timestamp", new Date().format("dd-mm-yyyy hh:mm:ss"))
+    options.addStringOption("build-timestamp", new Date().format("dd-MM-yyyy hh:mm:ss"))
 
     //gradle 6.x+ defaults to setting this true which breaks the barclay doclet
     options.noTimestamp(false)
