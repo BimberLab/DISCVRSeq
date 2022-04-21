@@ -1,0 +1,37 @@
+package com.github.discvrseq.walkers;
+
+import htsjdk.variant.variantcontext.VariantContext;
+import org.broadinstitute.hellbender.engine.FeatureInput;
+import org.broadinstitute.hellbender.engine.MultiVariantWalkerGroupedOnStart;
+
+import java.util.*;
+
+abstract public class ExtendedMultiVariantWalkerGroupedOnStart extends MultiVariantWalkerGroupedOnStart {
+    // maintain the mapping of source name (from VC) to FeatureInput name
+    protected Map<String, FeatureInput<VariantContext>> drivingVariantSourceMap = null;
+
+    protected Map<FeatureInput<VariantContext>, List<VariantContext>> groupVariantsByFeatureInput(final List<VariantContext> variants) {
+        if (drivingVariantSourceMap == null) {
+            // Cache map of source name -> FeatureInput
+            drivingVariantSourceMap = new HashMap<>();
+            getDrivingVariantsFeatureInputs().forEach(x -> drivingVariantSourceMap.put(x.getName(), x));
+        }
+
+        final Map<FeatureInput<VariantContext>, List<VariantContext>> byFeatureInput = new HashMap<>();
+        variants.forEach(vc -> byFeatureInput.compute(drivingVariantSourceMap.get(vc.getSource()),
+                (k, v) -> {
+                    final List<VariantContext> variantList = v == null ? new ArrayList<>() : v;
+                    variantList.add(vc);
+                    return variantList;
+                }
+        ));
+
+        for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
+            if (!byFeatureInput.containsKey(fi)) {
+                byFeatureInput.put(fi, Collections.emptyList());
+            }
+        }
+
+        return byFeatureInput;
+    }
+}
