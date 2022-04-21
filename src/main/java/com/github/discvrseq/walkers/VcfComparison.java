@@ -11,13 +11,19 @@ import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.cmdline.argumentcollections.MultiVariantInputArgumentCollection;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.engine.FeatureInput;
+import org.broadinstitute.hellbender.engine.GATKPath;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +46,7 @@ import java.util.stream.Collectors;
         oneLineSummary = "Produces a concordance report between two VCFs at the site and genotype level",
         programGroup = VariantManipulationProgramGroup.class
 )
-public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
+public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Argument(doc = "File to which the output table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
@@ -63,31 +69,6 @@ public class VcfComparison extends MultiVariantWalkerGroupedOnStart {
         if (getVcfComparisonArgumentCollection().drivingVariantPaths.size() > 1) {
             throw new UserException.BadInput("This tool currently only supports one VCF input");
         }
-
-        // Cache map of source name -> FeatureInput
-        drivingVariantSourceMap = new HashMap<>();
-        getDrivingVariantsFeatureInputs().forEach(x -> drivingVariantSourceMap.put(x.getName(), x));
-    }
-
-    // maintain the mapping of source name (from VC) to FeatureInput name
-    private Map<String, FeatureInput<VariantContext>> drivingVariantSourceMap;
-
-    private Map<FeatureInput<VariantContext>, List<VariantContext>> groupVariantsByFeatureInput(final List<VariantContext> variants) {
-        final Map<FeatureInput<VariantContext>, List<VariantContext>> byFeatureInput = new HashMap<>();
-        variants.forEach(vc -> byFeatureInput.compute(drivingVariantSourceMap.get(vc.getSource()),
-                (k, v) -> {
-                    final List<VariantContext> variantList = v == null ? new ArrayList<>() : v;
-                    variantList.add(vc);
-                    return variantList;
-                }
-        ));
-
-        for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
-            if (!byFeatureInput.containsKey(fi)) {
-                byFeatureInput.put(fi, Collections.emptyList());
-            }
-        }
-        return byFeatureInput;
     }
 
     @Override
