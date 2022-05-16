@@ -31,7 +31,7 @@ import java.util.*;
  *
  * <h4>Annotate a VCF with dbSNP IDs and depth of coverage for each sample</h4>
  * <pre>
- *   VariantAnnotator \
+ *   DiscvrVariantAnnotator \
  *   -R reference.fasta \
  *   -I input.bam \
  *   -V input.vcf \
@@ -42,7 +42,7 @@ import java.util.*;
  *
  * <h4>Annotate a VCF with allele frequency by an external resource. Annotation will only occur if there is allele concordance between the resource and the input VCF </h4>
  * <pre>
- *   VariantAnnotator \
+ *   DiscvrVariantAnnotator \
  *   -R reference.fasta \
  *   -I input.bam \
  *   -V input.vcf \

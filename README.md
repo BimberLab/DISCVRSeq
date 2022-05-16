@@ -12,7 +12,7 @@ While DISCVR-seq contains many useful tools that will not be published, a handfu
 | Tool | Description | Citation |
 | ---- | ----------- | -------- |
 | [VariantQC](https://bimberlab.github.io/DISCVRSeq/toolDoc/com_github_discvrseq_walkers_variantqc_VariantQC.html) | Creates an HTML report summarizing VCF data | [VariantQC: a visual quality control report for variant evaluation. Yan MY, Ferguson B, Bimber BN. Bioinformatics. 2019 Dec 15;35(24):5370-5371. PMID: 31309221](https://pubmed.ncbi.nlm.nih.gov/31309221/) | 
-| [IntegrationSiteMapper](https://bimberlab.github.io/DISCVRSeq/toolDoc/com_github_discvrseq_walkers_tagpcr_IntegrationSiteMapper.html) | Detect and summarize transgene integration | Ryu et. al, Under Review |
+| [IntegrationSiteMapper](https://bimberlab.github.io/DISCVRSeq/toolDoc/com_github_discvrseq_walkers_tagpcr_IntegrationSiteMapper.html) | Detect and summarize transgene integration | [Ryu J, Chan W, Wettengel JM, Hanna CB, Burwitz BJ, Hennebold JD, Bimber BN. Rapid, accurate mapping of transgene integration in viable rhesus macaque embryos using enhanced-specificity tagmentation-assisted PCR. Mol Ther Methods Clin Dev. 2022 Jan 19;24:241-254. PMID: 35211637.](https://pubmed.ncbi.nlm.nih.gov/35211637/) |
 
 ## Getting Started
 DISCVR-seq Toolkit is a java program distributed as a single JAR.  You can download the latest JAR from our [release page](https://github.com/BimberLab/DISCVRSeq/releases).  Running tools is analogous to GATK4.  
