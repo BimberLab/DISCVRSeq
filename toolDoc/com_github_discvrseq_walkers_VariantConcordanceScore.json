@@ -77,6 +77,21 @@
       "options": []
     },
     {
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--combine-variants-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.",
       "name": "--create-output-bam-index",
       "synonyms": "-OBI",
@@ -272,6 +287,21 @@
       "options": []
     },
     {
+      "summary": "Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)",
+      "name": "--ignore-variants-starting-outside-interval",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "BAM/SAM/CRAM file containing reads",
       "name": "--input",
       "synonyms": "-I",
@@ -395,6 +425,21 @@
       "options": []
     },
     {
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--max-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "2147483647",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "If non-zero, partitions VCF output into shards, each containing up to the given number of records.",
       "name": "--max-variants-per-shard",
       "synonyms": "NA",
@@ -498,6 +543,21 @@
       ]
     },
     {
+      "summary": "Number of bases on either side to expand spanning reference window",
+      "name": "--ref-padding",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "1",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "VCF file containing sites to test.  Must be uniquely named",
       "name": "--ref-sites",
       "synonyms": "-rs",
@@ -513,33 +573,18 @@
       "options": []
     },
     {
-      "summary": "Reference sequence",
+      "summary": "Reference sequence file",
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0",
-      "name": "--scoreSingleAlleleHit",
-      "synonyms": "-sah",
-      "type": "boolean",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "true",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
@@ -648,10 +693,10 @@
       "options": []
     },
     {
-      "summary": "A VCF file containing variants",
+      "summary": "One or more VCF files containing variants",
       "name": "--variant",
       "synonyms": "-V",
-      "type": "GATKPath",
+      "type": "FeatureInput[VariantContext]",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -710,7 +755,7 @@
       "options": []
     }
   ],
-  "description": "This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets\n One possible use of this tool is to compare VCF samples against reference panels of alleles, such as alleles unique to different ethnicities or populations.\n\n The format of the reference VCF(s) needs to be somewhat specific.  Each site must be either:\n  - A single allele, in which case it will score any sample containing that allele\n  - Two alleles, in which case it will score any sample containing the ALT allele\n\n  Filtered sites on the reference VCFs are not allowed.  Also be aware that this tools assumes the size of the reference files is\n  relatively small (though in theory 100Ks might work), since the intervals are read into memory.\n\n \u003ch3\u003eUsage example (note naming of the --ref-sites files):\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VariantConcordanceScore \\\n     --ref-sites:SET1 ref1.vcf \\\n     --ref-sites:SET2 ref2.vcf.gz \\\n     -V myVCF.vcf.gz \\\n     -O output.txt\n \u003c/pre\u003e\n\n This will output a table with one row for each sample/reference pair, with the following data:\n \u003cul\u003e\n  \u003cli\u003eSampleName: name of sample\u003c/li\u003e\n  \u003cli\u003eReferenceName: name of the reference, as given on the command line (\"i.e. --ref-sites:SET1 ref1.vcf)\u003c/li\u003e\n  \u003cli\u003eMarkersMatched: The number of sites from this sample where an allele matched the allele from this reference\u003c/li\u003e\n  \u003cli\u003eMarkersMismatched: The number of sites from this sample where there was callable data but no alleles matched the allele from this reference\u003c/li\u003e\n  \u003cli\u003eFractionMatched: The fraction of markers that matched (which does not count without callable data in this sample)\u003c/li\u003e\n  \u003cli\u003eTotalMarkersForSet: The total markers in this reference set\u003c/li\u003e\n  \u003cli\u003eFractionWithData: The fraction of markers from this reference set that had callable genotypes in this sample\u003c/li\u003e\n \u003c/ul\u003e",
+  "description": "This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets\n One possible use of this tool is to compare VCF samples against reference panels of alleles, such as alleles unique to different ethnicities or populations.\n\n The format of the reference VCF(s) needs to be somewhat specific.  Each site must be either:\n  - A single allele, in which case it will score any sample containing that allele\n  - Two alleles, in which case it will score any sample containing the ALT allele\n\n  Filtered sites on the reference VCFs are not allowed.  Also be aware that this tools assumes the size of the reference files is\n  relatively small (though in theory 100Ks might work), since the intervals are read into memory.\n\n \u003ch3\u003eUsage example (note naming of the --ref-sites files):\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VariantConcordanceScore \\\n     -R reference.fasta \\\n     --ref-sites:SET1 ref1.vcf \\\n     --ref-sites:SET2 ref2.vcf.gz \\\n     -V myVCF.vcf.gz \\\n     -O output.txt\n \u003c/pre\u003e\n\n This will output a table with one row for each sample/reference pair, with the following data:\n \u003cul\u003e\n  \u003cli\u003eSampleName: name of sample\u003c/li\u003e\n  \u003cli\u003eReferenceName: name of the reference, as given on the command line (\"i.e. --ref-sites:SET1 ref1.vcf)\u003c/li\u003e\n  \u003cli\u003eMarkersWithData: The number of sites from this sample with genotype data overlapping this reference\u003c/li\u003e\n  \u003cli\u003eMarkersNoData: The number of sites from this reference where the sample lacked genotype data\u003c/li\u003e\n  \u003cli\u003eFractionWithData: The fraction of sites from the reference where the sample had genotype data\u003c/li\u003e\n  \u003cli\u003eCumulativeAF: The cumulative allele frequency for the alles of all genotypes overlapping this reference\u003c/li\u003e\n  \u003cli\u003eMinPossible: The minimum possible AF score that could be achieved for these sites\u003c/li\u003e\n  \u003cli\u003eMaxPossible: The maximum possible AF score that could be achieved for these sites\u003c/li\u003e\n  \u003cli\u003eScore: The scaled score, which is: (CumulativeAF-MinPossible) / (MaxPossible-MinPossible)\u003c/li\u003e\n \u003c/ul\u003e",
   "name": "VariantConcordanceScore",
   "group": "Specialized/Internal Tools",
   "beta": false,

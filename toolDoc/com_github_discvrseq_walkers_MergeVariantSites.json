@@ -77,6 +77,21 @@
       "options": []
     },
     {
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--combine-variants-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "If true, create a BAM/CRAM index when writing a coordinate-sorted BAM/CRAM file.",
       "name": "--create-output-bam-index",
       "synonyms": "-OBI",
@@ -302,6 +317,21 @@
       "options": []
     },
     {
+      "summary": "Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)",
+      "name": "--ignore-variants-starting-outside-interval",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "BAM/SAM/CRAM file containing reads",
       "name": "--input",
       "synonyms": "-I",
@@ -425,6 +455,21 @@
       "options": []
     },
     {
+      "summary": "Maximum distance for variants to be grouped together",
+      "name": "--max-distance",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "2147483647",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
       "summary": "If non-zero, partitions VCF output into shards, each containing up to the given number of records.",
       "name": "--max-variants-per-shard",
       "synonyms": "NA",
@@ -528,18 +573,33 @@
       ]
     },
     {
-      "summary": "Reference sequence",
+      "summary": "Number of bases on either side to expand spanning reference window",
+      "name": "--ref-padding",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "1",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "options": []
+    },
+    {
+      "summary": "Reference sequence file",
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "optional",
+      "kind": "required",
       "options": []
     },
     {
