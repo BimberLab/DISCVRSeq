@@ -9,8 +9,6 @@ import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.FeatureContext;
-import org.broadinstitute.hellbender.engine.MultiVariantWalker;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
@@ -19,6 +17,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @DocumentedFeature
 @CommandLineProgramProperties(
@@ -26,7 +25,7 @@ import java.util.List;
         oneLineSummary = "Merge multiple VCFs to produce one with all unique sites",
         programGroup = VariantManipulationProgramGroup.class
 )
-public class MergeVariantSites extends MultiVariantWalker {
+public class MergeVariantSites extends ExtendedMultiVariantWalkerGroupedOnStart {
 
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public File out = null;
@@ -43,7 +42,7 @@ public class MergeVariantSites extends MultiVariantWalker {
      * in the FILTER field) will be excluded from the output.
      */
     @Argument(fullName="exclude-filtered", doc="Don't include filtered sites", optional=true)
-    private boolean EXCLUDE_FILTERED = false;
+    public boolean EXCLUDE_FILTERED = false;
 
     private VariantContextWriter vcfWriter;
 
@@ -56,49 +55,26 @@ public class MergeVariantSites extends MultiVariantWalker {
         vcfWriter.writeHeader(vcfHeader);
     }
 
-    private final List<VariantContext> vcsForSite = new ArrayList<>();
-
     @Override
-    public void apply(VariantContext vc, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
-        if (EXCLUDE_FILTERED && vc.isFiltered()) {
-            return;
+    public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
+        List<VariantContext> toMerge = new ArrayList<>(variantContexts);
+        if (EXCLUDE_FILTERED) {
+            toMerge = toMerge.stream().filter(vc -> !vc.isFiltered()).collect(Collectors.toList());
         }
 
-        if (EXCLUDE_NON_VARIANTS  && !(vc.isPolymorphicInSamples() && !GATKVariantContextUtils.isSpanningDeletionOnly(vc)))
+        if (EXCLUDE_NON_VARIANTS)
+        {
+            toMerge = toMerge.stream().filter(vc ->  !(vc.isPolymorphicInSamples() && !GATKVariantContextUtils.isSpanningDeletionOnly(vc))).collect(Collectors.toList());
+        }
+
+        if (toMerge.isEmpty())
         {
             return;
         }
 
-        if (vcsForSite.isEmpty())
-        {
-            vcsForSite.add(vc);
-            return;
-        }
-
-        if (!vc.getContig().equals(vcsForSite.get(0).getContig()) || vc.getStart() != vcsForSite.get(0).getStart()) {
-            processAndWriteVariant();
-        }
-
-        vcsForSite.add(vc);
-    }
-
-    private void processAndWriteVariant()
-    {
-        VariantContext vc = GATKVariantContextUtils.simpleMerge(vcsForSite, null, GATKVariantContextUtils.FilteredRecordMergeType.KEEP_UNCONDITIONAL, GATKVariantContextUtils.GenotypeMergeType.REQUIRE_UNIQUE, true);
-        VariantContextBuilder vcb = new VariantContextBuilder(vc.getSource(), vc.getContig(), vc.getStart(), vc.getEnd(), vc.getAlleles());
-
-        vc = vcb.make();
+        List<VariantContext> toMergeNoGenotype = toMerge.stream().map(vc -> new VariantContextBuilder(vc.getSource(), vc.getContig(), vc.getStart(), vc.getEnd(), vc.getAlleles()).make()).collect(Collectors.toList());
+        VariantContext vc = GATKVariantContextUtils.simpleMerge(toMergeNoGenotype, null, GATKVariantContextUtils.FilteredRecordMergeType.KEEP_UNCONDITIONAL, GATKVariantContextUtils.GenotypeMergeType.REQUIRE_UNIQUE, true);
         vcfWriter.add(vc);
-        vcsForSite.clear();
-    }
-
-    @Override
-    public Object onTraversalSuccess() {
-        if (!vcsForSite.isEmpty()) {
-            processAndWriteVariant();
-        }
-
-        return super.onTraversalSuccess();
     }
 
     @Override

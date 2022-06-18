@@ -30,6 +30,7 @@ public class MergeVariantSitesIntegrationTest extends  BaseIntegrationTest {
     private ArgumentsBuilder getBaseArgs() {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
+        args.add("R", normalizePath(getHg19Micro()));
         args.addRaw("--variant");
         File input = new File(testBaseDir, "mergeVcf1.vcf");
         ensureVcfIndex(input);
