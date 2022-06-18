@@ -116,16 +116,28 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
     @Override
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         Map<FeatureInput<VariantContext>, List<VariantContext>> grouped = groupVariantsByFeatureInput(variantContexts);
-        for (FeatureInput<VariantContext> feat : grouped.keySet()) {
+
+        boolean hasSites = false;
+        for (FeatureInput<VariantContext> feat : getVariantConcordanceScoreArgumentCollection().referenceFiles) {
             if (grouped.get(feat).size() > 1) {
-                throw new GATKException("Duplicate variants detected in VCF: " + feat.getName() + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
+                throw new GATKException("Duplicate variants detected in reference VCF: " + feat.getName() + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
             }
+            else if (!grouped.get(feat).isEmpty()) {
+                hasSites = true;
+            }
+        }
+
+        if (!hasSites) {
+            return;
         }
 
         List<VariantContext> sampleVariants = grouped.get(getVariantConcordanceScoreArgumentCollection().inputVariants);
         sampleVariants = sampleVariants.stream().filter(vc -> !vc.isFiltered()).collect(Collectors.toList());
         if (sampleVariants.isEmpty()) {
             return;
+        }
+        else if (sampleVariants.size() > 1) {
+            throw new GATKException("Duplicate variants detected in input VCF: " + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
         }
 
         for (FeatureInput<VariantContext> population : getVariantConcordanceScoreArgumentCollection().referenceFiles) {
