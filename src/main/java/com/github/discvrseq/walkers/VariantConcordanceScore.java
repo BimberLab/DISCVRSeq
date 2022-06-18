@@ -140,6 +140,11 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
     private void processPopulation(FeatureInput<VariantContext> population, VariantContext referenceSite, VariantContext sampleSite) {
         Map<Allele, Double> afMap = new HashMap<>();
         final List<Double> afVals = referenceSite.getAttributeAsDoubleList(VCFConstants.ALLELE_FREQUENCY_KEY, 0.0);
+        if (afVals.size() != referenceSite.getAlternateAlleles().size())
+        {
+            throw new GATKException("AFs did not match alleles in ref: " + population.getName() + " at position: " + referenceSite.getStart());
+        }
+
         referenceSite.getAlternateAlleles().forEach(a -> afMap.put(a, afVals.get(referenceSite.getAlleleIndex(a) - 1)));
 
         double refAF = 1.0;
