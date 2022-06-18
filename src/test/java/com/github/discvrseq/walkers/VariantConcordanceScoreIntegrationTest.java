@@ -12,16 +12,19 @@ public class VariantConcordanceScoreIntegrationTest extends BaseIntegrationTest 
     public void testBasicOperation() throws Exception {
         ArgumentsBuilder args = new ArgumentsBuilder();
         args.addRaw("--variant");
-        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        File input = new File(testBaseDir, "basicVcf.vcf");
         args.addRaw(normalizePath(input));
 
+        args.add("R", normalizePath(getHg19Micro()));
+
         args.addRaw("--ref-sites:REF1");
-        File rs1 = new File(testBaseDir, "basicVcf.vcf");
+        File rs1 = new File(testBaseDir, "variantConcordanceRef1.vcf");
         ensureVcfIndex(rs1);
         args.addRaw(normalizePath(rs1));
 
         args.addRaw("-rs:REF2");
-        File rs2 = new File(testBaseDir, "clinvarV2.vcf");
+        File rs2 = new File(testBaseDir, "variantConcordanceRef2.vcf");
+        ensureVcfIndex(rs2);
         args.addRaw(normalizePath(rs2));
 
         args.addRaw("-O");

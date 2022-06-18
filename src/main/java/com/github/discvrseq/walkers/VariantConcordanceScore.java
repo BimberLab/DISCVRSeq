@@ -3,24 +3,28 @@ package com.github.discvrseq.walkers;
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
 import com.opencsv.ICSVWriter;
-import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFFileReader;
+import htsjdk.variant.vcf.VCFConstants;
+import htsjdk.variant.vcf.VCFHeader;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.cmdline.argumentcollections.MultiVariantInputArgumentCollection;
+import org.broadinstitute.hellbender.engine.FeatureInput;
+import org.broadinstitute.hellbender.engine.GATKPath;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
-import org.broadinstitute.hellbender.utils.SimpleInterval;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -37,6 +41,7 @@ import java.util.*;
  * <h3>Usage example (note naming of the --ref-sites files):</h3>
  * <pre>
  *  java -jar DISCVRseq.jar VariantConcordanceScore \
+ *     -R reference.fasta \
  *     --ref-sites:SET1 ref1.vcf \
  *     --ref-sites:SET2 ref2.vcf.gz \
  *     -V myVCF.vcf.gz \
@@ -47,11 +52,13 @@ import java.util.*;
  * <ul>
  *  <li>SampleName: name of sample</li>
  *  <li>ReferenceName: name of the reference, as given on the command line ("i.e. --ref-sites:SET1 ref1.vcf)</li>
- *  <li>MarkersMatched: The number of sites from this sample where an allele matched the allele from this reference</li>
- *  <li>MarkersMismatched: The number of sites from this sample where there was callable data but no alleles matched the allele from this reference</li>
- *  <li>FractionMatched: The fraction of markers that matched (which does not count without callable data in this sample)</li>
- *  <li>TotalMarkersForSet: The total markers in this reference set</li>
- *  <li>FractionWithData: The fraction of markers from this reference set that had callable genotypes in this sample</li>
+ *  <li>MarkersWithData: The number of sites from this sample with genotype data overlapping this reference</li>
+ *  <li>MarkersNoData: The number of sites from this reference where the sample lacked genotype data</li>
+ *  <li>FractionWithData: The fraction of sites from the reference where the sample had genotype data</li>
+ *  <li>CumulativeAF: The cumulative allele frequency for the alles of all genotypes overlapping this reference</li>
+ *  <li>MinPossible: The minimum possible AF score that could be achieved for these sites</li>
+ *  <li>MaxPossible: The maximum possible AF score that could be achieved for these sites</li>
+ *  <li>Score: The scaled score, which is: (CumulativeAF-MinPossible) / (MaxPossible-MinPossible)</li>
  * </ul>
  */
 @DocumentedFeature
@@ -60,47 +67,10 @@ import java.util.*;
         oneLineSummary = "Summarize allele-level concordance between a VCF and reference VCFs",
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
-public class VariantConcordanceScore extends VariantWalker {
-
-    @Argument(fullName = "ref-sites", shortName = "rs", doc = "VCF file containing sites to test.  Must be uniquely named", optional = false)
-    public List<FeatureInput<VariantContext>> referenceFiles = new ArrayList<>();
+public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOnStart {
 
     @Argument(doc="File to which the report should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
-
-    @Argument(doc="By default, a genotype with one of two alleles matching the reference will score 0.5, and a homozygous match is 1.0. If this flag is set, matching a single allele will give a score of 1.0", fullName = "scoreSingleAlleleHit", shortName = "sah", optional = true)
-    public boolean scoreSingleAlleleHit = true;
-
-    private Map<SimpleInterval, Map<Allele, Set<String>>> refMap = null;
-    private Map<String, Long> totalMarkerByRef = new HashMap<>();
-
-    @Override
-    public List<SimpleInterval> getTraversalIntervals() {
-        if (refMap == null) {
-            prepareRefIntervals();
-        }
-
-        List<SimpleInterval> ret = new ArrayList<>(refMap.keySet());
-        Collections.sort(ret, new Comparator<SimpleInterval>() {
-            @Override
-            public int compare(SimpleInterval o1, SimpleInterval o2) {
-                if (o2 == null) return -1; // nulls last
-
-                int result = o1.getContig().compareTo(o2.getContig());
-                if (result == 0) {
-                    if (o1.getStart() == o2.getStart()) {
-                        result = o1.getEnd() - o2.getEnd();
-                    } else {
-                        result = o1.getStart() - o2.getStart();
-                    }
-                }
-
-                return result;
-            }
-        });
-
-        return ret;
-    }
 
     @Override
     public void onTraversalStart() {
@@ -108,110 +78,140 @@ public class VariantConcordanceScore extends VariantWalker {
 
         IOUtil.assertFileIsWritable(new File(outFile));
 
-        prepareRefIntervals();
-    }
-
-    private void prepareRefIntervals() {
-        Map<SimpleInterval, Map<Allele, Set<String>>> ret = new HashMap<>();
-
-        referenceFiles.stream().forEach(
-            f -> {
-                try (VCFFileReader reader = new VCFFileReader(f.toPath()); CloseableIterator<VariantContext> it = reader.iterator()) {
-                    while (it.hasNext()) {
-                        VariantContext vc = it.next();
-                        if (vc.isFiltered()) {
-                            throw new IllegalStateException("Reference VCFs should not have filtered variants: " + vc.toStringWithoutGenotypes());
-                        }
-
-                        if (vc.getAlternateAlleles().size() > 1) {
-                            throw new IllegalStateException("Reference has site with multiple alternates.  Must have either zero or one ALT: " + vc.toStringWithoutGenotypes());
-                        }
-
-                        SimpleInterval i = new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd());
-                        Allele a = vc.isVariant() ? vc.getAlternateAllele(0) : vc.getReference();
-                        Map<Allele, Set<String>> map = ret.getOrDefault(i, new HashMap<>());
-                        Set<String> sources = map.getOrDefault(a, new HashSet<>());
-
-                        //NOTE: should we throw warning or error if this is >1, indicating references are not mutually exclusive?
-                        sources.add(f.getName());
-                        map.put(a, sources);
-                        ret.put(i, map);
-
-                        totalMarkerByRef.put(f.getName(), totalMarkerByRef.getOrDefault(f.getName(), 0L) + 1);
-                    }
-                }
+        for (FeatureInput<VariantContext> ref : getVariantConcordanceScoreArgumentCollection().referenceFiles)
+        {
+            VCFHeader header = (VCFHeader)getHeaderForFeatures(ref);
+            if (!header.hasInfoLine(VCFConstants.ALLELE_FREQUENCY_KEY)) {
+                throw new GATKException("VCF missing AF annotation: " + ref.getName());
             }
-        );
 
-        refMap = ret;
-        logger.info("total intervals: " + refMap.size());
+            if (!ref.hasUserSuppliedName()) {
+                throw new GATKException("A unique name should be supplied for all references on the command line (i.e. '--ref-sites:SET1 ref1.vcf'), missing for: " + ref.getName());
+            }
+        }
+
+        VCFHeader header = (VCFHeader)getHeaderForFeatures(getVariantConcordanceScoreArgumentCollection().inputVariants);
+        header.getSampleNamesInOrder().forEach(s -> sampleMap.put(s, new ScoreBySample(s)));
     }
 
-    private Map<String, SampleStats> sampleMap = new HashMap<>();
+    private final Map<String, ScoreBySample> sampleMap = new HashMap<>();
 
-    private class SampleStats {
-        long totalNoCall = 0;
-        Map<String, Long> hits = new HashMap<>();
-        Map<String, Long> misses = new HashMap<>();
+    private static class ScoreBySample {
+        final String id;
+        final Map<String, ScoreByPopulation> populations = new HashMap<>();
+
+        public ScoreBySample(String id) {
+            this.id = id;
+        }
+    }
+
+    private static class ScoreByPopulation {
+        Double cumulativeAfScore = 0.0;
+        Double minPossibleAfScore = 0.0;
+        Double maxPossibleAfScore = 0.0;
+        Long markersWithData = 0L;
+        Long markersNoData = 0L;
     }
 
     @Override
-    public void apply(VariantContext vc, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
-        if (vc.isFiltered()) {
+    public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
+        Map<FeatureInput<VariantContext>, List<VariantContext>> grouped = groupVariantsByFeatureInput(variantContexts);
+        for (FeatureInput<VariantContext> feat : grouped.keySet()) {
+            if (grouped.get(feat).size() > 1) {
+                throw new GATKException("Duplicate variants detected in VCF: " + feat.getName() + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
+            }
+        }
+
+        List<VariantContext> sampleVariants = grouped.get(getVariantConcordanceScoreArgumentCollection().inputVariants);
+        sampleVariants = sampleVariants.stream().filter(vc -> !vc.isFiltered()).collect(Collectors.toList());
+        if (sampleVariants.isEmpty()) {
             return;
         }
 
-        SimpleInterval i = new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd());
-        if (refMap.containsKey(i)) {
-            Map<Allele, Set<String>> map = refMap.get(i);
-
-            for (Genotype g : vc.getGenotypes()) {
-                SampleStats ss = sampleMap.containsKey(g.getSampleName()) ? sampleMap.get(g.getSampleName()) : new SampleStats();
-                if (!g.isCalled()) {
-                    ss.totalNoCall += 1;
-                    continue;
-                }
-
-                for (Allele a : map.keySet()) {
-                    if (g.getAlleles().contains(a)) {
-                        for (String refHit : map.get(a)) {
-                            double toAdd = scoreSingleAlleleHit ? 1.0 : g.isHom() ? 1.0 : 0.5;
-                            long total = ss.hits.getOrDefault(refHit, 0L);
-                            total += toAdd;
-                            ss.hits.put(refHit, total);
-                        }
-                    }
-                    else {
-                        for (String refHit : map.get(a)) {
-                            long total = ss.misses.getOrDefault(refHit, 0L);
-                            total++;
-                            ss.misses.put(refHit, total);
-                        }
-                    }
-                }
-
-                sampleMap.put(g.getSampleName(), ss);
+        for (FeatureInput<VariantContext> population : getVariantConcordanceScoreArgumentCollection().referenceFiles) {
+            if (!grouped.containsKey(population) || grouped.get(population).isEmpty()) {
+                continue;
             }
+
+            processPopulation(population, grouped.get(population).get(0), sampleVariants.get(0));
         }
+    }
+
+    private void processPopulation(FeatureInput<VariantContext> population, VariantContext referenceSite, VariantContext sampleSite) {
+        Map<Allele, Double> afMap = new HashMap<>();
+        final List<Double> afVals = referenceSite.getAttributeAsDoubleList(VCFConstants.ALLELE_FREQUENCY_KEY, 0.0);
+        referenceSite.getAlternateAlleles().forEach(a -> afMap.put(a, afVals.get(referenceSite.getAlleleIndex(a) - 1)));
+
+        double refAF = 1.0;
+        for (Double d : afVals) {
+            refAF = refAF - d;
+        }
+
+        if (refAF < 0) {
+            throw new GATKException("Improper AF for reference: " + population.getName() + ", at site: " + referenceSite.getContig() + ": " + referenceSite.getStart());
+        }
+        afMap.put(referenceSite.getReference(), refAF);
+        afVals.add(refAF);
+
+        final double maxScore = Collections.max(afVals);
+        final double minScore = Collections.min(afVals);
+
+        sampleSite.getSampleNames().forEach(sn -> {
+            ScoreBySample s = sampleMap.get(sn);
+            ScoreByPopulation sp = s.populations.containsKey(population.getName()) ? s.populations.get(population.getName()) : new ScoreByPopulation();
+            Genotype g = sampleSite.getGenotype(sn);
+            if (!g.isCalled() || g.isFiltered()) {
+                sp.markersNoData++;
+
+            }
+            else {
+                double minScoreForAnimal = 0.0;
+                for (Allele a : g.getAlleles()) {
+                    if (afMap.containsKey(a)) {
+                        minScoreForAnimal += minScore;
+                    }
+
+                    sp.cumulativeAfScore += afMap.getOrDefault(a, 0.0);
+                }
+
+                sp.markersWithData++;
+                sp.minPossibleAfScore += minScoreForAnimal;
+                sp.maxPossibleAfScore += maxScore * 2;
+            }
+
+            s.populations.put(population.getName(), sp);
+        });
     }
 
     @Override
     public Object onTraversalSuccess() {
         //Note: need should consider implementing some kind of logic to make actual calls per reference
         NumberFormat format = NumberFormat.getInstance();
-        format.setMaximumFractionDigits(2);
+        format.setMaximumFractionDigits(3);
 
         try (ICSVWriter output = CsvUtils.getTsvWriter(new File(outFile))) {
-            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersMatched", "MarkersMismatched", "FractionMatched", "TotalMarkersForSet", "FractionWithData"});
+            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersWithData", "MarkersNoData", "FractionWithData", "CumulativeAF", "MinPossible", "MaxPossible", "Score"});
 
             for (String sample : sampleMap.keySet()) {
-                SampleStats ss = sampleMap.get(sample);
-                for (String ref : totalMarkerByRef.keySet()) {
-                    long totalWithData = ss.hits.getOrDefault(ref, 0L) + ss.misses.getOrDefault(ref, 0L);
-                    double fractionCalled = totalWithData == 0 ? 0 : (double)ss.hits.getOrDefault(ref, 0L) / totalWithData;
-                    double fractionWithData = totalMarkerByRef.get(ref) == 0 ? 0 : (double)totalWithData /  totalMarkerByRef.get(ref);
+                ScoreBySample ss = sampleMap.get(sample);
+                for (FeatureInput<VariantContext> ref : getVariantConcordanceScoreArgumentCollection().referenceFiles) {
+                    ScoreByPopulation sp = ss.populations.get(ref.getName());
+                    if (sp == null) {
+                        sp = new ScoreByPopulation();
+                    }
 
-                    output.writeNext(new String[]{sample, ref, String.valueOf(ss.hits.getOrDefault(ref, 0L)), String.valueOf(ss.misses.getOrDefault(ref, 0L)), format.format(fractionCalled), String.valueOf(totalMarkerByRef.get(ref)), format.format(fractionWithData)});
+                    double fractionWithData = sp.markersWithData == 0 ? 0.0 : (double)sp.markersWithData / (double)(sp.markersWithData + sp.markersNoData);
+                    double score = sp.cumulativeAfScore == 0.0 ? 0.0 : (sp.cumulativeAfScore - sp.minPossibleAfScore) / (sp.maxPossibleAfScore - sp.minPossibleAfScore);
+                    output.writeNext(new String[]{
+                            sample, ref.getName(),
+                            String.valueOf(sp.markersWithData),
+                            String.valueOf(sp.markersNoData),
+                            format.format(fractionWithData),
+                            String.valueOf(sp.cumulativeAfScore),
+                            String.valueOf(sp.minPossibleAfScore),
+                            String.valueOf(sp.maxPossibleAfScore),
+                            format.format(score)
+                    });
                 }
             }
 
@@ -221,5 +221,34 @@ public class VariantConcordanceScore extends VariantWalker {
         }
 
         return super.getTraversalIntervals();
+    }
+
+    @Override
+    protected VariantConcordanceScoreArgumentCollection getMultiVariantInputArgumentCollection() {
+        return new VariantConcordanceScoreArgumentCollection();
+    }
+
+    private VariantConcordanceScoreArgumentCollection getVariantConcordanceScoreArgumentCollection() {
+        return (VariantConcordanceScoreArgumentCollection)multiVariantInputArgumentCollection;
+    }
+
+    private static final class VariantConcordanceScoreArgumentCollection extends MultiVariantInputArgumentCollection {
+        private static final long serialVersionUID = 1L;
+
+        @Argument(fullName = StandardArgumentDefinitions.VARIANT_LONG_NAME, shortName = StandardArgumentDefinitions.VARIANT_SHORT_NAME,
+                doc = "One or more VCF files containing variants", common = false, optional = false)
+        public FeatureInput<VariantContext> inputVariants;
+
+        @Argument(fullName = "ref-sites", shortName = "rs", doc = "VCF file containing sites to test.  Must be uniquely named", optional = false)
+        public List<FeatureInput<VariantContext>> referenceFiles = new ArrayList<>();
+
+        @Override
+        public List<GATKPath> getDrivingVariantPaths() {
+            List<GATKPath> ret = new ArrayList<>();
+            ret.add(inputVariants);
+            ret.addAll(referenceFiles);
+
+            return ret;
+        }
     }
 }
