@@ -28,15 +28,12 @@ import java.util.stream.Collectors;
 
 
 /**
- * This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets
+ * This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets, based on AF
  * One possible use of this tool is to compare VCF samples against reference panels of alleles, such as alleles unique to different ethnicities or populations.
  *
- * The format of the reference VCF(s) needs to be somewhat specific.  Each site must be either:
- *  - A single allele, in which case it will score any sample containing that allele
- *  - Two alleles, in which case it will score any sample containing the ALT allele
+ * Each of the reference VCF(s) must have an AF annotation, representing the frequency of each allele in that population. Per sample, the tool tracks the cumulative sum of AFs for each matching site/allele.
+ * Per sample, it also tracks the min/max possible score that could be obtained based on overlapping sites, and the number of overlapping sites. This is used to produce a final 0-1 score.
  *
- *  Filtered sites on the reference VCFs are not allowed.  Also be aware that this tools assumes the size of the reference files is
- *  relatively small (though in theory 100Ks might work), since the intervals are read into memory.
  *
  * <h3>Usage example (note naming of the --ref-sites files):</h3>
  * <pre>
@@ -55,6 +52,7 @@ import java.util.stream.Collectors;
  *  <li>MarkersWithData: The number of sites from this sample with genotype data overlapping this reference</li>
  *  <li>MarkersNoData: The number of sites from this reference where the sample lacked genotype data</li>
  *  <li>FractionWithData: The fraction of sites from the reference where the sample had genotype data</li>
+ *  <li>UniqueContigs: The number of unique contigs where a marker overlapped in this sample</li>
  *  <li>CumulativeAF: The cumulative allele frequency for the alles of all genotypes overlapping this reference</li>
  *  <li>MinPossible: The minimum possible AF score that could be achieved for these sites</li>
  *  <li>MaxPossible: The maximum possible AF score that could be achieved for these sites</li>
@@ -111,6 +109,7 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
         Double maxPossibleAfScore = 0.0;
         Long markersWithData = 0L;
         Long markersNoData = 0L;
+        Set<String> uniqueContigs = new HashSet<>();
     }
 
     @Override
@@ -137,7 +136,10 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
             return;
         }
         else if (sampleVariants.size() > 1) {
-            throw new GATKException("Duplicate variants detected in input VCF: " + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
+            // There are rare instances where the VCF has two lines for the same site, with different REF alleles (i.e. C, and CTG).
+            // This is probably from suboptimal merges between two VCFs. For now, just limit to the site that matches this REF
+            logger.warn("Duplicate variants detected in input VCF: " + " for position: " + variantContexts.get(0).getContig() + ": " + variantContexts.get(0).getStart());
+            return;
         }
 
         for (FeatureInput<VariantContext> population : getVariantConcordanceScoreArgumentCollection().referenceFiles) {
@@ -192,6 +194,7 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
                 }
 
                 sp.markersWithData++;
+                sp.uniqueContigs.add(referenceSite.getContig());
                 sp.minPossibleAfScore += minScoreForAnimal;
                 sp.maxPossibleAfScore += maxScore * 2;
             }
@@ -207,7 +210,7 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
         format.setMaximumFractionDigits(3);
 
         try (ICSVWriter output = CsvUtils.getTsvWriter(new File(outFile))) {
-            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersWithData", "MarkersNoData", "FractionWithData", "CumulativeAF", "MinPossible", "MaxPossible", "Score"});
+            output.writeNext(new String[]{"SampleName", "ReferenceName", "MarkersWithData", "MarkersNoData", "FractionWithData", "UniqueContigs", "CumulativeAF", "MinPossible", "MaxPossible", "Score"});
 
             for (String sample : sampleMap.keySet()) {
                 ScoreBySample ss = sampleMap.get(sample);
@@ -224,6 +227,7 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
                             String.valueOf(sp.markersWithData),
                             String.valueOf(sp.markersNoData),
                             format.format(fractionWithData),
+                            String.valueOf(sp.uniqueContigs.size()),
                             String.valueOf(sp.cumulativeAfScore),
                             String.valueOf(sp.minPossibleAfScore),
                             String.valueOf(sp.maxPossibleAfScore),
