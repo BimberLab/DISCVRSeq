@@ -22,15 +22,12 @@
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets
+		This tool will compare the samples in a VCF against and number of reference VCFs.  It will produce a report summarizing the number of alleles shared between each sample and the reference sets, based on AF
  One possible use of this tool is to compare VCF samples against reference panels of alleles, such as alleles unique to different ethnicities or populations.
 
- The format of the reference VCF(s) needs to be somewhat specific.  Each site must be either:
-  - A single allele, in which case it will score any sample containing that allele
-  - Two alleles, in which case it will score any sample containing the ALT allele
+ Each of the reference VCF(s) must have an AF annotation, representing the frequency of each allele in that population. Per sample, the tool tracks the cumulative sum of AFs for each matching site/allele.
+ Per sample, it also tracks the min/max possible score that could be obtained based on overlapping sites, and the number of overlapping sites. This is used to produce a final 0-1 score.
 
-  Filtered sites on the reference VCFs are not allowed.  Also be aware that this tools assumes the size of the reference files is
-  relatively small (though in theory 100Ks might work), since the intervals are read into memory.
 
  <h3>Usage example (note naming of the --ref-sites files):</h3>
  <pre>
@@ -49,6 +46,7 @@
   <li>MarkersWithData: The number of sites from this sample with genotype data overlapping this reference</li>
   <li>MarkersNoData: The number of sites from this reference where the sample lacked genotype data</li>
   <li>FractionWithData: The fraction of sites from the reference where the sample had genotype data</li>
+  <li>UniqueContigs: The number of unique contigs where a marker overlapped in this sample</li>
   <li>CumulativeAF: The cumulative allele frequency for the alles of all genotypes overlapping this reference</li>
   <li>MinPossible: The minimum possible AF score that could be achieved for these sites</li>
   <li>MaxPossible: The maximum possible AF score that could be achieved for these sites</li>
@@ -1105,7 +1103,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.13 built at 18-06-2022 03:49:32.
+        <p class="version">DISCVR-Seq version 1.3.13 built at 19-06-2022 02:47:56.
         </p>
 
 </div></div>
