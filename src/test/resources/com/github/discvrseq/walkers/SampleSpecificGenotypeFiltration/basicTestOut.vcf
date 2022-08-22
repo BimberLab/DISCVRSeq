@@ -1,0 +1,40 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=DP-GT30,Description="DP>30">
+##FILTER=<ID=DP-LT10,Description="DP<10">
+##FILTER=<ID=DP-LT15,Description="DP<15">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FT,Number=.,Type=String,Description="Genotype-level filter">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MV,Number=1,Type=Integer,Description="Number of mendelian violations observed for this sample.">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##GATKCommandLine=<ID=SampleSpecificGenotypeFiltration,CommandLine="SampleSpecificGenotypeFiltration --output C:\Users\bimber\AppData\Local\Temp\1\walktest.tmp_param.0350354769500572979.tmp --sample-map /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/sample-map.txt --genotype-filter-expression Set1:DP<15 --genotype-filter-expression Set2:DP<10 --genotype-filter-expression Set2:DP>30 --genotype-filter-name DP-LT15 --genotype-filter-name DP-LT10 --genotype-filter-name DP-GT30 --variant /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/ClinvarAnnotator.vcf --reference /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/hg19micro.fasta --tmp-dir /Users/bimber/AppData/Local/Temp/1 --verbosity ERROR --missing-values-evaluate-as-failing false --interval-set-rule UNION --interval-padding 0 --interval-exclusion-padding 0 --interval-merging-rule ALL --read-validation-stringency SILENT --seconds-between-progress-updates 10.0 --disable-sequence-dictionary-validation false --create-output-bam-index true --create-output-bam-md5 false --create-output-variant-index true --create-output-variant-md5 false --max-variants-per-shard 0 --lenient false --add-output-sam-program-record true --add-output-vcf-command-line true --cloud-prefetch-buffer 40 --cloud-index-prefetch-buffer -1 --disable-bam-index-caching false --sites-only-vcf-output false --help false --version false --showHidden false --QUIET false --use-jdk-deflater false --use-jdk-inflater false --gcs-max-retries 20 --gcs-project-for-requester-pays  --disable-tool-default-read-filters false",Version="Unavailable",Date="August 22, 2022 6:15:37 AM PDT">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=MAC,Number=1,Type=Integer,Description="Matching ALT allele count">
+##INFO=<ID=PURPOSE,Number=1,Type=String,Description="Purpose of test case">
+##INFO=<ID=RN,Number=1,Type=Integer,Description="Random number">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+##source=SampleSpecificGenotypeFiltration
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
+1	2	.	G	A	2328.69	PASS	AC=1;AF=0.500;AN=2;MAC=1;PURPOSE=diff_pos_same_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:13,0:13:DP-LT15:39:0:0,39,418	0/1:11,9:20:PASS:99:0:241,0,379
+1	4	.	G	T	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1;PURPOSE=same_pos_diff_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:14,0:14:DP-LT15:42:0:0,42,473	0/0:19,0:19:PASS:51:0:0,51,765
+1	11	.	G	A	12328.69	PASS	MAC=0;PURPOSE=same_pos_same_ref_diff_alt;RN=12	GT:AD:DP:GQ:MV:PL	0/0:17,0:17:51:0:0,51,614	0/0:29,0:29:69:0:0,69,1035
+1	12	.	C	CG	12328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1;PURPOSE=same_pos_same_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	0/0:20,0:20:PASS:60:0:0,60,804	./.:34,0:34:DP-GT30:90:0:0,90,1350
+1	221	.	G	A,T	2328.69	PASS	MAC=1;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2;RN=12	GT:AD:DP:GQ:MV:PL	0/0:27,0:27:72:0:0,72,1007	0/0:15,0:15:45:0:0,45,597
+1	232	.	G	T,*	1008.03	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2;RN=12	GT:AD:DP:GQ:MV:PL	0/1:9,15:24:99:0:396,0,225	0/0:16,0:16:36:0:0,36,540
+1	244	.	A	AT,CCC	7.80	PASS	MAC=2;PURPOSE=same_pos_same_ref_same_alt1_same_alt2;RN=12	GT:AD:DP:GQ:MV:PGT:PID:PL	0/0:20,0:20:51:0:.:.:0,51,765	0/1:9,5:14:99:0:0|1:1750290_TC_T:183,0,363
+1	3111	.	TA	AT,G,T	9683.63	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:10,0:10:GQ-LT30:27:0:0,27,405	./.:10,0:10:GQ-LT30:27:0:0,27,405
+1	3211	.	C	A,G,T	9683.63	PASS	AC=0,0,0;AF=0.00,0.00,0.00;AN=2;MAC=1;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:12,0:12:DP-LT15:36:0:0,36,434	0/0:12,0:12:PASS:36:0:0,36,411
+1	3323	.	G	A,C,T	6630.50	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:8,0:8:DP-LT10;GQ-LT30:21:0:0,21,315	0/1:5,8:13:PASS:99:0:247,0,179
+1	3332	.	C	CG,G,TTT	37495.79	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:9,0:9:DP-LT10;GQ-LT30:18:0:0,18,270	0/0:16,0:16:PASS:48:0:0,48,649
+1	3441	.	ATT	A,C,G	110541.03	PASS	MAC=2;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_diff_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:4,4:8:DP-LT10:99:0:105,0,141	./.:9,0:9:DP-LT10;GQ-LT30:24:0:0,24,360
+1	3452	.	GT	CG,GGG,TATA	38369.71	PASS	MAC=2;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:3,0:3:DP-LT10;GQ-LT30:9:0:0,9,112	0/0:13,0:13:PASS:36:0:0,36,540
+1	3522	.	C	A,GC,TTTAAAA	38369.71	PASS	MAC=2;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:11,0:11:GQ-LT30:27:0:0,27,405	./.:8,0:8:DP-LT10;GQ-LT30:21:0:0,21,315
+1	3633	.	C	CTAT,GA,TACGTAC	38369.71	PASS	MAC=3;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_same_alt3;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:5,0:5:DP-LT10;GQ-LT30:12:0:0,12,180	./.:2,0:2:DP-LT10;GQ-LT30:6:0:0,6,71
+1	3725	.	G	A,GC,TTTAAAA	38369.71	PASS	MAC=0;PURPOSE=overlapping_position;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:13,0:13:DP-LT15:33:0:0,33,495	./.:10,0:10:GQ-LT30:27:0:0,27,405

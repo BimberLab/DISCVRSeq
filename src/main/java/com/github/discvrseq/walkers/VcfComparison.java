@@ -130,17 +130,17 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
         }
 
         boolean refIsFiltered = refVariants.stream().filter(variantContext -> !variantContext.isFiltered()).count() == 0;
-        boolean sampleIfFiltered = refVariants.stream().filter(variantContext -> !variantContext.isFiltered()).count() == 0;
+        boolean sampleIsFiltered = refVariants.stream().filter(variantContext -> !variantContext.isFiltered()).count() == 0;
 
-        if (sampleIfFiltered && refIsFiltered) {
+        if (sampleIsFiltered && refIsFiltered) {
             return;
         }
-        else if (sampleIfFiltered && !refIsFiltered) {
+        else if (sampleIsFiltered && !refIsFiltered) {
             sampleFilteredNotRef++;
             possiblyWriteVariant(referenceContext, "SampleFilteredNotRef");
             return;
         }
-        else if (!sampleIfFiltered && refIsFiltered) {
+        else if (!sampleIsFiltered && refIsFiltered) {
             refFilteredNotSample++;
             possiblyWriteVariant(referenceContext, "RefFilteredNotSample");
             return;
