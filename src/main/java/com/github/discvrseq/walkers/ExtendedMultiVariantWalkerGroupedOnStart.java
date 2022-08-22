@@ -8,17 +8,21 @@ import java.util.*;
 
 abstract public class ExtendedMultiVariantWalkerGroupedOnStart extends MultiVariantWalkerGroupedOnStart {
     // maintain the mapping of source name (from VC) to FeatureInput name
-    protected Map<String, FeatureInput<VariantContext>> drivingVariantSourceMap = null;
+    private Map<String, FeatureInput<VariantContext>> drivingVariantSourceMap = null;
 
-    protected Map<FeatureInput<VariantContext>, List<VariantContext>> groupVariantsByFeatureInput(final List<VariantContext> variants) {
+    protected Map<String, FeatureInput<VariantContext>> getDrivingVariantSourceMap() {
         if (drivingVariantSourceMap == null) {
             // Cache map of source name -> FeatureInput
             drivingVariantSourceMap = new HashMap<>();
             getDrivingVariantsFeatureInputs().forEach(x -> drivingVariantSourceMap.put(x.getName(), x));
         }
 
+        return drivingVariantSourceMap;
+    }
+
+    protected Map<FeatureInput<VariantContext>, List<VariantContext>> groupVariantsByFeatureInput(final List<VariantContext> variants) {
         final Map<FeatureInput<VariantContext>, List<VariantContext>> byFeatureInput = new HashMap<>();
-        variants.forEach(vc -> byFeatureInput.compute(drivingVariantSourceMap.get(vc.getSource()),
+        variants.forEach(vc -> byFeatureInput.compute(getDrivingVariantSourceMap().get(vc.getSource()),
                 (k, v) -> {
                     final List<VariantContext> variantList = v == null ? new ArrayList<>() : v;
                     variantList.add(vc);

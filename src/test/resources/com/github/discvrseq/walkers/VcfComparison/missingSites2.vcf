@@ -1,0 +1,7 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=IR,Number=1,Type=String,Description="The status of this variant relative to the reference VCF">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1	Sample3
+1	73	.	TT	AG	100	PASS	IR=SiteMissingRelativeToRef	GT	0/1	0/0
