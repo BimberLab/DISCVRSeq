@@ -1,0 +1,42 @@
+##fileformat=VCFv4.2
+##ID=<Description="ClinVar Variation ID">
+##INFO=<ID=AF_ESP,Number=1,Type=Float,Description="allele frequencies from GO-ESP">
+##INFO=<ID=AF_EXAC,Number=1,Type=Float,Description="allele frequencies from ExAC">
+##INFO=<ID=AF_TGP,Number=1,Type=Float,Description="allele frequencies from TGP">
+##INFO=<ID=ALLELEID,Number=1,Type=Integer,Description="the ClinVar Allele ID">
+##INFO=<ID=CLNDISDB,Number=.,Type=String,Description="Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN">
+##INFO=<ID=CLNDISDBINCL,Number=.,Type=String,Description="For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN">
+##INFO=<ID=CLNDN,Number=.,Type=String,Description="ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=CLNDNINCL,Number=.,Type=String,Description="For included Variant : ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB">
+##INFO=<ID=CLNHGVS,Number=.,Type=String,Description="Top-level (primary assembly, alt, or patch) HGVS expression.">
+##INFO=<ID=CLNREVSTAT,Number=.,Type=String,Description="ClinVar review status for the Variation ID">
+##INFO=<ID=CLNSIG,Number=.,Type=String,Description="Clinical significance for this single variant">
+##INFO=<ID=CLNSIGINCL,Number=.,Type=String,Description="Clinical significance for a haplotype or genotype that includes this variant. Reported as pairs of VariationID:clinical significance.">
+##INFO=<ID=CLNVC,Number=1,Type=String,Description="Variant type">
+##INFO=<ID=CLNVCSO,Number=1,Type=String,Description="Sequence Ontology id for variant type">
+##INFO=<ID=CLNVI,Number=.,Type=String,Description="the variant's clinical sources reported as tag-value pairs of database and variant identifier">
+##INFO=<ID=DBVARID,Number=.,Type=String,Description="nsv accessions from dbVar for the variant">
+##INFO=<ID=GENEINFO,Number=1,Type=String,Description="Gene(s) for the variant reported as gene symbol:gene id. The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)">
+##INFO=<ID=IR,Number=1,Type=String,Description="The status of this variant relative to the reference VCF">
+##INFO=<ID=MC,Number=.,Type=String,Description="comma separated list of molecular consequence in the form of Sequence Ontology ID|molecular_consequence">
+##INFO=<ID=ORIGIN,Number=.,Type=String,Description="Allele origin. One or more of the following values may be added: 0 - unknown; 1 - germline; 2 - somatic; 4 - inherited; 8 - paternal; 16 - maternal; 32 - de-novo; 64 - biparental; 128 - uniparental; 256 - not-tested; 512 - tested-inconclusive; 1073741824 - other">
+##INFO=<ID=RS,Number=.,Type=String,Description="dbSNP ID (i.e. rs number)">
+##INFO=<ID=SSR,Number=1,Type=Integer,Description="Variant Suspect Reason Codes. One or more of the following values may be added: 0 - unspecified, 1 - Paralog, 2 - byEST, 4 - oldAlign, 8 - Para_EST, 16 - 1kg_failed, 1024 - other">
+##fileDate=2017-09-05
+##reference=GRCh37
+##source=ClinVar
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	3	183381	G	A	.	.	ALLELEID=181485;CLNDISDB=MedGen:C4015293,OMIM:616126,Orphanet:ORPHA319563;CLNDN=Immunodeficiency_38_with_basal_ganglia_calcification;CLNHGVS=NC_000001.10:g.949523C>T;CLNREVSTAT=no_assertion_criteria_provided;CLNSIG=Pathogenic;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=OMIM_Allelic_Variant:147571.0003;GENEINFO=ISG15:9636;IR=SiteMissingRelativeToRef;MC=SO:0001587|nonsense;ORIGIN=1;RS=786201005
+1	3111	243036	TA	A	.	.	AF_EXAC=0.00001;ALLELEID=244110;CLNDISDB=MedGen:C0751882,Orphanet:ORPHA590;CLNDN=Congenital_myasthenic_syndrome;CLNHGVS=NC_000001.10:g.957605G>A;CLNREVSTAT=no_assertion_criteria_provided;CLNSIG=Pathogenic;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=756623659
+1	3111	128296	TA	C	.	.	AF_ESP=0.0318;AF_EXAC=0.02016;AF_TGP=0.0328;ALLELEID=133745;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.957640C>T;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Benign/Likely_benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001819|synonymous_variant;ORIGIN=1;RS=6657048
+1	3111	243037	TA	GC	.	.	ALLELEID=244111;CLNDISDB=MedGen:C0751882,Orphanet:ORPHA590;CLNDN=Congenital_myasthenic_syndrome;CLNHGVS=NC_000001.10:g.957693A>T;CLNREVSTAT=no_assertion_criteria_provided;CLNSIG=Pathogenic;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=879253787
+1	3441	126556	ATT	A	.	.	ALLELEID=132069;CLNDISDB=MedGen:C0751882,Orphanet:ORPHA590|MedGen:C3808739,OMIM:615120;CLNDN=Congenital_myasthenic_syndrome|Myasthenic_syndrome,_congenital,_8;CLNHGVS=NC_000001.10:g.976962C>T;CLNREVSTAT=no_assertion_criteria_provided;CLNSIG=Pathogenic;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;CLNVI=OMIM_Allelic_Variant:103320.0003;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001587|nonsense;ORIGIN=1;RS=587777299
+1	3441	128291	ATT	C	.	.	AF_ESP=0.0141;AF_EXAC=0.00461;AF_TGP=0.0126;ALLELEID=133740;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.976963A>G;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Benign/Likely_benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=150359724
+1	3441	263158	ATT	TTT	.	.	AF_ESP=0.0050;AF_EXAC=0.00489;AF_TGP=0.0024;ALLELEID=249308;CLNDISDB=MedGen:CN169374|MedGen:CN221809;CLNDN=not_specified|not_provided;CLNHGVS=NC_000001.10:g.977028G>T;CLNREVSTAT=criteria_provided,_multiple_submitters,_no_conflicts;CLNSIG=Likely_benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=138031468
+1	3522	263161	C	ATA	.	.	AF_ESP=0.0022;AF_EXAC=0.00084;AF_TGP=0.0044;ALLELEID=249311;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.978628C>T;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Likely_benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=116586548
+1	3522	263162	C	GC	.	.	AF_ESP=0.0048;AF_EXAC=0.00327;AF_TGP=0.0016;ALLELEID=249312;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.978668G>A;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001819|synonymous_variant;ORIGIN=1;RS=147346337
+1	3522	263163	C	TTTAAAA	.	.	AF_ESP=0.0092;AF_EXAC=0.00835;AF_TGP=0.0030;ALLELEID=249313;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.978762G>A;CLNREVSTAT=criteria_provided,_multiple_submitters,_no_conflicts;CLNSIG=Benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=138288952
+1	3633	263164	C	CTAT	.	.	AF_ESP=0.0075;AF_EXAC=0.00537;AF_TGP=0.0082;ALLELEID=249314;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.978856G>A;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001627|intron_variant;ORIGIN=1;RS=115191992
+1	3633	263165	C	GA	.	.	AF_ESP=0.0030;AF_EXAC=0.00884;AF_TGP=0.0114;ALLELEID=249315;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.978974G>A;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Benign;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=79016973
+1	3633	390111	C	TACGTAC	.	.	ALLELEID=364314;CLNDISDB=MedGen:CN169374;CLNDN=not_specified;CLNHGVS=NC_000001.10:g.979310G>A;CLNREVSTAT=criteria_provided,_single_submitter;CLNSIG=Uncertain_significance;CLNVC=single_nucleotide_variant;CLNVCSO=SO:0001483;GENEINFO=AGRN:375790;IR=SiteMissingRelativeToRef;MC=SO:0001583|missense_variant;ORIGIN=1;RS=1042435801
+1	3724	.	GA	A	38369.71	PASS	IR=SiteMissingRelativeToRef

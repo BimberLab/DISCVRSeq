@@ -1,0 +1,19 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FT,Number=.,Type=String,Description="Genotype-level filter">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MV,Number=1,Type=Integer,Description="Number of mendelian violations observed for this sample.">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##INFO=<ID=IR,Number=1,Type=String,Description="The status of this variant relative to the reference VCF">
+##INFO=<ID=MAC,Number=1,Type=Integer,Description="Matching ALT allele count">
+##INFO=<ID=PURPOSE,Number=1,Type=String,Description="Purpose of test case">
+##INFO=<ID=RN,Number=1,Type=Integer,Description="Random number">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
+1	2	.	G	A	2328.69	PASS	IR=NovelSitesRelativeToRef;MAC=1;PURPOSE=diff_pos_same_ref_same_alt;RN=12	GT:AD:DP:GQ:MV:PL	0/0:13,0:13:39:0:0,39,418	0/1:11,9:20:99:0:241,0,379
+1	3725	.	G	A,GC,TTTAAAA	38369.71	PASS	IR=NovelSitesRelativeToRef;MAC=0;PURPOSE=overlapping_position;RN=12	GT:AD:DP:FT:GQ:MV:PL	0/0:13,0:13:PASS:33:0:0,33,495	./.:10,0:10:GQ-LT30:27:0:0,27,405

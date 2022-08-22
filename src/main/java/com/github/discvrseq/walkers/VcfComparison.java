@@ -6,6 +6,12 @@ import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextBuilder;
+import htsjdk.variant.variantcontext.writer.VariantContextWriter;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -19,11 +25,9 @@ import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.utils.Utils;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +42,8 @@ import java.util.stream.Collectors;
  *     -rv referenceData.vcf.gz \
  *     -O outputTable.txt \
  *     -sites-output sitesTable.txt.gz
+ *     --novel-or-altered-sites-vcf novelVariants.vcf.gz
+ *     --missing-sites-vcf missingVariants.vcf.gz
  * </pre>
  */
 @DocumentedFeature
@@ -53,7 +59,12 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Argument(doc = "If provided, a tab-delimited list of each site with a discrepancy will be written", fullName = "sites-output", optional = true)
     public GATKPath siteOutput = null;
 
+    @Argument(doc = "By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites", fullName = "include-no-call-sites", optional = true)
+    public boolean includeNoCallSites = false;
+
     private ICSVWriter siteWriter = null;
+    private VariantContextWriter novelSitesWriter;
+    private VariantContextWriter missingSitesWriter;
 
     @Override
     public void onTraversalStart() {
@@ -69,6 +80,30 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
         if (getVcfComparisonArgumentCollection().drivingVariantPaths.size() > 1) {
             throw new UserException.BadInput("This tool currently only supports one VCF input");
         }
+
+        novelSitesWriter = initializeVcfWriter(getVcfComparisonArgumentCollection().novelSitesVcf, getDrivingVariantsFeatureInputs().get(0));
+        missingSitesWriter = initializeVcfWriter(getVcfComparisonArgumentCollection().missingSitesVcf, getVcfComparisonArgumentCollection().refVariants);
+    }
+
+    private static final String INCLUSION_REASON = "IR";
+
+    private VariantContextWriter initializeVcfWriter (GATKPath path, FeatureInput<VariantContext> vcfForHeader) {
+        if (path == null) {
+            return null;
+        }
+
+        IOUtil.assertFileIsWritable(path.toPath().toFile());
+
+        VariantContextWriter writer = createVCFWriter(path);
+
+        // setup the header fields
+        VCFHeader header = (VCFHeader) getHeaderForFeatures(vcfForHeader);
+        final Set<VCFHeaderLine> hInfo = new LinkedHashSet<>(header.getMetaDataInInputOrder());
+        hInfo.add(new VCFInfoHeaderLine(INCLUSION_REASON, 1, VCFHeaderLineType.String, "The status of this variant relative to the reference VCF"));
+
+        writer.writeHeader(new VCFHeader(hInfo, header.getGenotypeSamples()));
+
+        return writer;
     }
 
     @Override
@@ -85,6 +120,12 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
 
         @Argument(doc = "Reference VCF", fullName = "referenceVCF", shortName = "rv", optional = false)
         public FeatureInput<VariantContext> refVariants = null;
+
+        @Argument(doc = "Novel or Altered Sites VCF", fullName = "novel-or-altered-sites-vcf", shortName = "ns", optional = true)
+        public GATKPath novelSitesVcf = null;
+
+        @Argument(doc = "Missing Sites VCF", fullName = "missing-sites-vcf", shortName = "ms", optional = true)
+        public GATKPath missingSitesVcf = null;
 
         @Override
         public List<GATKPath> getDrivingVariantPaths() {
@@ -106,16 +147,16 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         Map<FeatureInput<VariantContext>, List<VariantContext>> variants = groupVariantsByFeatureInput(variantContexts);
 
-        List<VariantContext> sampleVariants = variants.get(getDrivingVariantsFeatureInputs().get(0)).stream().filter(variantContext -> variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
+        List<VariantContext> sampleVariants = variants.get(getDrivingVariantsFeatureInputs().get(0)).stream().filter(variantContext -> includeNoCallSites ||!variantContext.hasGenotypes() || variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
+        List<VariantContext> refVariants = variants.get(getVcfComparisonArgumentCollection().refVariants).stream().filter(variantContext -> includeNoCallSites || !variantContext.hasGenotypes() || variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
         if (sampleVariants.isEmpty()) {
-            possiblyWriteVariant(referenceContext, "SiteMissingRelativeToRef");
+            possiblyWriteVariant(refVariants, referenceContext, "SiteMissingRelativeToRef", missingSitesWriter);
             siteMissingRelativeToRef++;
             return;
         }
 
-        List<VariantContext> refVariants = variants.get(getVcfComparisonArgumentCollection().refVariants).stream().filter(variantContext -> variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
         if (refVariants.isEmpty()){
-            possiblyWriteVariant(referenceContext, "NovelSitesRelativeToRef");
+            possiblyWriteVariant(sampleVariants, referenceContext, "NovelSitesRelativeToRef", novelSitesWriter);
             novelSitesRelativeToRef++;
             return;
         }
@@ -137,12 +178,12 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
         }
         else if (sampleIsFiltered && !refIsFiltered) {
             sampleFilteredNotRef++;
-            possiblyWriteVariant(referenceContext, "SampleFilteredNotRef");
+            possiblyWriteVariant(refVariants, referenceContext, "SampleFilteredNotRef", missingSitesWriter);
             return;
         }
         else if (!sampleIsFiltered && refIsFiltered) {
             refFilteredNotSample++;
-            possiblyWriteVariant(referenceContext, "RefFilteredNotSample");
+            possiblyWriteVariant(sampleVariants, referenceContext, "RefFilteredNotSample", novelSitesWriter);
             return;
         }
 
@@ -168,7 +209,7 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
                     }
 
                     if (!rg.sameGenotype(g)) {
-                        possiblyWriteVariant(referenceContext, "Discordant Genotype: " + g.getSampleName());
+                        possiblyWriteVariant(Collections.singletonList(vc), referenceContext, "Discordant Genotype: " + g.getSampleName(), novelSitesWriter);
                         discordantGenotypes++;
                     }
                 }
@@ -176,12 +217,19 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
         }
     }
 
-    private void possiblyWriteVariant(ReferenceContext referenceContext, String message) {
-        if (siteWriter == null) {
-            return;
+    private void possiblyWriteVariant(List<VariantContext> variants, ReferenceContext referenceContext, String message, @Nullable VariantContextWriter variantContextWriter) {
+        if (siteWriter != null) {
+            siteWriter.writeNext(new String[]{referenceContext.getContig(), String.valueOf(referenceContext.getStart()), message});
         }
 
-        siteWriter.writeNext(new String[]{referenceContext.getContig(), String.valueOf(referenceContext.getStart()), message});
+        if (variantContextWriter != null) {
+            variants.forEach(vc -> {
+                VariantContextBuilder vcb = new VariantContextBuilder(vc);
+                vcb.attribute(INCLUSION_REASON, message);
+
+                variantContextWriter.add(vcb.make());
+            });
+        }
     }
 
     @Override
@@ -205,12 +253,32 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Override
     public void closeTool() {
         try {
-            if (siteWriter != null) {
-                siteWriter.close();
+            try {
+                if (siteWriter != null) {
+                    siteWriter.close();
+                }
             }
-        }
-        catch (IOException e) {
-            logger.error("Unable to close CSV writer", e);
+            catch (IOException e) {
+                logger.error("Unable to close CSV writer", e);
+            }
+
+            try {
+                if (novelSitesWriter != null) {
+                    novelSitesWriter.close();
+                }
+            }
+            catch (Exception e) {
+                logger.error("Unable to close novel sites VCF writer", e);
+            }
+
+            try {
+                if (missingSitesWriter != null) {
+                    missingSitesWriter.close();
+                }
+            }
+            catch (Exception e) {
+                logger.error("Unable to close missing sites VCF writer", e);
+            }
         }
         finally {
             super.closeTool();
