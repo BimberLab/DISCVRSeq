@@ -136,7 +136,6 @@ public class SampleSpecificGenotypeFiltration extends VariantWalker {
             throw new UserException.BadInput(e.getMessage());
         }
 
-        hInfo.addAll(getDefaultToolVCFHeaderLines());
         writer.writeHeader(new VCFHeader(hInfo, getHeaderForVariants().getGenotypeSamples()));
     }
 

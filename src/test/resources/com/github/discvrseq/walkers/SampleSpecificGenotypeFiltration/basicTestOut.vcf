@@ -11,7 +11,6 @@
 ##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
 ##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
 ##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
-##GATKCommandLine=<ID=SampleSpecificGenotypeFiltration,CommandLine="SampleSpecificGenotypeFiltration --output C:\Users\bimber\AppData\Local\Temp\1\walktest.tmp_param.0350354769500572979.tmp --sample-map /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/sample-map.txt --genotype-filter-expression Set1:DP<15 --genotype-filter-expression Set2:DP<10 --genotype-filter-expression Set2:DP>30 --genotype-filter-name DP-LT15 --genotype-filter-name DP-LT10 --genotype-filter-name DP-GT30 --variant /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/ClinvarAnnotator.vcf --reference /Projects/DISCVRSeq/src/test/resources/com/github/discvrseq/TestData/hg19micro.fasta --tmp-dir /Users/bimber/AppData/Local/Temp/1 --verbosity ERROR --missing-values-evaluate-as-failing false --interval-set-rule UNION --interval-padding 0 --interval-exclusion-padding 0 --interval-merging-rule ALL --read-validation-stringency SILENT --seconds-between-progress-updates 10.0 --disable-sequence-dictionary-validation false --create-output-bam-index true --create-output-bam-md5 false --create-output-variant-index true --create-output-variant-md5 false --max-variants-per-shard 0 --lenient false --add-output-sam-program-record true --add-output-vcf-command-line true --cloud-prefetch-buffer 40 --cloud-index-prefetch-buffer -1 --disable-bam-index-caching false --sites-only-vcf-output false --help false --version false --showHidden false --QUIET false --use-jdk-deflater false --use-jdk-inflater false --gcs-max-retries 20 --gcs-project-for-requester-pays  --disable-tool-default-read-filters false",Version="Unavailable",Date="August 22, 2022 6:15:37 AM PDT">
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
 ##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
 ##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
@@ -20,7 +19,6 @@
 ##INFO=<ID=RN,Number=1,Type=Integer,Description="Random number">
 ##contig=<ID=1,length=16000>
 ##contig=<ID=2,length=16000>
-##source=SampleSpecificGenotypeFiltration
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
 1	2	.	G	A	2328.69	PASS	AC=1;AF=0.500;AN=2;MAC=1;PURPOSE=diff_pos_same_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:13,0:13:DP-LT15:39:0:0,39,418	0/1:11,9:20:PASS:99:0:241,0,379
 1	4	.	G	T	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1;PURPOSE=same_pos_diff_ref_same_alt;RN=12	GT:AD:DP:FT:GQ:MV:PL	./.:14,0:14:DP-LT15:42:0:0,42,473	0/0:19,0:19:PASS:51:0:0,51,765
