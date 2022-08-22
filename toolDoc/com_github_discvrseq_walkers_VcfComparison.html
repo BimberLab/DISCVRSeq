@@ -33,6 +33,8 @@
      -rv referenceData.vcf.gz \
      -O outputTable.txt \
      -sites-output sitesTable.txt.gz
+     --novel-or-altered-sites-vcf novelVariants.vcf.gz
+     --missing-sites-vcf missingVariants.vcf.gz
  </pre>
 
 		<hr>
@@ -158,6 +160,13 @@
 					<td>display the help message</td>
 				</tr>
 				<tr>
+					<td><a href="#--include-no-call-sites">--include-no-call-sites</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites</td>
+				</tr>
+				<tr>
 					<td><a href="#--interval-merging-rule">--interval-merging-rule</a><br />
 								&nbsp;<em>-imr</em>
 					</td>
@@ -172,6 +181,22 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>One or more genomic intervals over which to operate</td>
+				</tr>
+				<tr>
+					<td><a href="#--missing-sites-vcf">--missing-sites-vcf</a><br />
+								&nbsp;<em>-ms</em>
+					</td>
+					<!--<td>GATKPath</td> -->
+					<td>null</td>
+					<td>Missing Sites VCF</td>
+				</tr>
+				<tr>
+					<td><a href="#--novel-or-altered-sites-vcf">--novel-or-altered-sites-vcf</a><br />
+								&nbsp;<em>-ns</em>
+					</td>
+					<!--<td>GATKPath</td> -->
+					<td>null</td>
+					<td>Novel or Altered Sites VCF</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -689,6 +714,18 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--include-no-call-sites">--include-no-call-sites </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--input">--input </a>
 			 / <small>-I</small>
 		</h3>
@@ -833,6 +870,30 @@
 			&nbsp;<span class="label">0</span>
 			&nbsp;<span class="label label-warning">[ [ 0</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--missing-sites-vcf">--missing-sites-vcf </a>
+			 / <small>-ms</small>
+		</h3>
+		<p class="args">
+			<b>Missing Sites VCF</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--novel-or-altered-sites-vcf">--novel-or-altered-sites-vcf </a>
+			 / <small>-ns</small>
+		</h3>
+		<p class="args">
+			<b>Novel or Altered Sites VCF</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
@@ -1104,7 +1165,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.13 built at 19-06-2022 02:47:56.
+        <p class="version">DISCVR-Seq version 1.3.14 built at 22-08-2022 03:56:15.
         </p>
 
 </div></div>

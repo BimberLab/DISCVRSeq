@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>CrossSampleGenotypeComparison</title>
+<title>SampleSpecificGenotypeFiltration</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,38 +13,31 @@
 
 	<div class="span8">
 
-			<h1>CrossSampleGenotypeComparison</h1>
+			<h1>SampleSpecificGenotypeFiltration</h1>
 
-		<p>Produces a concordance report between samples in a VCF against every other sample in a reference VCF</p>
+		<p>Allows filtration of genotypes with sample-specific expressions</p>
 
 			<h3>Category
 				<small> Variant Manipulation</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool was originally created to help identify possible sample mix-ups. It accepts an input VCF, reference VCF and list of samples to consider.  It will compare each sample in this list from the VCF against every samples in the reference VCF, 
- and produce a summary table about concordance.
+		This tool is a specialized version of VariantFiltration. It takes a tab-delimited text file mapping sample name to group, and then allows the user to perform group-specific JEXL genotype filtration.
+ An example use-case would be a VCF with a mixture of WGS and WXS data, where samples from each technology require different filter thresholds.
 
- <h3>Usage example Without Sample List (will compare all):</h3>
+ <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar CrossSampleGenotypeComparison \
+  java -jar DISCVRseq.jar SampleSpecificGenotypeFiltration \
      -R currentGenome.fasta \
      -V myVCF.vcf \
-     -rv referenceData.vcf.gz \
-     -O outputTable.txt \
-     --summaryTable summaryTable.txt
- </pre>
- <h3>Usage Example With Sample List:</h3>
- <pre>
-  java -jar DISCVRseq.jar CrossSampleGenotypeComparison \
-     -R currentGenome.fasta \
-     -V myVCF.vcf \
-     -rv referenceData.vcf.gz \
-     -O outputTable.txt \
-     --summaryTable summaryTable.txt \
-     -s Sample1 \
-     -s Sample2 \
-     -s Sample13
+     --sample-map sampleMap.txt \
+     -O output.vcf.gz \
+     --genotype-filter-expression 'Set1:DP < 10'
+     --genotype-filter-name 'DP-LT10'
+     --genotype-filter-expression 'Set2:DP < 10'
+     --genotype-filter-name 'DP-LT10'
+     --genotype-filter-expression 'Set2:DP > 50'
+     --genotype-filter-name 'DP-GT50'
  </pre>
 
 		<hr>
@@ -54,12 +47,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by CrossSampleGenotypeComparison.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by SampleSpecificGenotypeFiltration.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>CrossSampleGenotypeComparison specific arguments</h3>
+				<h3>SampleSpecificGenotypeFiltration specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -74,28 +67,36 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
+					<td><a href="#--genotype-filter-expression">--genotype-filter-expression</a><br />
+								&nbsp;<em>-G-filter</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>One or more expressions used with FORMAT (sample/genotype-level) fields to filter (see documentation guide for more info). These must be in the format "SetName:<JEXL>", where SetName matches a sample group defined by --sampleMap</td>
+				</tr>
+				<tr>
+					<td><a href="#--genotype-filter-name">--genotype-filter-name</a><br />
+								&nbsp;<em>-G-filter-name</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Names to use for the list of sample/genotype filters (must be a 1-to-1 mapping); this name is put in the FILTER field for variants that get filtered</td>
+				</tr>
+				<tr>
 					<td><a href="#--output">--output</a><br />
 								&nbsp;<em>-O</em>
 					</td>
-					<!--<td>String</td> -->
+					<!--<td>GATKPath</td> -->
 					<td>null</td>
-					<td>File to which the output table should be written</td>
+					<td>File to which variants should be written</td>
 				</tr>
 				<tr>
-					<td><a href="#--referenceVCF">--referenceVCF</a><br />
-								&nbsp;<em>-rv</em>
+					<td><a href="#--sample-map">--sample-map</a><br />
+								&nbsp;<em>-sm</em>
 					</td>
-					<!--<td>FeatureInput[VariantContext]</td> -->
+					<!--<td>GATKPath</td> -->
 					<td>null</td>
-					<td>Reference VCF</td>
-				</tr>
-				<tr>
-					<td><a href="#--summaryTable">--summaryTable</a><br />
-								&nbsp;<em>-st</em>
-					</td>
-					<!--<td>String</td> -->
-					<td>null</td>
-					<td>File to which the summary table should be written</td>
+					<td>File with sample to setName mapping</td>
 				</tr>
 				<tr>
 					<td><a href="#--variant">--variant</a><br />
@@ -186,20 +187,19 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
+					<td><a href="#--missing-values-evaluate-as-failing">--missing-values-evaluate-as-failing</a><br />
+					</td>
+					<!--<td>Boolean</td> -->
+					<td>false</td>
+					<td>When evaluating the JEXL expressions, missing values should be considered failing the expression</td>
+				</tr>
+				<tr>
 					<td><a href="#--reference">--reference</a><br />
 								&nbsp;<em>-R</em>
 					</td>
 					<!--<td>GATKPath</td> -->
 					<td>null</td>
 					<td>Reference sequence</td>
-				</tr>
-				<tr>
-					<td><a href="#--samples">--samples</a><br />
-								&nbsp;<em>-s</em>
-					</td>
-					<!--<td>List[String]</td> -->
-					<td>[]</td>
-					<td>Samples To Consider</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -644,6 +644,32 @@
 			&nbsp;<span class="label">""</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--genotype-filter-expression">--genotype-filter-expression </a>
+			 / <small>-G-filter</small>
+		</h3>
+		<p class="args">
+			<b>One or more expressions used with FORMAT (sample/genotype-level) fields to filter (see documentation guide for more info). These must be in the format "SetName:<JEXL>", where SetName matches a sample group defined by --sampleMap</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--genotype-filter-name">--genotype-filter-name </a>
+			 / <small>-G-filter-name</small>
+		</h3>
+		<p class="args">
+			<b>Names to use for the list of sample/genotype filters (must be a 1-to-1 mapping); this name is put in the FILTER field for variants that get filtered</b><br />
+			Similar to the INFO field based expressions, but used on the FORMAT (genotype) fields instead.
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--help">--help </a>
 			 / <small>-h</small>
 		</h3>
@@ -788,16 +814,28 @@
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--missing-values-evaluate-as-failing">--missing-values-evaluate-as-failing </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>When evaluating the JEXL expressions, missing values should be considered failing the expression</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which the output table should be written</b><br />
+			<b>File to which variants should be written</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
+		<span class="label label-info ">GATKPath</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -872,29 +910,17 @@
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--referenceVCF">--referenceVCF </a>
-			 / <small>-rv</small>
+		<h3><a name="--sample-map">--sample-map </a>
+			 / <small>-sm</small>
 		</h3>
 		<p class="args">
-			<b>Reference VCF</b><br />
+			<b>File with sample to setName mapping</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">FeatureInput[VariantContext]</span>
+		<span class="label label-info ">GATKPath</span>
 			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--samples">--samples </a>
-			 / <small>-s</small>
-		</h3>
-		<p class="args">
-			<b>Samples To Consider</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">List[String]</span>
-			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
@@ -945,19 +971,6 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--summaryTable">--summaryTable </a>
-			 / <small>-st</small>
-		</h3>
-		<p class="args">
-			<b>File to which the summary table should be written</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">String</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>

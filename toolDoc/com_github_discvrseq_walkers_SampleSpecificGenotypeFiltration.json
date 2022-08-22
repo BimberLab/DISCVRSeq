@@ -1,5 +1,5 @@
 {
-  "summary": "Produces a concordance report between two VCFs at the site and genotype level",
+  "summary": "Allows filtration of genotypes with sample-specific expressions",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -74,21 +74,6 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Maximum distance for variants to be grouped together",
-      "name": "--combine-variants-distance",
-      "synonyms": "NA",
-      "type": "int",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "0",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "advanced",
       "options": []
     },
     {
@@ -272,39 +257,39 @@
       "options": []
     },
     {
+      "summary": "One or more expressions used with FORMAT (sample/genotype-level) fields to filter (see documentation guide for more info). These must be in the format \"SetName:\u003cJEXL\u003e\", where SetName matches a sample group defined by --sampleMap",
+      "name": "--genotype-filter-expression",
+      "synonyms": "-G-filter",
+      "type": "List[String]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
+      "summary": "Names to use for the list of sample/genotype filters (must be a 1-to-1 mapping); this name is put in the FILTER field for variants that get filtered",
+      "name": "--genotype-filter-name",
+      "synonyms": "-G-filter-name",
+      "type": "List[String]",
+      "required": "yes",
+      "fulltext": "Similar to the INFO field based expressions, but used on the FORMAT (genotype) fields instead.",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "options": []
+    },
+    {
       "summary": "display the help message",
       "name": "--help",
       "synonyms": "-h",
-      "type": "boolean",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "false",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Restrict variant output to sites that start within provided intervals (only applies when an interval is specified)",
-      "name": "--ignore-variants-starting-outside-interval",
-      "synonyms": "NA",
-      "type": "boolean",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "false",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "advanced",
-      "options": []
-    },
-    {
-      "summary": "By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites",
-      "name": "--include-no-call-sites",
-      "synonyms": "NA",
       "type": "boolean",
       "required": "no",
       "fulltext": "",
@@ -440,21 +425,6 @@
       "options": []
     },
     {
-      "summary": "Maximum distance for variants to be grouped together",
-      "name": "--max-distance",
-      "synonyms": "NA",
-      "type": "int",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "2147483647",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "advanced",
-      "options": []
-    },
-    {
       "summary": "If non-zero, partitions VCF output into shards, each containing up to the given number of records.",
       "name": "--max-variants-per-shard",
       "synonyms": "NA",
@@ -470,13 +440,13 @@
       "options": []
     },
     {
-      "summary": "Missing Sites VCF",
-      "name": "--missing-sites-vcf",
-      "synonyms": "-ms",
-      "type": "GATKPath",
+      "summary": "When evaluating the JEXL expressions, missing values should be considered failing the expression",
+      "name": "--missing-values-evaluate-as-failing",
+      "synonyms": "NA",
+      "type": "Boolean",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
+      "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -485,22 +455,7 @@
       "options": []
     },
     {
-      "summary": "Novel or Altered Sites VCF",
-      "name": "--novel-or-altered-sites-vcf",
-      "synonyms": "-ns",
-      "type": "GATKPath",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "File to which the output table should be written",
+      "summary": "File to which variants should be written",
       "name": "--output",
       "synonyms": "-O",
       "type": "GATKPath",
@@ -588,40 +543,25 @@
       ]
     },
     {
-      "summary": "Number of bases on either side to expand spanning reference window",
-      "name": "--ref-padding",
-      "synonyms": "NA",
-      "type": "int",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "1",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "advanced",
-      "options": []
-    },
-    {
-      "summary": "Reference sequence file",
+      "summary": "Reference sequence",
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "yes",
+      "required": "no",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "required",
+      "kind": "optional",
       "options": []
     },
     {
-      "summary": "Reference VCF",
-      "name": "--referenceVCF",
-      "synonyms": "-rv",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "File with sample to setName mapping",
+      "name": "--sample-map",
+      "synonyms": "-sm",
+      "type": "GATKPath",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -693,21 +633,6 @@
       "options": []
     },
     {
-      "summary": "If provided, a tab-delimited list of each site with a discrepancy will be written",
-      "name": "--sites-output",
-      "synonyms": "NA",
-      "type": "GATKPath",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",
@@ -753,13 +678,13 @@
       "options": []
     },
     {
-      "summary": "One or more VCF files containing variants",
+      "summary": "A VCF file containing variants",
       "name": "--variant",
       "synonyms": "-V",
-      "type": "List[GATKPath]",
+      "type": "GATKPath",
       "required": "yes",
       "fulltext": "",
-      "defaultValue": "[]",
+      "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -815,8 +740,8 @@
       "options": []
     }
   ],
-  "description": "This tool will compare the sites and genotypes between two VCFs. It will output site-level differences, including number of sites filtered/not between the query and reference VCF, and sites present/absent in either.\n For each site that is present in both and not filtered, it will output the total number of genotypes that are discordant (which does not consider no-calls/filtered genotypes).\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VcfComparison \\\n     -R currentGenome.fasta \\\n     -V myVCF.vcf \\\n     -rv referenceData.vcf.gz \\\n     -O outputTable.txt \\\n     -sites-output sitesTable.txt.gz\n     --novel-or-altered-sites-vcf novelVariants.vcf.gz\n     --missing-sites-vcf missingVariants.vcf.gz\n \u003c/pre\u003e",
-  "name": "VcfComparison",
+  "description": "This tool is a specialized version of VariantFiltration. It takes a tab-delimited text file mapping sample name to group, and then allows the user to perform group-specific JEXL genotype filtration.\n An example use-case would be a VCF with a mixture of WGS and WXS data, where samples from each technology require different filter thresholds.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar SampleSpecificGenotypeFiltration \\\n     -R currentGenome.fasta \\\n     -V myVCF.vcf \\\n     --sample-map sampleMap.txt \\\n     -O output.vcf.gz \\\n     --genotype-filter-expression \u0027Set1:DP \u003c 10\u0027\n     --genotype-filter-name \u0027DP-LT10\u0027\n     --genotype-filter-expression \u0027Set2:DP \u003c 10\u0027\n     --genotype-filter-name \u0027DP-LT10\u0027\n     --genotype-filter-expression \u0027Set2:DP \u003e 50\u0027\n     --genotype-filter-name \u0027DP-GT50\u0027\n \u003c/pre\u003e",
+  "name": "SampleSpecificGenotypeFiltration",
   "group": "Variant Manipulation",
   "beta": false,
   "experimental": false
