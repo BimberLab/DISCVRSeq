@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -43,7 +44,7 @@ public class SummarizeGenotypeQuality extends VariantWalker {
     @Argument(fullName="excludeFiltered", shortName="ef", doc="Don't include filtered sites", optional = true)
     public boolean excludeFiltered = true;
 
-    private final Map<GenotypeType, Map<Integer, Long>> qualMap = new HashMap<>();
+    private final Map<GenotypeType, Map<Integer, Long>> qualMap = new TreeMap<>();
 
     @Override
     public void onTraversalStart() {
@@ -65,7 +66,7 @@ public class SummarizeGenotypeQuality extends VariantWalker {
 
             GenotypeType t = g.getType();
             if (!qualMap.containsKey(t)) {
-                qualMap.put(t, new HashMap<>());
+                qualMap.put(t, new TreeMap<>());
             }
 
             int gq = g.getGQ();
