@@ -147,7 +147,7 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         Map<FeatureInput<VariantContext>, List<VariantContext>> variants = groupVariantsByFeatureInput(variantContexts);
 
-        List<VariantContext> sampleVariants = variants.get(getDrivingVariantsFeatureInputs().get(0)).stream().filter(variantContext -> includeNoCallSites ||!variantContext.hasGenotypes() || variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
+        List<VariantContext> sampleVariants = variants.get(getDrivingVariantsFeatureInputs().get(0)).stream().filter(variantContext -> includeNoCallSites || !variantContext.hasGenotypes() || variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
         List<VariantContext> refVariants = variants.get(getVcfComparisonArgumentCollection().refVariants).stream().filter(variantContext -> includeNoCallSites || !variantContext.hasGenotypes() || variantContext.getCalledChrCount() > 0).collect(Collectors.toList());
         if (sampleVariants.isEmpty()) {
             possiblyWriteVariant(refVariants, referenceContext, "SiteMissingRelativeToRef", missingSitesWriter);
@@ -204,7 +204,7 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
                     }
 
                     Genotype rg = refVc.getGenotype(sn);
-                    if (rg.isFiltered() || rg.isNoCall()) {
+                    if (rg == null || rg.isFiltered() || rg.isNoCall()) {
                         continue;
                     }
 
