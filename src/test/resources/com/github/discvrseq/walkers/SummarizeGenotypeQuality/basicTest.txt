@@ -1,0 +1,4 @@
+Type	Qual	Total
+HET	-1	4
+HOM_REF	-1	1
+HOM_VAR	-1	1
