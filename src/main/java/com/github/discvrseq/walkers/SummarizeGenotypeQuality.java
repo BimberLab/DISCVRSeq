@@ -41,7 +41,7 @@ public class SummarizeGenotypeQuality extends VariantWalker {
     public String outFile = null;
 
     @Argument(fullName="excludeFiltered", shortName="ef", doc="Don't include filtered sites", optional = true)
-    public boolean excludeFiltered = true;
+    public boolean excludeFiltered = false;
 
     private final Map<GenotypeType, Map<Integer, Long>> qualMap = new TreeMap<>();
 
