@@ -603,6 +603,21 @@
       "options": []
     },
     {
+      "summary": "Set filtered genotypes to no-call",
+      "name": "--set-filtered-genotype-to-no-call",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "display hidden arguments",
       "name": "--showHidden",
       "synonyms": "-showHidden",
