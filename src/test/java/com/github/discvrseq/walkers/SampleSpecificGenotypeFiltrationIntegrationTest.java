@@ -15,6 +15,7 @@ public class SampleSpecificGenotypeFiltrationIntegrationTest extends BaseIntegra
 
         String fn = "basicTestOut.vcf";
 
+        args.addFlag(VariantFiltration.NO_CALL_GTS_LONG_NAME);
         args.addRaw("-O");
         args.addRaw("%s");
         args.addRaw("--tmp-dir");

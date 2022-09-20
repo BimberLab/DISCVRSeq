@@ -67,6 +67,10 @@ public class SampleSpecificGenotypeFiltration extends VariantWalker {
     @Argument(fullName=VariantFiltration.MISSING_VAL_LONG_NAME, doc="When evaluating the JEXL expressions, missing values should be considered failing the expression", optional=true)
     public Boolean failMissingValues = false;
 
+    @Argument(fullName=VariantFiltration.NO_CALL_GTS_LONG_NAME, optional=true, doc="Set filtered genotypes to no-call")
+    public boolean setFilteredGenotypesToNocall = false;
+
+
     private Map<String, String> sampleToSetName;
     private final Map<String, List<VariantContextUtils.JexlVCMatchExp>> setToFilter = new HashMap<>();
     private VariantContextWriter writer;
@@ -147,7 +151,7 @@ public class SampleSpecificGenotypeFiltration extends VariantWalker {
         for (String setName : setToFilter.keySet()) {
             List<VariantContextUtils.JexlVCMatchExp> genotypeFilterExps = setToFilter.get(setName);
             if ( !genotypeFilterExps.isEmpty()) {
-                GATKVariantContextUtils.setFilteredGenotypeToNocall(builder, variant, true, this::getGenotypeFilters);
+                GATKVariantContextUtils.setFilteredGenotypeToNocall(builder, variant, setFilteredGenotypesToNocall, this::getGenotypeFilters);
             }
         }
 
