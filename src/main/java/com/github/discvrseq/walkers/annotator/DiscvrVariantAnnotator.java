@@ -83,7 +83,7 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
         return ret;
     }
 
-    private static class DiscvrAnnotationPluginDescriptor extends GATKAnnotationPluginDescriptor
+    public static class DiscvrAnnotationPluginDescriptor extends GATKAnnotationPluginDescriptor
     {
         @ArgumentCollection
         public GenotypeConcordanceArgumentCollection genotypeConcordanceArgumentCollection = new GenotypeConcordanceArgumentCollection();
