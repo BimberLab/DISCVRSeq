@@ -114,7 +114,7 @@ public class MergeVcfsAndGenotypesIntegrationTest extends BaseIntegrationTest {
                 1, UserException.BadInput.class);
 
         spec.executeTest("basicTest", this);
-
+        executeTest(spec, "basicTest");
 
         args.add("genotypeMergeOption", "PRIORITIZE");
 
@@ -123,7 +123,7 @@ public class MergeVcfsAndGenotypesIntegrationTest extends BaseIntegrationTest {
                 args.getString(),
                 Arrays.asList(getTestFile(fn).getPath()));
 
-        executeTest(spec, "basicTest");
+        executeTest(spec2, "basicTest");
     }
 
     private void executeTest(IntegrationTestSpec spec, String name) throws IOException {

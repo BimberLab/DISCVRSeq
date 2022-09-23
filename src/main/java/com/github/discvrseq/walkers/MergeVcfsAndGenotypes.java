@@ -353,6 +353,10 @@ public class MergeVcfsAndGenotypes extends MultiVariantWalkerGroupedOnStart {
             }
 
             final VariantContextBuilder builder = new VariantContextBuilder(mergedVC);
+            if (SET_KEY != null && mergedVC.getSource() != null) {
+                builder.attribute(SET_KEY, mergedVC.getSource());
+            }
+
             // re-compute chromosome counts
             VariantContextUtils.calculateChromosomeCounts(builder, false);
 
