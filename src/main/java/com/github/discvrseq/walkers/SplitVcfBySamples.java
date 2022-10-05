@@ -49,6 +49,9 @@ public class SplitVcfBySamples extends VariantWalker {
     @Argument(doc="If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF", fullName = "minAllowableInFinalVcf", optional = true)
     public Integer minAllowableInFinalVcf = null;
 
+    @Argument(doc="If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded", fullName = "discardNonVariantSites", optional = true)
+    public boolean discardNonVariantSites = false;
+
     /**
      * When this flag is enabled, all alternate alleles that are not present in the (output) samples will be removed.
      * Note that this even extends to biallelic SNPs - if the alternate allele is not present in any sample, it will be
@@ -70,7 +73,7 @@ public class SplitVcfBySamples extends VariantWalker {
         VCFHeader header = getHeaderForVariants();
         List<String> samples = header.getSampleNamesInOrder();
 
-        batches = Lists.partition(new ArrayList<>(samples), samplesPerVcf);
+        batches = new ArrayList<>(Lists.partition(new ArrayList<>(samples), samplesPerVcf));
         if (batches.size() == 1) {
             throw new GATKException("This split would result in one output VCF, aborting");
         }
@@ -109,10 +112,19 @@ public class SplitVcfBySamples extends VariantWalker {
         int idx = 0;
         for (List<String> batch : batches) {
             final VariantContextWriter writer = writers.get(idx);
+            idx++;
+
             final VariantContext sub = variant.subContextFromSamples(new LinkedHashSet<>(batch), removeUnusedAlternates);
+            if (discardNonVariantSites) {
+                if (sub.getCalledChrCount() == 0) {
+                    continue;
+                }
+                else if (sub.getGenotypes().stream().noneMatch(g -> !g.isFiltered() && !g.isHomRef())) {
+                    continue;
+                }
+            }
 
             writer.add(sub);
-            idx++;
         }
     }
 
