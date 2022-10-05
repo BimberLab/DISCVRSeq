@@ -49,7 +49,7 @@ public class SplitVcfBySamples extends VariantWalker {
     @Argument(doc="If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF", fullName = "minAllowableInFinalVcf", optional = true)
     public Integer minAllowableInFinalVcf = null;
 
-    @Argument(doc="If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF", fullName = "discardNonVariantSites", optional = true)
+    @Argument(doc="If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded", fullName = "discardNonVariantSites", optional = true)
     public boolean discardNonVariantSites = false;
 
     /**
