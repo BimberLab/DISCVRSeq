@@ -124,6 +124,13 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
+					<td><a href="#--discardNonVariantSites">--discardNonVariantSites</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded</td>
+				</tr>
+				<tr>
 					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
 								&nbsp;<em>-gcs-retries</em>
 					</td>
@@ -567,6 +574,18 @@
 		</h3>
 		<p class="args">
 			<b>Disable all tool default read filters (WARNING: many tools will not function correctly without their default read filters on)</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--discardNonVariantSites">--discardNonVariantSites </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded</b><br />
 			
 		</p>
 		<p>
@@ -1040,7 +1059,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.19 built at 05-10-2022 05:19:31.
+        <p class="version">DISCVR-Seq version 1.3.19 built at 05-10-2022 06:43:41.
         </p>
 
 </div></div>
