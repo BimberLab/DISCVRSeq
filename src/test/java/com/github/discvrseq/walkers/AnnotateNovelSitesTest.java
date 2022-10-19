@@ -1,6 +1,5 @@
 package com.github.discvrseq.walkers;
 
-import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.annotations.Test;
@@ -32,8 +31,8 @@ public class AnnotateNovelSitesTest extends  BaseIntegrationTest {
                 args.getString(),
                 Arrays.asList(
                     getTestFile("output.vcf").getPath(),
-                    getTestFile("missing.vcf").getPath(),
-                        getTestFile("novel.vcf").getPath()
+                    getTestFile("novel.vcf").getPath(),
+                        getTestFile("missing.vcf").getPath()
                 ));
 
         spec.executeTest("testBasicOperation", this);

@@ -15,5 +15,11 @@
 ##contig=<ID=1,length=16000>
 ##contig=<ID=2,length=16000>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-1	4633	.	C	CTAT,GA,TACGTAC	38369.71	PASS	MAC=3;PURPOSE=same_pos_same_ref_same_alt1_same_alt2_same_alt3;RN=12;mGAPV=1.0
-1	4725	.	G	A,GC,TTTAAAA	38369.71	PASS	MAC=0;PURPOSE=overlapping_position;RN=12;mGAPV=1.0
+1	2	.	G	A	2328.69	PASS	MAC=1;PURPOSE=diff_pos_same_ref_same_alt;RN=12;mGAPV=2.0
+1	4	.	G	T	2328.69	PASS	MAC=1;PURPOSE=same_pos_diff_ref_same_alt;RN=12;mGAPV=2.0
+1	11	.	G	A	12328.69	PASS	MAC=0;PURPOSE=same_pos_same_ref_diff_alt;RN=12;mGAPV=2.0
+1	12	.	C	CG	12328.69	PASS	MAC=1;PURPOSE=same_pos_same_ref_same_alt;RN=12;mGAPV=2.0
+1	221	.	G	A,T	2328.69	PASS	MAC=1;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2;RN=12;mGAPV=2.0
+1	232	.	G	T,*	1008.03	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2;RN=12;mGAPV=2.0
+1	244	.	A	AT,CCC	7.80	PASS	MAC=2;PURPOSE=same_pos_same_ref_same_alt1_same_alt2;RN=12;mGAPV=2.0
+1	3111	.	TA	AT,G,T	9683.63	PASS	MAC=1;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_diff_alt3;RN=12;mGAPV=2.0

@@ -15,7 +15,7 @@
 ##contig=<ID=1,length=16000>
 ##contig=<ID=2,length=16000>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
-1	3111	.	TA	AT,G	9683.63	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_diff_alt3;mGAPV=1.0	GT:AD:DP:FT:GQ:MV:PL	./.:10,0:10:GQ-LT30:27:0:0,27,405	./.:10,0:10:GQ-LT30:27:0:0,27,405
+1	3111	.	TA	AT,G	9683.63	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_diff_alt3	GT:AD:DP:FT:GQ:MV:PL	./.:10,0:10:GQ-LT30:27:0:0,27,405	./.:10,0:10:GQ-LT30:27:0:0,27,405
 1	3211	.	C	A,G,T	9683.63	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_same_alt1_diff_alt2_diff_alt3;mGAPV=1.0	GT:AD:DP:FT:GQ:MV:PL	0/0:12,0:12:PASS:36:0:0,36,434	0/0:12,0:12:PASS:36:0:0,36,411
 1	3323	.	G	A,C,T	6630.5	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_same_alt2_diff_alt3;mGAPV=1.0	GT:AD:DP:FT:GQ:MV:PL	./.:8,0:8:DP-LT10;GQ-LT30:21:0:0,21,315	0/1:5,8:13:PASS:99:0:247,0,179
 1	3332	.	C	CG,G,TTT	37495.79	PASS	MAC=1;RN=12;PURPOSE=same_pos_same_ref_diff_alt1_diff_alt2_same_alt3;mGAPV=1.0	GT:AD:DP:FT:GQ:MV:PL	./.:9,0:9:DP-LT10;GQ-LT30:18:0:0,18,270	0/0:16,0:16:PASS:48:0:0,48,649
