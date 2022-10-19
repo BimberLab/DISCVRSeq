@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
         programGroup = VariantManipulationProgramGroup.class
 )
 public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
-    @Argument(doc = "File to which the output table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
+    @Argument(doc = "File to which the output summary table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
     @Argument(doc = "If provided, a tab-delimited list of each site with a discrepancy will be written", fullName = "sites-output", optional = true)
