@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
         programGroup = VariantManipulationProgramGroup.class
 )
 public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
-    @Argument(doc = "File to which the output table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
+    @Argument(doc = "File to which the output summary table should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
     @Argument(doc = "If provided, a tab-delimited list of each site with a discrepancy will be written", fullName = "sites-output", optional = true)
@@ -61,6 +61,9 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
 
     @Argument(doc = "By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites", fullName = "include-no-call-sites", optional = true)
     public boolean includeNoCallSites = false;
+
+    @Argument(doc = "If provided, any site where a genotype differs between the VCFs will be included in the output.", fullName = "include-discordant-genotype-sites", optional = true)
+    public boolean includeDiscordantGenotypesIfVcf = false;
 
     private ICSVWriter siteWriter = null;
     private VariantContextWriter novelSitesWriter;
@@ -192,6 +195,7 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
                 continue;
             }
 
+            int discordantGenotypesForSite = 0;
             for (String sn : vc.getSampleNames()) {
                 Genotype g = vc.getGenotype(sn);
                 if (g.isFiltered() || g.isNoCall()) {
@@ -209,10 +213,14 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
                     }
 
                     if (!rg.sameGenotype(g)) {
-                        possiblyWriteVariant(Collections.singletonList(vc), referenceContext, "Discordant Genotype: " + g.getSampleName(), novelSitesWriter);
-                        discordantGenotypes++;
+                        discordantGenotypesForSite++;
                     }
                 }
+            }
+
+            if (discordantGenotypesForSite > 0) {
+                possiblyWriteVariant(Collections.singletonList(vc), referenceContext, "Discordant Genotypes: " + discordantGenotypesForSite, includeDiscordantGenotypesIfVcf ? novelSitesWriter : null);
+                discordantGenotypes++;
             }
         }
     }

@@ -54,6 +54,9 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
     @Argument(doc="Novel Site Annotation Value", fullName = "novel-site-annotation", shortName = "av", optional = false)
     public String novelSiteAnnotationValue = null;
 
+    @Argument(doc="Existing Site Annotation Default Value", fullName = "existing-site-annotation-default", shortName = "dv", optional = true)
+    public String existingSiteDefaultAnnotationValue = null;
+
     @Argument(doc="Novel Site Annotation Name", fullName = "novel-site-annotation-name", shortName = "an", optional = false)
     public String novelSiteAnnotationName = null;
 
@@ -101,9 +104,6 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         Map<FeatureInput<VariantContext>, List<VariantContext>> variants = groupVariantsByFeatureInput(variantContexts);
         List<VariantContext> refVariants = variants.get(getAnnotateNovelSitesArgumentCollection().referenceVcf);
-        if (refVariants != null && refVariants.size() > 1) {
-            throw new GATKException("More than one variant present in the reference at position: " + refVariants.get(0).getContig() + ": " + refVariants.get(0).getStart());
-        }
 
         List<VariantContext> inputVariants = variants.get(getDrivingVariantsFeatureInputs().get(0));
         if (inputVariants == null || inputVariants.isEmpty()) {
@@ -126,23 +126,46 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
             if (refVariants == null || refVariants.isEmpty()) {
                 vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
                 writer.add(vcb.make());
+
+                if (novelSitesWriter != null) {
+                    novelSites++;
+                    novelSitesWriter.add(vcb.genotypes().make());
+                }
             }
             else {
-                VariantContext refVariant = refVariants.get(0);
+                boolean foundMatchingRef = false;
+                boolean isNovel = false;
+                for (VariantContext refVariant : refVariants) {
+                    // Prior site exists, alleles identical. No action needed:
+                    if (refVariant.getReference().equals(vc.getReference())) {
+                        if (refVariant.getAlternateAlleles().equals(vc.getAlternateAlleles())) {
+                            List<String> val = refVariant.getAttributeAsStringList(novelSiteAnnotationName, existingSiteDefaultAnnotationValue);
+                            if (val != null && !val.isEmpty()) {
+                                vcb.attribute(novelSiteAnnotationName, new ArrayList<>(val));
+                            }
+                        }
+                        else {
+                            // Alleles are different, so annotate with both
+                            Set<String> anns = new LinkedHashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, existingSiteDefaultAnnotationValue));
+                            anns.add(novelSiteAnnotationValue);
+                            isNovel = true;
 
-                // Prior site exists, alleles identical. No action needed:
-                if (refVariant.getAlternateAlleles().equals(vc.getAlternateAlleles())) {
-                    vcb.attribute(novelSiteAnnotationName, refVariant.getAttributeAsStringList(novelSiteAnnotationName, novelSiteAnnotationValue));
+                            vcb.attribute(novelSiteAnnotationName, new ArrayList<>(anns));
+                        }
+                        foundMatchingRef = true;
+                        break;
+                    }
                 }
-                else {
-                    Set<String> values = new HashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, novelSiteAnnotationValue));
-                    values.add(novelSiteAnnotationValue);
-                    vcb.attribute(novelSiteAnnotationName, new ArrayList<>(values));
+
+                if (!foundMatchingRef) {
+                    vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
+                    isNovel = true;
                 }
 
                 vc = vcb.make();
                 writer.add(vc);
-                if (novelSitesWriter != null) {
+
+                if (isNovel && novelSitesWriter != null) {
                     novelSites++;
                     novelSitesWriter.add(vcb.genotypes().make());
                 }
