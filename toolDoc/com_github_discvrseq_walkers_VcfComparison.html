@@ -69,7 +69,7 @@
 					</td>
 					<!--<td>GATKPath</td> -->
 					<td>null</td>
-					<td>File to which the output table should be written</td>
+					<td>File to which the output summary table should be written</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -158,6 +158,13 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display the help message</td>
+				</tr>
+				<tr>
+					<td><a href="#--include-discordant-genotype-sites">--include-discordant-genotype-sites</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>If provided, any site where a genotype differs between the VCFs will be included in the output.</td>
 				</tr>
 				<tr>
 					<td><a href="#--include-no-call-sites">--include-no-call-sites</a><br />
@@ -714,6 +721,18 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--include-discordant-genotype-sites">--include-discordant-genotype-sites </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>If provided, any site where a genotype differs between the VCFs will be included in the output.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--include-no-call-sites">--include-no-call-sites </a>
 			 / <small>NA</small>
 		</h3>
@@ -900,7 +919,7 @@
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>File to which the output table should be written</b><br />
+			<b>File to which the output summary table should be written</b><br />
 			
 		</p>
 		<p>
@@ -1165,7 +1184,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.19 built at 05-10-2022 06:43:41.
+        <p class="version">DISCVR-Seq version 1.3.20 built at 19-10-2022 06:59:08.
         </p>
 
 </div></div>

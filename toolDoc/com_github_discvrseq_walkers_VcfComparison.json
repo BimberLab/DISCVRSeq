@@ -302,6 +302,21 @@
       "options": []
     },
     {
+      "summary": "If provided, any site where a genotype differs between the VCFs will be included in the output.",
+      "name": "--include-discordant-genotype-sites",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "By default, any site from a VCF with genotypes, but where none of the samples are called, are treated as missing. Use this flag to include those sites",
       "name": "--include-no-call-sites",
       "synonyms": "NA",
@@ -500,7 +515,7 @@
       "options": []
     },
     {
-      "summary": "File to which the output table should be written",
+      "summary": "File to which the output summary table should be written",
       "name": "--output",
       "synonyms": "-O",
       "type": "GATKPath",
