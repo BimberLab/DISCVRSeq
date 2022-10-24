@@ -80,7 +80,9 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
 
         writer = createVCFWriter(outFile.toPath());
 
-        VCFHeader header = new VCFHeader(getHeaderForVariants().getMetaDataInInputOrder(), getSamplesForVariants());
+        VCFHeader sourceHeader = (VCFHeader)getHeaderForFeatures(getDrivingVariantsFeatureInputs().get(0));
+
+        VCFHeader header = new VCFHeader(sourceHeader.getMetaDataInInputOrder(), sourceHeader.getSampleNamesInOrder());
 
         if (!header.hasInfoLine(novelSiteAnnotationName)) {
             header.addMetaDataLine(new VCFInfoHeaderLine(novelSiteAnnotationName, VCFHeaderLineCount.UNBOUNDED, VCFHeaderLineType.String, novelSiteAnnotationDescription));
