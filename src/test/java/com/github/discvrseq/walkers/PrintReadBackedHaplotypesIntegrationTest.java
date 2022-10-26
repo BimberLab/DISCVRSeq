@@ -112,7 +112,7 @@ public class PrintReadBackedHaplotypesIntegrationTest extends BaseIntegrationTes
                         " -I " + normalizePath(getInput()) +
                         " -O " + "%s" +
                         " --tmp-dir " + getTmpDir(),
-                1,
+                        1,
                 CommandLineException.MissingArgument.class);
 
         spec.executeTest("doTestWithoutIntervals", this);

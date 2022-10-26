@@ -1,22 +1,44 @@
 package com.github.discvrseq.walkers;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
-import htsjdk.variant.variantcontext.VariantContext;
+import java.io.IOException;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FloatPoint;
+import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.TextField;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLinePluginDescriptor;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.*;
+import org.broadinstitute.hellbender.engine.FeatureContext;
+import org.broadinstitute.hellbender.engine.ReadsContext;
+import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.tools.walkers.annotator.Annotation;
 import org.broadinstitute.hellbender.tools.walkers.annotator.InfoFieldAnnotation;
 
-import java.util.*;
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
+
+import htsjdk.variant.variantcontext.VariantContext;
 
 /**
- * This tool will accept a VCF, and iterate the variants and write the results to a lucene search index.
+ * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
  * It accepts a list of INFO annotations that will be indexed per site.
  *
  * <h3>Usage example:</h3>
@@ -30,19 +52,21 @@ import java.util.*;
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "This tool will accept a VCF, and iterate the variants and write the results to a lucene search index",
+        summary = "This tool accepts a VCF, iterates the variants, and writes the results to a lucene search index",
         oneLineSummary = "Index a VCF using Apache Lucene",
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class VcfToLuceneIndexer extends VariantWalker {
-    @Argument(doc="Folder where the index will be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
-    public GATKPath outDir = null;
+    @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", common = false, optional = true)
+    private File outDir = null;
 
     @Argument(doc="Info fields to index", fullName = "info-field", shortName = "IF", optional = true)
     List<String> infoFieldsToIndex;
 
     @Argument(doc="Annotations to apply", fullName = "annotation-name", shortName = "AN", optional = true)
     List<String> annotationClassNames;
+
+    IndexWriter writer;
 
     @Override
     public List<? extends CommandLinePluginDescriptor<?>> getPluginDescriptors() {
@@ -59,12 +83,26 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     @Override
     public void onTraversalStart() {
-        //IOUtil.assertDirectoryIsWritable(outDir.toPath());
+        StandardAnalyzer analyzer = new StandardAnalyzer();
+
+        Directory index;
+        try {
+            index = FSDirectory.open(outDir.toPath());
+        } catch(IOException e) {
+            analyzer.close();
+            throw new GATKException(e.getMessage(), e);
+        }
+
+        IndexWriterConfig config = new IndexWriterConfig(analyzer);
+
+        try {
+            writer = new IndexWriter(index, config);
+        } catch (IOException e) {
+            throw new GATKException(e.getMessage(), e);
+        }
 
         // This is where you'd sanity check the set of annotations is valid, etc.
         // Note: we can implement custom InfoFieldAnnotation classes for operations like indexing all
-
-        // Also initialize whatever kind of lucene writer is needed.
 
         // NOTE: as far as listing variable samples, see the GATK SampleList annotation
         DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor plugin = getCommandLineParser().getPluginDescriptor(DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor.class);
@@ -82,14 +120,13 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 throw new GATKException("Unable to create annotation: " + className);
             }
         }
+
     }
 
     private long sites = 0;
 
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
-        //TODO: per variant, build the document and write to the index
-
         Map<String, Object> toIndex = new HashMap<>();
 
         // Standard fields also included:
@@ -102,17 +139,44 @@ public class VcfToLuceneIndexer extends VariantWalker {
         for (String infoField : infoFieldsToIndex) {
             if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
                 toIndex.put(infoField, variant.getAttribute(infoField));
+            } else {
+                throw new GATKException("Non-existent INFO field key: " + infoField);
             }
         }
 
-        // TODO: maybe warn/throw if there are conflicting keys?
         for (InfoFieldAnnotation a : annotationsToUse) {
-            toIndex.putAll(a.annotate(referenceContext, variant, null));
+            Map<String, Object> infoField = a.annotate(referenceContext, variant, null);
+
+            for (var entry : infoField.entrySet()) {
+                if(toIndex.containsKey(entry.getKey())) {
+                    throw new GATKException("Duplicate INFO field key: " + entry.getKey());
+                }
+            }
+
+            toIndex.putAll(infoField);
         }
 
         sites++;
 
-        //TODO: actually index that
+        Document doc = new Document();
+
+        for (var entry : toIndex.entrySet()) {
+            if(entry.getValue().getClass() == String.class) {
+                doc.add(new TextField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
+            } else if(entry.getValue().getClass() == Integer.class) {
+                doc.add(new IntPoint(entry.getKey(), (int) entry.getValue()));
+                doc.add(new StoredField(entry.getKey(), (int) entry.getValue()));
+            } else if(entry.getValue().getClass() == Float.class) {
+                doc.add(new FloatPoint(entry.getKey(), (float) entry.getValue()));
+                doc.add(new StoredField(entry.getKey(), (float) entry.getValue()));
+            }
+        }
+
+        try {
+            writer.addDocument(doc);
+        } catch(IOException e) {
+            throw new GATKException(e.getMessage(), e);
+        }
     }
 
     @Override
@@ -123,6 +187,10 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     @Override
     public void closeTool() {
-        //TODO: if you need to close the Writer or anything, do that here
+        try {
+            writer.close();
+        } catch (IOException e) {
+            throw new GATKException(e.getMessage(), e);
+        }
     }
 }
