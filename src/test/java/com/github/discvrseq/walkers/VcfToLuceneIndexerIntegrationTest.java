@@ -14,6 +14,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
     public void doBasicTest() throws Exception {
         ensureVcfIndex(getInputVcf());
 
+        // TODO %s is broken
         IntegrationTestSpec spec = new IntegrationTestSpec(
                   " -V " + normalizePath(getInputVcf()) +
                        " -O " + "%s" +
@@ -31,6 +32,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
     public void doInvalidIFTest() throws Exception {
         ensureVcfIndex(getInputVcf());
 
+        // TODO %s is broken
         IntegrationTestSpec spec = new IntegrationTestSpec(
                   " -V " + normalizePath(getInputVcf()) +
                        " -O " + "%s" +

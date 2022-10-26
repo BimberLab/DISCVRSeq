@@ -18,6 +18,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FloatPoint;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLinePluginDescriptor;
@@ -36,6 +37,8 @@ import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
 
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
 
 /**
  * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
@@ -67,6 +70,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
     List<String> annotationClassNames;
 
     IndexWriter writer;
+    VCFHeader header;
 
     @Override
     public List<? extends CommandLinePluginDescriptor<?>> getPluginDescriptors() {
@@ -101,10 +105,14 @@ public class VcfToLuceneIndexer extends VariantWalker {
             throw new GATKException(e.getMessage(), e);
         }
 
-        // This is where you'd sanity check the set of annotations is valid, etc.
-        // Note: we can implement custom InfoFieldAnnotation classes for operations like indexing all
+        header = (VCFHeader) getHeaderForFeatures(getDrivingVariantsFeatureInput());
 
-        // NOTE: as far as listing variable samples, see the GATK SampleList annotation
+        for(String field : infoFieldsToIndex) {
+           if(!header.hasInfoLine(field)) {
+                throw new GATKException("Non-existent INFO field key: " + field);
+           }
+        }
+
         DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor plugin = getCommandLineParser().getPluginDescriptor(DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor.class);
         for (String className : annotationClassNames) {
             Class<?> clazz = plugin.getClassForPluginHelp(className);
@@ -129,18 +137,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         Map<String, Object> toIndex = new HashMap<>();
 
-        // Standard fields also included:
-        toIndex.put("contig", variant.getContig());
-        toIndex.put("start", variant.getStart());
-        toIndex.put("end", variant.getEnd());
-        // TODO: maybe others?
-
-
         for (String infoField : infoFieldsToIndex) {
             if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
                 toIndex.put(infoField, variant.getAttribute(infoField));
-            } else {
-                throw new GATKException("Non-existent INFO field key: " + infoField);
             }
         }
 
@@ -160,15 +159,35 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         Document doc = new Document();
 
+        // Add standard fields
+        doc.add(new TextField("contig", variant.getContig(), Field.Store.YES));
+
+        doc.add(new IntPoint("start", variant.getStart()));
+        doc.add(new StoredField("start", variant.getStart()));
+
+        doc.add(new IntPoint("end", variant.getEnd()));
+        doc.add(new StoredField("end", variant.getEnd()));
+
+        // TODO should also give us information on alternative alleles per-site (per-row)
         for (var entry : toIndex.entrySet()) {
-            if(entry.getValue().getClass() == String.class) {
-                doc.add(new TextField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
-            } else if(entry.getValue().getClass() == Integer.class) {
-                doc.add(new IntPoint(entry.getKey(), (int) entry.getValue()));
-                doc.add(new StoredField(entry.getKey(), (int) entry.getValue()));
-            } else if(entry.getValue().getClass() == Float.class) {
-                doc.add(new FloatPoint(entry.getKey(), (float) entry.getValue()));
-                doc.add(new StoredField(entry.getKey(), (float) entry.getValue()));
+            switch(header.getInfoHeaderLine(entry.getKey()).getType()) {
+                case Character:
+                    doc.add(new StringField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
+                    break;
+                case Flag:
+                    doc.add(new StringField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
+                    break;
+                case Float:
+                    doc.add(new FloatPoint(entry.getKey(), (float) entry.getValue()));
+                    doc.add(new StoredField(entry.getKey(), (float) entry.getValue()));
+                    break;
+                case Integer:
+                    doc.add(new IntPoint(entry.getKey(), (int) entry.getValue()));
+                    doc.add(new StoredField(entry.getKey(), (int) entry.getValue()));
+                    break;
+                case String:
+                    doc.add(new TextField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
+                    break;
             }
         }
 
