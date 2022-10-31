@@ -52,11 +52,11 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.2.4.1'
-final htsjdkVersion = System.getProperty('htsjdk.version','2.24.1')
+final gatkVersion = '4.3.0.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','3.0.1')
 final barclayVersion = System.getProperty('barclay.version','4.0.2')
 final testNGVersion = '7.0.0'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.117.0-alpha:shaded'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.123.25'
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
@@ -109,23 +109,25 @@ dependencies {
     // should we want to)
     //implementation 'com.google.cloud.bigdataoss:gcs-connector:1.6.3-hadoop2'
 
-    implementation group: 'com.milaboratory', name: 'milib', version: '1.11'
+    implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.5.2'
+    implementation 'com.opencsv:opencsv:5.7.1'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
 
     // compilation for testing
     testImplementation 'org.testng:testng:' + testNGVersion
 
     // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.8'
+    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
 
-    implementation 'org.biojava:biojava-core:6.0.2'
+    implementation 'org.biojava:biojava-core:6.0.5'
 
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.0'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7.1'
 }
 
 wrapper {
@@ -240,7 +242,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
     // runtime classpath, as well as jdk javadoc files such as tools.jar, where com.sun.javadoc lives.
     classpath = sourceSets.main.runtimeClasspath + javadocJDKFiles
     
-    options.docletpath = classpath.asType(List)
+    options.docletpath = classpath as List
     options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
 
     outputs.dir(toolDocDir)
