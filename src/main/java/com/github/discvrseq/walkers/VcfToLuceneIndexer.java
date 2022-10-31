@@ -1,25 +1,15 @@
 package com.github.discvrseq.walkers;
 
-import java.io.IOException;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
+import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.vcf.VCFHeader;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.FloatPoint;
-import org.apache.lucene.document.IntPoint;
-import org.apache.lucene.document.StoredField;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLinePluginDescriptor;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -33,12 +23,9 @@ import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.tools.walkers.annotator.Annotation;
 import org.broadinstitute.hellbender.tools.walkers.annotator.InfoFieldAnnotation;
 
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
-
-import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLineType;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
@@ -146,7 +133,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         for (InfoFieldAnnotation a : annotationsToUse) {
             Map<String, Object> infoField = a.annotate(referenceContext, variant, null);
 
-            for (var entry : infoField.entrySet()) {
+            for (Map.Entry<String, Object> entry : infoField.entrySet()) {
                 if(toIndex.containsKey(entry.getKey())) {
                     throw new GATKException("Duplicate INFO field key: " + entry.getKey());
                 }
@@ -169,7 +156,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         doc.add(new StoredField("end", variant.getEnd()));
 
         // TODO should also give us information on alternative alleles per-site (per-row)
-        for (var entry : toIndex.entrySet()) {
+        for (Map.Entry<String, Object> entry : toIndex.entrySet()) {
             switch(header.getInfoHeaderLine(entry.getKey()).getType()) {
                 case Character:
                     doc.add(new StringField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
