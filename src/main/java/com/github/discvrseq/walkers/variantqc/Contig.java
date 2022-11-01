@@ -31,13 +31,12 @@ public class Contig extends VariantStratifier {
         if (_contigNames == null) {
             final Set<String> contigs = new LinkedHashSet<>();
             if (getEngine().getTraversalIntervals() == null) {
-                getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
+                getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().sorted(Collections.reverseOrder(Comparator.comparing(SAMSequenceRecord::getSequenceLength))).map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
                 getEngine().getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
             }
 
             if (contigs.size() > maxContigs) {
-                //logger.info("Reference has too many contigs, subsetting to the first " + maxContigs);
                 List<String> subset = new ArrayList<>(contigs);
                 subset = subset.subList(0, maxContigs);
 
