@@ -177,7 +177,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
     @Argument(fullName = "maxContigs", shortName = "maxContigs", doc="Many VariantQC reports stratify data by contig.  If the genome contains a large number of chromosomes, such as lots of unplaced contigs, this can bog down these reports in the final HTML file. As a default, VariantQC will only process the first 40 contigs, by length. This can be increased using this argument. See also --contigsToRetain", optional=true)
     public int maxContigs = 40;
 
-    @Argument(fullName = "contigsToRetain", doc="If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.", optional=true)
+    @Argument(fullName = "contigsToRetain", doc="If --maxContigs is used, the first X contigs, are retained, sorted by length and preferentially retaining the longest contigs. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.", optional=true)
     public List<String> contigsToRetain = new ArrayList<>(Collections.singletonList("MT"));
 
     @Argument(fullName = "threads", doc="The number of threads to use.", optional=true)
