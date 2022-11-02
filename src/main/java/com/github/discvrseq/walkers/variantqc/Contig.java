@@ -1,5 +1,6 @@
 package com.github.discvrseq.walkers.variantqc;
 
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.variantcontext.VariantContext;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalEngine;
@@ -8,6 +9,7 @@ import org.broadinstitute.hellbender.tools.walkers.varianteval.util.VariantEvalC
 import org.broadinstitute.hellbender.utils.SimpleInterval;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Stratifies the evaluation by each contig in the reference sequence. Note: if the user supplies custom intervals, it will defer to these rather than the full sequence dictionary
@@ -31,29 +33,36 @@ public class Contig extends VariantStratifier {
         if (_contigNames == null) {
             final Set<String> contigs = new LinkedHashSet<>();
             if (getEngine().getTraversalIntervals() == null) {
-                getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().sorted(Collections.reverseOrder(Comparator.comparing(SAMSequenceRecord::getSequenceLength))).map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
+                getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
                 getEngine().getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
             }
 
             if (contigs.size() > maxContigs) {
-                List<String> subset = new ArrayList<>(contigs);
-                subset = subset.subList(0, maxContigs);
+                // Sort based on sequence length:
+                final SAMSequenceDictionary dict = getEngine().getSequenceDictionaryForDrivingVariants();
+                List<String> toRetain = contigs.stream().map(dict::getSequence).sorted(Collections.reverseOrder(Comparator.comparing(SAMSequenceRecord::getSequenceLength))).map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
+
+                toRetain = toRetain.subList(0, maxContigs);
 
                 if (contigsToRetain != null)
                 {
                     for (String contig : contigsToRetain) {
-                        if (!subset.contains(contig) && contigs.contains(contig)) {
-                            subset.add(contig);
+                        if (!toRetain.contains(contig) && contigs.contains(contig)) {
+                            toRetain.add(contig);
                         }
                     }
                 }
 
-                if (contigs.size() != subset.size()) {
-                    subset.add(OTHER_CONTIG);
+                // Retain original order:
+                List<String> finalSet = new ArrayList<>(contigs);
+                finalSet.retainAll(toRetain);
+
+                if (contigs.size() != finalSet.size()) {
+                    finalSet.add(OTHER_CONTIG);
                 }
 
-                _contigNames = new LinkedHashSet<>(subset);
+                _contigNames = new LinkedHashSet<>(finalSet);
             }
             else {
                 _contigNames = contigs;
