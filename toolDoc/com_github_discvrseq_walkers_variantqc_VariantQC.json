@@ -107,7 +107,7 @@
       "options": []
     },
     {
-      "summary": "If --maxContigs is used, the first X contigs, are retained. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.",
+      "summary": "If --maxContigs is used, the first X contigs, are retained, sorted by length and preferentially retaining the longest contigs. This can be used to specify one or more additional contigs that are retained, even if they would otherwise be removed.",
       "name": "--contigsToRetain",
       "synonyms": "NA",
       "type": "List[String]",

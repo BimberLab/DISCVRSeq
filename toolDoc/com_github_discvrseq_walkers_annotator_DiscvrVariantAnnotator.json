@@ -302,6 +302,21 @@
       "options": []
     },
     {
+      "summary": "flow order used for this annotations. [readGroup:]flowOrder",
+      "name": "--flow-order-for-annotations",
+      "synonyms": "NA",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "Samples representing the population \"founders\"",
       "name": "--founder-id",
       "synonyms": "-founder-id",
