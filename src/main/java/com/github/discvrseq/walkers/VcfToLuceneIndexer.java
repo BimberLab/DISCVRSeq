@@ -4,6 +4,8 @@ import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -122,11 +124,11 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
-        Map<String, Object> toIndex = new HashMap<>();
+        Map<String, List<Object>> toIndex = new HashMap<>();
 
         for (String infoField : infoFieldsToIndex) {
             if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
-                toIndex.put(infoField, variant.getAttribute(infoField));
+                toIndex.put(infoField, variant.getAttributeAsList(infoField));
             }
         }
 
@@ -137,9 +139,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 if(toIndex.containsKey(entry.getKey())) {
                     throw new GATKException("Duplicate INFO field key: " + entry.getKey());
                 }
-            }
 
-            toIndex.putAll(infoField);
+                toIndex.put(entry.getKey(), Arrays.asList(entry.getValue()));
+            }
         }
 
         sites++;
@@ -155,28 +157,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         doc.add(new IntPoint("end", variant.getEnd()));
         doc.add(new StoredField("end", variant.getEnd()));
 
-        // TODO should also give us information on alternative alleles per-site (per-row)
-        for (Map.Entry<String, Object> entry : toIndex.entrySet()) {
-            switch(header.getInfoHeaderLine(entry.getKey()).getType()) {
-                case Character:
-                    doc.add(new StringField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
-                    break;
-                case Flag:
-                    doc.add(new StringField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
-                    break;
-                case Float:
-                    doc.add(new FloatPoint(entry.getKey(), (float) entry.getValue()));
-                    doc.add(new StoredField(entry.getKey(), (float) entry.getValue()));
-                    break;
-                case Integer:
-                    doc.add(new IntPoint(entry.getKey(), (int) entry.getValue()));
-                    doc.add(new StoredField(entry.getKey(), (int) entry.getValue()));
-                    break;
-                case String:
-                    doc.add(new TextField(entry.getKey(), (String) entry.getValue(), Field.Store.YES));
-                    break;
-            }
-        }
+        addFieldsToDocument(doc, header, toIndex);
 
         try {
             writer.addDocument(doc);
@@ -184,6 +165,37 @@ public class VcfToLuceneIndexer extends VariantWalker {
             throw new GATKException(e.getMessage(), e);
         }
     }
+
+    public static void addFieldsToDocument(Document doc, VCFHeader header, Map<String, List<Object>> toIndex) {
+        for (Map.Entry<String, List<Object>> entry : toIndex.entrySet()) {
+            for (Object value : entry.getValue()) {
+                addFieldToDocument(doc, header.getInfoHeaderLine(entry.getKey()).getType(), entry.getKey(), value);
+            }
+        }
+    }
+
+    public static void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object value) {
+        switch(variantHeaderLineType) {
+            case Character:
+                doc.add(new StringField(key, (String) value, Field.Store.YES));
+                break;
+            case Flag:
+                doc.add(new StringField(key, (String) value, Field.Store.YES));
+                break;
+            case Float:
+                doc.add(new FloatPoint(key, (float) value));
+                doc.add(new StoredField(key, (float) value));
+                break;
+            case Integer:
+                doc.add(new IntPoint(key, (int) value));
+                doc.add(new StoredField(key, (int) value));
+                break;
+            case String:
+                doc.add(new TextField(key, (String) value, Field.Store.YES));
+                break;
+            }
+    }
+
 
     @Override
     public Object onTraversalSuccess() {
