@@ -2,10 +2,12 @@ package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -50,7 +52,7 @@ import java.util.*;
 )
 public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", common = false, optional = true)
-    private File outDir = null;
+    private File outDir;
 
     @Argument(doc="Info fields to index", fullName = "info-field", shortName = "IF", optional = true)
     List<String> infoFieldsToIndex;
@@ -58,8 +60,13 @@ public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(doc="Annotations to apply", fullName = "annotation-name", shortName = "AN", optional = true)
     List<String> annotationClassNames;
 
-    IndexWriter writer;
-    VCFHeader header;
+    private IndexWriter writer = null;
+
+    private FSDirectory index = null;
+
+    private StandardAnalyzer analyzer = null;
+
+    private VCFHeader header;
 
     @Override
     public List<? extends CommandLinePluginDescriptor<?>> getPluginDescriptors() {
@@ -76,9 +83,8 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     @Override
     public void onTraversalStart() {
-        StandardAnalyzer analyzer = new StandardAnalyzer();
+        analyzer = new StandardAnalyzer();
 
-        Directory index;
         try {
             index = FSDirectory.open(outDir.toPath());
         } catch(IOException e) {
@@ -140,7 +146,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     throw new GATKException("Duplicate INFO field key: " + entry.getKey());
                 }
 
-                toIndex.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                toIndex.put(entry.getKey(), Collections.singletonList(entry.getValue()));
             }
         }
 
@@ -169,7 +175,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
     public static void addFieldsToDocument(Document doc, VCFHeader header, Map<String, List<Object>> toIndex) {
         for (Map.Entry<String, List<Object>> entry : toIndex.entrySet()) {
             for (Object value : entry.getValue()) {
-                addFieldToDocument(doc, header.getInfoHeaderLine(entry.getKey()).getType(), entry.getKey(), value);
+                VCFInfoHeaderLine info = header.getInfoHeaderLine(entry.getKey());
+                VCFHeaderLineType datatype = info == null ? VCFHeaderLineType.String : info.getType();
+                addFieldToDocument(doc, datatype, entry.getKey(), value);
             }
         }
     }
@@ -183,12 +191,12 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new StringField(key, (String) value, Field.Store.YES));
                 break;
             case Float:
-                doc.add(new FloatPoint(key, (float) value));
-                doc.add(new StoredField(key, (float) value));
+                doc.add(new FloatPoint(key, Float.valueOf(value.toString())));
+                doc.add(new StoredField(key, Float.valueOf(value.toString())));
                 break;
             case Integer:
-                doc.add(new IntPoint(key, (int) value));
-                doc.add(new StoredField(key, (int) value));
+                doc.add(new IntPoint(key, Integer.valueOf(value.toString())));
+                doc.add(new StoredField(key, Integer.valueOf(value.toString())));
                 break;
             case String:
                 doc.add(new TextField(key, (String) value, Field.Store.YES));
@@ -206,9 +214,27 @@ public class VcfToLuceneIndexer extends VariantWalker {
     @Override
     public void closeTool() {
         try {
-            writer.close();
-        } catch (IOException e) {
-            throw new GATKException(e.getMessage(), e);
+            if (writer != null) {
+                writer.close();
+            }
+        } catch (Throwable e) {
+            logger.error("Unable to close writer", e);
+        }
+
+        try {
+            if (index != null)  {
+                index.close();
+            }
+        } catch (Throwable e) {
+            logger.error("Unable to close index directory", e);
+        }
+
+        try {
+            if (analyzer != null) {
+                analyzer.close();
+            }
+        } catch (Throwable e) {
+            logger.error("Unable to close analyzer", e);
         }
     }
 }
