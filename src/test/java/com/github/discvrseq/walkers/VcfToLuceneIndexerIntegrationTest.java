@@ -1,25 +1,18 @@
 package com.github.discvrseq.walkers;
 
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
-import org.broadinstitute.hellbender.exceptions.GATKException;
-import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
-import org.testng.annotations.Test;
-
 import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
-
+import org.apache.commons.io.FileUtils;
+import org.apache.lucene.document.Document;
+import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
@@ -49,12 +42,12 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         Document doc = new Document();
         VCFHeader header = createHeader(VCF4headerStrings);
 
-        Map<String, List<Object>> testFields = new HashMap<String, List<Object>>();
-        testFields.put("F1", Arrays.asList("Test1"));
-        testFields.put("F2", Arrays.asList("Test2"));
+        final String field1Value = "Test1";
+        final String field2Value = "Test2";
 
-        String field1Value = "Test1";
-        String field2Value = "Test2";
+        Map<String, List<Object>> testFields = new HashMap<>();
+        testFields.put("F1", Collections.singletonList(field1Value));
+        testFields.put("F2", Collections.singletonList(field2Value));
 
         VcfToLuceneIndexer.addFieldsToDocument(doc, header, testFields);
 
@@ -64,8 +57,42 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
     private VCFHeader createHeader(String headerStr) {
         VCFCodec codec = new VCFCodec();
-        VCFHeader head = null;
-        head = (VCFHeader) codec.readActualHeader(codec.makeSourceFromStream(new PositionalBufferedStream(new ByteArrayInputStream(headerStr.getBytes(StandardCharsets.UTF_8)))));
-        return head;
+        return (VCFHeader) codec.readActualHeader(codec.makeSourceFromStream(new PositionalBufferedStream(new ByteArrayInputStream(headerStr.getBytes(StandardCharsets.UTF_8)))));
+    }
+
+    @Test
+    public void doBasicTest2() throws Exception {
+        ArgumentsBuilder args = new ArgumentsBuilder();
+
+        args.addRaw("--variant");
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        ensureVcfIndex(input);
+        args.addRaw(normalizePath(input));
+
+        File luceneOutDir = new File(getTmpDir(), "luceneOutDir");
+        if (luceneOutDir.exists())
+        {
+            FileUtils.deleteDirectory(luceneOutDir);
+        }
+
+        args.addRaw("-O");
+        args.addRaw(normalizePath(luceneOutDir));
+
+        args.addRaw("-IF");
+        args.addRaw("PURPOSE");
+
+        args.addRaw("-IF");
+        args.addRaw("MAC");
+
+        args.addRaw("-IF");
+        args.addRaw("RN");
+
+        args.addRaw("-AN");
+        args.addRaw("SampleList");
+
+        runCommandLine(args);
+
+        File[] outputs = luceneOutDir.listFiles();
+        Assert.assertEquals(5, outputs.length);
     }
 }
