@@ -8,10 +8,9 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -143,11 +142,16 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         ) {
             IndexSearcher indexSearcher  = new IndexSearcher(indexReader);
 
-            QueryParser queryParser = new QueryParser("contig", new StandardAnalyzer());
-            Query query = queryParser.parse("'1'");
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples"}, new StandardAnalyzer());
 
-            TopDocs topDocs = indexSearcher.search(query, 10);
-            Assert.assertEquals(16L, topDocs.totalHits.value);
+            TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 16L);
+
+            topDocs = indexSearcher.search(queryParser.parse("PURPOSE:=diff_pos_same_ref_same_alt"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
+
+            topDocs = indexSearcher.search(queryParser.parse("start:<3000"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 16L);
         }
     }
 }
