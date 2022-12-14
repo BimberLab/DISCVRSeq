@@ -72,7 +72,6 @@ configurations.all {
         // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
         force 'org.testng:testng:' + testNGVersion
         force 'org.broadinstitute:barclay:' + barclayVersion
-        force 'org.apache.lucene:lucene-core:' + luceneVersion 
 
         // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
         // via Picard, etc.
@@ -91,7 +90,8 @@ dependencies {
     testImplementation(javadocJDKFiles)
 
     implementation 'org.broadinstitute:barclay:' + barclayVersion
-    implementation 'org.apache.lucene:lucene-core:' + luceneVersion 
+    implementation 'org.apache.lucene:lucene-core:' + luceneVersion
+    implementation 'org.apache.lucene:lucene-queryparser:' + luceneVersion
 
     // use the same GATK dependency for compile and documentation
     final gatkDependency = 'org.broadinstitute:gatk:' + gatkVersion
