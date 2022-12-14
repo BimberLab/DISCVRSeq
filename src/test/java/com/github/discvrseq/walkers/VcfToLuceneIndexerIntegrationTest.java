@@ -4,15 +4,29 @@ import htsjdk.tribble.readers.PositionalBufferedStream;
 import htsjdk.variant.vcf.VCFCodec;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
@@ -100,6 +114,8 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
         File[] outputs = luceneOutDir.listFiles();
         Assert.assertEquals(5, outputs.length);
+
+        validateLuceneIndex(luceneOutDir);
     }
 
     @Test
@@ -117,5 +133,21 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
         File[] outputs = luceneOutDir.listFiles();
         Assert.assertEquals(5, outputs.length);
+
+        validateLuceneIndex(luceneOutDir);
+    }
+
+    private void validateLuceneIndex(File indexPath) throws IOException, ParseException {
+        try (Directory indexDirectory = FSDirectory.open(indexPath.toPath());
+             IndexReader indexReader = DirectoryReader.open(indexDirectory)
+        ) {
+            IndexSearcher indexSearcher  = new IndexSearcher(indexReader);
+
+            QueryParser queryParser = new QueryParser("contig", new StandardAnalyzer());
+            Query query = queryParser.parse("'1'");
+
+            TopDocs topDocs = indexSearcher.search(query, 10);
+            Assert.assertEquals(16L, topDocs.totalHits.value);
+        }
     }
 }
