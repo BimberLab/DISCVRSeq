@@ -214,7 +214,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
             doc.add(new IntPoint("end", variant.getEnd()));
             doc.add(new StoredField("end", variant.getEnd()));
 
-            doc.add(new StoredField("genomicPosition", getGenomicPosition(variant.getContig(), variant.getStart())));
+            final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
+            doc.add(new IntPoint("genomicPosition", genomicPosition));
+            doc.add(new StoredField("genomicPosition", genomicPosition));
 
             addFieldsToDocument(doc, header, toIndex);
 
