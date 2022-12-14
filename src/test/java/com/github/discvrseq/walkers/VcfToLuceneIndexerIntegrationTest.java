@@ -38,7 +38,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
                     "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n";
 
     @Test
-    public void doBasicTest() throws Exception {
+    public void doBasicTest() {
         Document doc = new Document();
         VCFHeader header = createHeader(VCF4headerStrings);
 
@@ -60,20 +60,14 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         return (VCFHeader) codec.readActualHeader(codec.makeSourceFromStream(new PositionalBufferedStream(new ByteArrayInputStream(headerStr.getBytes(StandardCharsets.UTF_8)))));
     }
 
-    @Test
-    public void doBasicTest2() throws Exception {
+    private ArgumentsBuilder getBaseArgs(File luceneOutDir)
+    {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         args.addRaw("--variant");
         File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
         ensureVcfIndex(input);
         args.addRaw(normalizePath(input));
-
-        File luceneOutDir = new File(getTmpDir(), "luceneOutDir");
-        if (luceneOutDir.exists())
-        {
-            FileUtils.deleteDirectory(luceneOutDir);
-        }
 
         args.addRaw("-O");
         args.addRaw(normalizePath(luceneOutDir));
@@ -90,6 +84,35 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         args.addRaw("-AN");
         args.addRaw("SampleList");
 
+        return args;
+    }
+
+    @Test
+    public void doBasicTest2() throws Exception {
+        File luceneOutDir = new File(getTmpDir(), "luceneOutDir");
+        if (luceneOutDir.exists())
+        {
+            FileUtils.deleteDirectory(luceneOutDir);
+        }
+
+        ArgumentsBuilder args = getBaseArgs(luceneOutDir);
+        runCommandLine(args);
+
+        File[] outputs = luceneOutDir.listFiles();
+        Assert.assertEquals(5, outputs.length);
+    }
+
+    @Test
+    public void doBasicTestWithMultithreading() throws Exception {
+        File luceneOutDir = new File(getTmpDir(), "luceneOutDir2");
+        if (luceneOutDir.exists())
+        {
+            FileUtils.deleteDirectory(luceneOutDir);
+        }
+
+        ArgumentsBuilder args = getBaseArgs(luceneOutDir);
+        args.addRaw("--threads");
+        args.addRaw("2");
         runCommandLine(args);
 
         File[] outputs = luceneOutDir.listFiles();
