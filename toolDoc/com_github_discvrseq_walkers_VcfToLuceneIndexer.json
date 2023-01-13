@@ -732,6 +732,21 @@
       "options": []
     },
     {
+      "summary": "The number of threads to use.",
+      "name": "--threads",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "1",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "options": []
+    },
+    {
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",
