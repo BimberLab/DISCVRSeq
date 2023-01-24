@@ -1,9 +1,5 @@
 *******************************************
 Interval: 080_pRR_Reporter_U24:3610-3650
-Total read pairs inspected: 16155
-Total reads by reads/alignments per group:
-	Singleton: 3583
-	Paired: 12572
 
 GGAACAGTACGAACGCG-C-CGAGGGCCGCCACTCCACCGGCG
 .................-.-.......................	1471	52.88
@@ -16,10 +12,6 @@ GGAACAGTACGAACGCG-C-CGAGGGCCGCCACTCCACCGGCG
 
 *******************************************
 Interval: 080_pRR_Reporter_U24:3864-3983
-Total read pairs inspected: 16155
-Total reads by reads/alignments per group:
-	Singleton: 3583
-	Paired: 12572
 
 CCCTCAAGTTCATCAGCACCACCGGCAAGCTGCCCGTGCCCTGGCCCACTTTGGTCACCACCCTCACAAAGCGGCACGACTTCTTCAAGAGTGCCATGCCGGAAGGCTACGTCCAGGAGC
 ........................................................................................................................	1277	86.28

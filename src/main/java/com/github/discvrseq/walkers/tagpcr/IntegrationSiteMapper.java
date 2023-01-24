@@ -5,6 +5,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
 import com.github.discvrseq.util.NaturalSortComparator;
+import com.github.discvrseq.util.SamUtils;
 import com.github.discvrseq.util.SequenceMatcher;
 import com.opencsv.CSVReader;
 import com.opencsv.ICSVWriter;
@@ -478,7 +479,7 @@ public class IntegrationSiteMapper extends GATKTool {
         int uniqueReads = 0;
         int numReadsSpanningJunction = 0;
         int splitAlignments = 0;
-        File bam = ensureQuerySorted(inputBam);
+        File bam = SamUtils.ensureQuerySorted(inputBam, referenceArguments.getReferencePath(), logger);
 
         Map<String, JunctionMatch> totalMatches = new HashMap<>();
         Map<String, Object> metricsMap = new HashMap<>();
@@ -722,6 +723,11 @@ public class IntegrationSiteMapper extends GATKTool {
                 throw new GATKException(e.getMessage(), e);
             }
         }
+
+        if (!inputBam.equals(bam)) {
+            logger.info("deleting temp BAM file: " + bam.getPath());
+            bam.delete();
+        }
     }
 
     private int processAlignmentsForRead(List<SAMRecord> alignmentsForRead, Map<String, JunctionMatch> totalMatches) {
@@ -758,37 +764,6 @@ public class IntegrationSiteMapper extends GATKTool {
         }
     }
 
-    private File ensureQuerySorted(File bam) {
-        SamReaderFactory fact = SamReaderFactory.makeDefault();
-        fact.validationStringency(ValidationStringency.SILENT);
-        fact.referenceSequence(referenceArguments.getReferencePath());
-
-        SAMFileHeader.SortOrder so = fact.getFileHeader(bam).getSortOrder();
-        if (so == SAMFileHeader.SortOrder.queryname) {
-            logger.info("BAM is already query sorted, no need to sort");
-            return bam;
-        }
-
-        logger.info("Sorting BAM in queryName order");
-        try (SamReader reader = SamReaderFactory.makeDefault().referenceSequence(referenceArguments.getReferencePath()).open(bam)) {
-            reader.getFileHeader().setSortOrder(SAMFileHeader.SortOrder.queryname);
-
-            File querySorted = File.createTempFile(bam.getName(), ".querySorted.bam").toPath().normalize().toFile();
-            logger.info("writing to file: " + querySorted.getPath());
-
-            try (SAMFileWriter writer = new SAMFileWriterFactory().makeSAMOrBAMWriter(reader.getFileHeader(), false, querySorted)) {
-                for (final SAMRecord rec : reader) {
-                    writer.addAlignment(rec);
-                }
-            }
-
-            return querySorted;
-        }
-        catch (IOException e) {
-            throw new GATKException(e.getMessage(), e);
-        }
-    }
-
     public enum END_TYPE {
         downstream(),
         upstream()
@@ -803,7 +778,7 @@ public class IntegrationSiteMapper extends GATKTool {
         private final int matchStart;
         private final boolean hitOrientationReversed;
         private int totalReads = 1;
-        private List<SAMRecord> representativeRecords = new ArrayList<>();
+        private final List<SAMRecord> representativeRecords = new ArrayList<>();
         private final int maxRecordsToStore;
 
         public JunctionMatch(Logger log, InsertDescriptor insertDescriptor, InsertJunctionDescriptor jd, String contigName, int matchStart, boolean hitOrientationReversed, SAMRecord rec, int maxRecordsToStore) {

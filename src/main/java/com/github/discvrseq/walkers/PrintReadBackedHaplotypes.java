@@ -6,7 +6,9 @@ import com.github.discvrseq.util.CigarPositionIterable;
 import htsjdk.samtools.*;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.util.CloseableIterator;
 import htsjdk.samtools.util.IOUtil;
+import htsjdk.samtools.util.SortingCollection;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -64,6 +66,8 @@ import java.util.stream.IntStream;
 )
 public class PrintReadBackedHaplotypes extends IntervalWalker {
 
+    private final int MAX_RECORDS_IN_RAM = SAMFileWriterImpl.getDefaultMaxRecordsInRam();
+
     @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", common = false, optional = true)
     private File outputFile = null;
 
@@ -82,8 +86,6 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
     @Argument(fullName = "minReadFractionToReport", shortName = "mrf", doc = "If specified, only haplotypes representing at least this fraction of total haplotypes will be reported")
     private double minReadFractionToReport = 0.0;
 
-    private PrintStream outputStream = null;
-
     private SamReader bamReader = null;
     private ReadFilter readFilter;
 
@@ -97,14 +99,8 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
             throw new UserException.BadInput("Only one BAM at a time is currently supported");
         }
 
-        try {
-            Utils.nonNull(outputFile);
-            IOUtil.assertFileIsWritable(outputFile);
-            outputStream = outputFile != null ? new PrintStream(outputFile) : System.out;
-        }
-        catch ( final FileNotFoundException e ) {
-            throw new UserException.CouldNotCreateOutputFile(outputFile, e);
-        }
+        Utils.nonNull(outputFile);
+        IOUtil.assertFileIsWritable(outputFile);
 
         SamReaderFactory fact = SamReaderFactory.makeDefault();
         Path bam = readArguments.getReadPaths().get(0);
@@ -118,47 +114,95 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         return true;
     }
 
-    private long failedFilters = 0L;
-    private long readsInspected = 0L;
-    private long totalDroppedForCoverage = 0L;
-    private Map<Integer, Long> readTotalHist = new TreeMap<>();
-
     private final Map<SimpleInterval, Map<Character[][], Integer>> resultMap = new HashMap<>();
+
+    private SortingCollection<SAMRecord> getSorter(SAMFileHeader header) {
+        File tmpDir = IOUtil.getDefaultTmpDir();
+        if (!tmpDir.exists()) {
+            tmpDir.mkdirs();
+        }
+
+        header.setSortOrder(SAMFileHeader.SortOrder.queryname);
+
+        return SortingCollection.newInstance(
+                SAMRecord.class,
+                new BAMRecordCodec(header),
+                new SAMRecordQueryNameComparator(),
+                MAX_RECORDS_IN_RAM, tmpDir.toPath());
+    }
 
     @Override
     public void apply(SimpleInterval interval, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         Map<Character[][], Integer> results = new HashMap<>();
-        Map<String, List<SAMRecord>> readMap = queryOverlappingReads(interval);
-        for (String readName : readMap.keySet()) {
-            readsInspected++;
 
-            Character[][] arr = processGroup(interval, readMap.get(readName));
-            if (arr == null) {
-                continue;
-            }
+        logger.info("Starting interval: " + interval.toString() + ", total reads");
+        SortingCollection<SAMRecord> sortingCollection = queryOverlappingReads(interval);
 
-            boolean found = false;
-            for (Character[][] val : results.keySet())
-            {
-                if (Arrays.deepEquals(val, arr))
-                {
-                    results.put(val, results.get(val) + 1);
-                    found = true;
-                    break;
+        int alignmentsInspected = 0;
+        int uniqueReads = 0;
+        AtomicInteger totalDroppedForCoverage = new AtomicInteger(0);
+
+        try (CloseableIterator<SAMRecord> it = sortingCollection.iterator()) {
+            List<SAMRecord> alignmentsForRead = new ArrayList<>();
+
+            while (it.hasNext()) {
+                alignmentsInspected++;
+                SAMRecord rec = it.next();
+
+                //If this read doesnt match the prior set, process these and clear alignmentsForRead
+                if (!alignmentsForRead.isEmpty() && !alignmentsForRead.get(0).getReadName().equals(rec.getReadName())){
+                    uniqueReads++;
+                    processGroupAndAppendResults(results, interval, alignmentsForRead, totalDroppedForCoverage);
+                    alignmentsForRead.clear();
                 }
+
+                alignmentsForRead.add(rec);
             }
 
-            if (!found)
-            {
-                results.put(arr, 1);
+            //ensure we capture final read
+            if (!alignmentsForRead.isEmpty()) {
+                uniqueReads++;
+                processGroupAndAppendResults(results, interval, alignmentsForRead, totalDroppedForCoverage);
             }
         }
+        finally {
+            sortingCollection.cleanup();
+        }
+
+        logger.info("Total alignments inspected: " + alignmentsInspected);
+        logger.info("Unique reads: " + uniqueReads);
+        logger.info("Total reads dropped for incomplete coverage: " + totalDroppedForCoverage.get());
 
         resultMap.put(interval, results);
     }
 
-    private Map<String, List<SAMRecord>> queryOverlappingReads(SimpleInterval interval) {
-        Map<String, List<SAMRecord>> readMap = new HashMap<>();
+    private void processGroupAndAppendResults(Map<Character[][], Integer> results, SimpleInterval interval, List<SAMRecord> reads, AtomicInteger totalDroppedForCoverage) {
+        Character[][] arr = processGroup(interval, reads, totalDroppedForCoverage);
+        if (arr == null) {
+            return;
+        }
+
+        boolean found = false;
+        for (Character[][] val : results.keySet())
+        {
+            if (Arrays.deepEquals(val, arr))
+            {
+                results.put(val, results.get(val) + 1);
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            results.put(arr, 1);
+        }
+    }
+
+    private SortingCollection<SAMRecord> queryOverlappingReads(SimpleInterval interval) {
+        final SAMFileHeader header = getHeaderForReads();
+        SortingCollection<SAMRecord> sorter = getSorter(header);
+        int failedFilters = 0;
         try (SAMRecordIterator it = bamReader.queryOverlapping(interval.getContig(), interval.getStart(), interval.getEnd())) {
             while (it.hasNext()) {
                 GATKRead read = new SAMRecordToGATKReadAdapter(it.next());
@@ -167,22 +211,20 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
                     continue;
                 }
 
-                List<SAMRecord> list = readMap.getOrDefault(read.getName(), new ArrayList<>());
-                list.add(read.convertToSAMRecord(getHeaderForReads()));
-                readMap.put(read.getName(), list);
+                sorter.add(read.convertToSAMRecord(header));
             }
         }
 
-        return readMap;
+        logger.info("total alignments failing filters: " + failedFilters);
+
+        return sorter;
     }
 
     private static final int MAX_NON_COVER_WINDOW = 200;
 
-    private Character[][] processGroup(SimpleInterval interval, List<SAMRecord> reads) {
+    private Character[][] processGroup(SimpleInterval interval, List<SAMRecord> reads, AtomicInteger totalDroppedForCoverage) {
         Character[][] arr = new Character[interval.size()][];
         Integer[][] qualArr = new Integer[interval.size()][];
-
-        readTotalHist.put(reads.size(), readTotalHist.getOrDefault(reads.size(), 0L) + 1);
 
         reads.forEach(read -> processRead(read, interval, arr, qualArr));
 
@@ -214,7 +256,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
 
             double fraction = ((double)totalCovered / arr.length);
             if (fraction < requiredCoverageFraction) {
-                totalDroppedForCoverage++;
+                totalDroppedForCoverage.getAndIncrement();
                 return null;
             }
         }
@@ -222,8 +264,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         return arr;
     }
 
-    private void processRead(SAMRecord r, SimpleInterval interval, Character[][] arr, Integer[][] qualArr)
-    {
+    private void processRead(SAMRecord r, SimpleInterval interval, Character[][] arr, Integer[][] qualArr) {
         //add this value to a reference coordinate to find array position
         final int offset = interval.getStart() * -1;
 
@@ -301,8 +342,7 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         }
     }
 
-    private void mergePositions(Character[][] arr, Integer[][] qualArray, int arrayPos, int idx, char base, int qual, CigarPositionIterable.PositionInfo pi)
-    {
+    private void mergePositions(Character[][] arr, Integer[][] qualArray, int arrayPos, int idx, char base, int qual, CigarPositionIterable.PositionInfo pi) {
         char existing = Character.toUpperCase(arr[arrayPos][idx]);
         if (existing == 'N')
         {
@@ -344,63 +384,54 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        logger.info("Total read pairs inspected: " + readsInspected);
-        logger.info("Total reads failing filters: " + failedFilters);
-        logger.info("Total reads dropped for incomplete coverage: " + totalDroppedForCoverage);
-        logger.info("Total reads by pairing:");
-        readTotalHist.forEach((x, y) -> {
-            logger.info(x + ": " + y);
-        });
+        try (PrintStream outputStream = outputFile != null ? new PrintStream(outputFile) : System.out) {
+            for (SimpleInterval i : resultMap.keySet()) {
+                outputStream.println("*******************************************");
+                outputStream.println("Interval: " + i.toString());
+                outputStream.println("");
+                try (IndexedFastaSequenceFile idx = new IndexedFastaSequenceFile(referenceArguments.getReferencePath())) {
+                    ReferenceSequence ref = idx.getSubsequenceAt(i.getContig(), i.getStart(), i.getEnd());
+                    Map<Character[][], Integer> haplotypes = resultMap.get(i);
+                    haplotypes = filterHaplotypes(haplotypes);
+                    Map<Integer, TreeSet<Integer>> indels = getInsertionMap(haplotypes);
+                    String referenceSequence = getReferenceSequence(ref, indels);
+                    outputStream.println(referenceSequence);
 
-        for (SimpleInterval i : resultMap.keySet()) {
-            outputStream.println("*******************************************");
-            outputStream.println("Interval: " + i.toString());
-            outputStream.println("Total read pairs inspected: " + readsInspected);
-            outputStream.println("Total reads by reads/alignments per group:");
-            readTotalHist.forEach((x, y) -> {
-                outputStream.println('\t' + getPairLabel(x) + ": " + y);
-            });
+                    //convert to strings:
+                    Map<String, Integer> stringMap = new TreeMap<>();
+                    for (Character[][] haplo : haplotypes.keySet()) {
+                        String haplotypeSequence = convertHaplotypeToString(haplo, ref.getBases(), indels);
+                        if (stringMap.containsKey(haplotypeSequence)) {
+                            throw new GATKException.ShouldNeverReachHereException("The map contains duplicate keys: " + haplotypeSequence);
+                        }
 
-            outputStream.println("");
-            try (IndexedFastaSequenceFile idx = new IndexedFastaSequenceFile(referenceArguments.getReferencePath()))
-            {
-                ReferenceSequence ref = idx.getSubsequenceAt(i.getContig(), i.getStart(), i.getEnd());
-                Map<Character[][], Integer> haplotypes = resultMap.get(i);
-                haplotypes = filterHaplotypes(haplotypes);
-                Map<Integer, TreeSet<Integer>> indels = getInsertionMap(haplotypes);
-                String referenceSequence = getReferenceSequence(ref, indels);
-                outputStream.println(referenceSequence);
-
-                //convert to strings:
-                Map<String, Integer> stringMap = new HashMap<>();
-                for (Character[][] haplo : haplotypes.keySet()) {
-                    String haplotypeSequence = convertHaplotypeToString(haplo, ref.getBases(), indels);
-                    if (stringMap.containsKey(haplotypeSequence)){
-                        throw new GATKException.ShouldNeverReachHereException("The map contains duplicate keys: " + haplotypeSequence);
+                        stringMap.put(haplotypeSequence, haplotypes.get(haplo));
                     }
 
-                    stringMap.put(haplotypeSequence, haplotypes.get(haplo));
+                    List<String> orderedList = new ArrayList<>(stringMap.keySet());
+                    Collections.sort(orderedList);
+
+                    orderedList.sort((a, b) -> {
+                        return stringMap.get(b).compareTo(stringMap.get(a));
+                    });
+
+                    AtomicInteger totalHaplotypes = new AtomicInteger();
+                    haplotypes.forEach((x, y) -> {
+                        totalHaplotypes.addAndGet(y);
+                    });
+
+                    for (String haplotypeSequence : orderedList) {
+                        outputStream.println(haplotypeSequence + '\t' + stringMap.get(haplotypeSequence) + '\t' + Utils.formattedPercent(stringMap.get(haplotypeSequence), totalHaplotypes.get()));
+                    }
+                } catch (IOException e) {
+                    throw new GATKException("Unable to reference file: " + e.getMessage(), e);
                 }
 
-                List<String> orderedList = new ArrayList<>(stringMap.keySet());
-                Collections.sort(orderedList);
-
-                orderedList.sort((a, b) -> {
-                    return stringMap.get(b).compareTo(stringMap.get(a));
-                });
-
-                AtomicInteger totalHaplotypes = new AtomicInteger();
-                haplotypes.forEach((x, y) -> {totalHaplotypes.addAndGet(y);});
-
-                for (String haplotypeSequence : orderedList) {
-                    outputStream.println(haplotypeSequence + '\t' + stringMap.get(haplotypeSequence) + '\t' + Utils.formattedPercent(stringMap.get(haplotypeSequence), totalHaplotypes.get()));
-                }
+                outputStream.println("");
             }
-            catch (IOException e) {
-                throw new GATKException("Unable to reference file: " + e.getMessage(), e);
-            }
-
-            outputStream.println("");
+        }
+        catch (FileNotFoundException e) {
+            throw new UserException.CouldNotCreateOutputFile(outputFile, e);
         }
 
         return super.onTraversalSuccess();
@@ -452,17 +483,6 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
         return haplotypes;
     }
 
-    private String getPairLabel(Integer reads) {
-        switch (reads) {
-            case 1:
-                return "Singleton";
-            case 2:
-                return "Paired";
-            default:
-                return reads.toString();
-        }
-    }
-
     @Override
     public void closeTool() {
         super.closeTool();
@@ -475,8 +495,6 @@ public class PrintReadBackedHaplotypes extends IntervalWalker {
                 //ignore
             }
         }
-
-        outputStream.close();
     }
 
     private Map<Integer, TreeSet<Integer>> getInsertionMap(Map<Character[][], Integer> combinedResults)
