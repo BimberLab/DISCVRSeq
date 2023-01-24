@@ -4,6 +4,7 @@ import com.github.discvrseq.tools.VariantManipulationProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
@@ -561,7 +562,12 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
             args.pedigreeFile = variantQC.pedigreeFile;
             args.pedigreeValidationType = variantQC.pedigreeValidationType;
 
-            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), variantQC.getSequenceDictionaryForDrivingVariants(), variantQC.getSamplesForVariants(), infoFields, variantQC.maxContigs, variantQC.contigsToRetain);
+            SAMSequenceDictionary dict = variantQC.getBestAvailableSequenceDictionary();
+            if (dict == null) {
+                throw new GATKException("Must provide a sequence dictionary, either for the genome FASTA or in the VCF header");
+            }
+
+            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), dict, variantQC.getSamplesForVariants(), infoFields, variantQC.maxContigs, variantQC.contigsToRetain);
         }
     }
 
