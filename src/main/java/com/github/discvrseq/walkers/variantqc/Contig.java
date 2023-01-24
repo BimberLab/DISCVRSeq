@@ -3,6 +3,7 @@ package com.github.discvrseq.walkers.variantqc;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.variantcontext.VariantContext;
+import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.VariantEvalEngine;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.stratifications.VariantStratifier;
 import org.broadinstitute.hellbender.tools.walkers.varianteval.util.VariantEvalContext;
@@ -31,16 +32,20 @@ public class Contig extends VariantStratifier {
      */
     private Set<String> getContigNames(int maxContigs, List<String> contigsToRetain) {
         if (_contigNames == null) {
+            final SAMSequenceDictionary dict = getEngine().getSequenceDictionaryForDrivingVariants();
+            if (dict == null) {
+                throw new GATKException("Must provide a sequence dictionary, either for the genome FASTA or in the VCF header");
+            }
+
             final Set<String> contigs = new LinkedHashSet<>();
             if (getEngine().getTraversalIntervals() == null) {
-                getEngine().getSequenceDictionaryForDrivingVariants().getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
+                dict.getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
                 getEngine().getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
             }
 
             if (contigs.size() > maxContigs) {
                 // Sort based on sequence length:
-                final SAMSequenceDictionary dict = getEngine().getSequenceDictionaryForDrivingVariants();
                 List<String> toRetain = contigs.stream().map(dict::getSequence).sorted(Collections.reverseOrder(Comparator.comparing(SAMSequenceRecord::getSequenceLength))).map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
 
                 toRetain = toRetain.subList(0, maxContigs);
