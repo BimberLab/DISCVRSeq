@@ -9,10 +9,7 @@ import org.broadinstitute.hellbender.utils.samples.PedigreeValidationType;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -22,10 +19,14 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
     }
 
     private ArgumentsBuilder getBaseArgs(boolean limitToChr1, String vcfName, int threads) {
+        return getBaseArgs(limitToChr1, vcfName, threads, new File(testBaseDir, "ClinvarAnnotator.vcf"));
+    }
+
+    private ArgumentsBuilder getBaseArgs(boolean limitToChr1, String vcfName, int threads, File vcf) {
         ArgumentsBuilder args = new ArgumentsBuilder();
         args.addRaw("--variant" + (vcfName == null ? "" : ":" + vcfName));
-        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
-        args.addRaw(normalizePath(input));
+
+        args.addRaw(normalizePath(vcf));
 
         File fasta = getHg19Micro();
         args.addRaw("-R");
@@ -46,6 +47,32 @@ public class VariantQCIntegrationTest extends BaseIntegrationTest {
         }
 
         return args;
+    }
+
+    @Test
+    public void testVcfNoDictionary() throws Exception {
+        File expected = generateCompleteOutput(getTestFile("testBasicOperation.html"));
+
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+
+        // Create file w/o a dictionary:
+        File newVcf = new File(getTmpDir(), "ClinvarAnnotatorNoDict.vcf");
+        try (BufferedWriter writer = IOUtil.openFileForBufferedUtf8Writing(newVcf);BufferedReader reader = IOUtil.openFileForBufferedUtf8Reading(input)) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.startsWith("##contig")) {
+                    writer.write(line + "\n");
+                }
+            }
+        }
+        ensureVcfIndex(newVcf);
+
+        ArgumentsBuilder args = getBaseArgs(true, null, 1, newVcf);
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(), Arrays.asList(expected.getPath()));
+
+        spec.executeTest("testBasicOperation", this);
+        expected.delete();
     }
 
     @Test
