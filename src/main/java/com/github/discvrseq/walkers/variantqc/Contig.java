@@ -42,6 +42,11 @@ public class Contig extends VariantStratifier {
                 dict.getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
                 getEngine().getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
+                contigs.forEach(contig -> {
+                    if (dict.getSequence(contig) == null) {
+                        throw new GATKException("The intervals used for this job contain a contig not present in the sequence dictionary: " + contig);
+                    }
+                });
             }
 
             if (contigs.size() > maxContigs) {
