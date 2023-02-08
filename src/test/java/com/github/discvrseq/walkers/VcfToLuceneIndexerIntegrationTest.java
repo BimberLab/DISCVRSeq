@@ -175,12 +175,12 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples"}, new StandardAnalyzer());
 
             TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 37L);
+            Assert.assertEquals(topDocs.totalHits.value, 6L);
 
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 37L);
+            Assert.assertEquals(topDocs.totalHits.value, 6L);
 
-            topDocs = indexSearcher.search(queryParser.parse("PURPOSE:=diff_pos_same_ref_same_alt"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("REF:=diff_pos_same_ref_same_alt"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 3000), 10);

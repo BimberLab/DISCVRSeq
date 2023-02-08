@@ -229,32 +229,30 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
     }
 
-    private static void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object value) {
-        if (value instanceof Collection) {
-            //TODO: ????????
-        }
-
-        switch(variantHeaderLineType) {
-            case Character:
-                doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
-                break;
-            case Flag:
-                doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
-                break;
-            case Float:
-                doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
-                doc.add(new StoredField(key, Float.parseFloat(value.toString())));
-                break;
-            case Integer:
-                doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
-                doc.add(new StoredField(key, Integer.parseInt(value.toString())));
-                break;
-            case String:
-                doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
-                break;
+    private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
+        Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
+        values.forEach(value -> {
+            switch(variantHeaderLineType) {
+                case Character:
+                    doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
+                    break;
+                case Flag:
+                    doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
+                    break;
+                case Float:
+                    doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
+                    doc.add(new StoredField(key, Float.parseFloat(value.toString())));
+                    break;
+                case Integer:
+                    doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
+                    doc.add(new StoredField(key, Integer.parseInt(value.toString())));
+                    break;
+                case String:
+                    doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                    break;
             }
+        });
     }
-
 
     @Override
     public Object onTraversalSuccess() {
