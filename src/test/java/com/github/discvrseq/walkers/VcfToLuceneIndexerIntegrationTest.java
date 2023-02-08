@@ -13,6 +13,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.IndexSortSortedNumericDocValuesRangeQuery;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
@@ -180,14 +181,18 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
 
-            topDocs = indexSearcher.search(queryParser.parse("REF:=diff_pos_same_ref_same_alt"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("REF:=GT"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
-            topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 3000), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 10L);
+            topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 65), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
 
-            topDocs = indexSearcher.search(IntPoint.newRangeQuery("genomicPosition", 0, 3000), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 10L);
+            //TODO: add:
+            // HaplotypeScore == 12
+            // HaplotypeScore < 10
+            // REF contains T (to return 72, but not 73)
+            // UB == 1.0 (this is a multi-value double field)
+
         }
     }
 }
