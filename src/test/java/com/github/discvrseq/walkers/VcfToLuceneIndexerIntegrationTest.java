@@ -140,7 +140,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         args.addRaw("HaplotypeScore");
 
         args.addRaw("-IF");
-        args.addRaw("REF");
+        args.addRaw("REFFIELD");
 
         args.addRaw("-IF");
         args.addRaw("UB");
@@ -173,7 +173,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         ) {
             IndexSearcher indexSearcher  = new IndexSearcher(indexReader);
 
-            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples"}, new StandardAnalyzer());
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples", "ref", "HaplotypeScore", "UB", "REFFIELD"}, new StandardAnalyzer());
 
             TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
@@ -181,15 +181,21 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
 
-            topDocs = indexSearcher.search(queryParser.parse("REF:=GT"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("REFFIELD:=GT"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 65), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
-            //TODO: add:
-            // HaplotypeScore == 12
-            // HaplotypeScore < 10
+            topDocs = indexSearcher.search(queryParser.parse("HaplotypeScore:=12"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
+
+            topDocs = indexSearcher.search(queryParser.parse("HaplotypeScore:<10"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
+
+            topDocs = indexSearcher.search(queryParser.parse("REF:T"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 2L);
+
             // REF contains T (to return 72, but not 73)
             // UB == 1.0 (this is a multi-value double field)
 
