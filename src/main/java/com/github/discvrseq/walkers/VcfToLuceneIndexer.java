@@ -186,7 +186,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                                 throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
                             }
 
-                            Object val = vals.get(alleleIdx);
+                            Object val = vals.get(alleleIdx - 1);
                             if (val != null) {
                                 addFieldToDocument(doc, datatype, infoField, val);
                             }

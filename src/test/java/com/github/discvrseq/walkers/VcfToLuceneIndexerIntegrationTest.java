@@ -12,10 +12,9 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.IndexSortSortedNumericDocValuesRangeQuery;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
+import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
@@ -26,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -173,7 +173,17 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         ) {
             IndexSearcher indexSearcher  = new IndexSearcher(indexReader);
 
-            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples", "ref", "HaplotypeScore", "UB", "REFFIELD"}, new StandardAnalyzer());
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples", "ref", "REFFIELD"}, new StandardAnalyzer());
+            queryParser.setAllowLeadingWildcard(true);
+
+            StandardQueryParser numericQueryParser = new StandardQueryParser();
+            numericQueryParser.setAnalyzer(new StandardAnalyzer());
+
+            PointsConfig pointsConfig = new PointsConfig(new DecimalFormat(), Double.class);
+            Map<String, PointsConfig> pointsConfigMap = new HashMap<>();
+            pointsConfigMap.put("HaplotypeScore", pointsConfig);
+            pointsConfigMap.put("UB", pointsConfig);
+            numericQueryParser.setPointsConfigMap(pointsConfigMap);
 
             TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
@@ -181,23 +191,23 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
 
-            topDocs = indexSearcher.search(queryParser.parse("REFFIELD:=GT"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("REFFIELD:GT"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 65), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
-            topDocs = indexSearcher.search(queryParser.parse("HaplotypeScore:=12"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[12.0 TO 12.0]", ""), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 3L);
 
-            topDocs = indexSearcher.search(queryParser.parse("HaplotypeScore:<10"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[* TO 10.0]", ""), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 3L);
 
-            topDocs = indexSearcher.search(queryParser.parse("REF:T"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("ref:T"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 2L);
 
-            // REF contains T (to return 72, but not 73)
-            // UB == 1.0 (this is a multi-value double field)
+            topDocs = indexSearcher.search(numericQueryParser.parse("UB:[1.0 TO 1.0]", ""), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
 
         }
     }
