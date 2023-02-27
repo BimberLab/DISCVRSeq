@@ -163,6 +163,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
             for (Allele alt : variant.getAlternateAlleles()) {
                 Document doc = new Document();
                 int alleleIdx = variant.getAlleleIndex(alt); // includes REF
+                int altAlleleIndex = alleleIdx - 1;
 
                 for (String infoField : infoFieldsToIndex) {
                     if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
@@ -175,7 +176,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                                 throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
                             }
 
-                            Object val = vals.get(alleleIdx - 1);
+                            Object val = vals.get(altAlleleIndex);
                             if (val != null) {
                                 addFieldToDocument(doc, datatype, infoField, val);
                             }
@@ -186,7 +187,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                                 throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
                             }
 
-                            Object val = vals.get(alleleIdx - 1);
+                            Object val = vals.get(alleleIdx);
                             if (val != null) {
                                 addFieldToDocument(doc, datatype, infoField, val);
                             }

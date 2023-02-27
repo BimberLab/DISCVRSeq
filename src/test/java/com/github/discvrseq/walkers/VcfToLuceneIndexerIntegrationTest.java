@@ -191,7 +191,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
             Assert.assertEquals(topDocs.totalHits.value, 6L);
 
-            topDocs = indexSearcher.search(queryParser.parse("REFFIELD:GT"), 10);
+            topDocs = indexSearcher.search(queryParser.parse("REFFIELD:G"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 65), 10);
