@@ -12,6 +12,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
 import org.apache.lucene.search.*;
@@ -173,7 +174,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         ) {
             IndexSearcher indexSearcher  = new IndexSearcher(indexReader);
 
-            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples", "ref", "REFFIELD"}, new StandardAnalyzer());
+            MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples", "ref", "REFFIELD", "variableSamples"}, new StandardAnalyzer());
             queryParser.setAllowLeadingWildcard(true);
 
             StandardQueryParser numericQueryParser = new StandardQueryParser();
@@ -209,6 +210,8 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[1.0 TO 1.0]", ""), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
+            topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample2 OR Sample2$)"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 2L);
         }
     }
 }
