@@ -47,12 +47,9 @@ import java.util.stream.Collectors;
  * when a rod priority list is provided.</p>
  *
  * <p>MergeVcfsAndGenotypes will emit a record for every site that was present in any of your input VCF files, and will annotate
- * (in the set attribute in the INFO field) whether the record had a PASS or FILTER status in each input ROD . In effect,
+ * (in the set attribute in the INFO field) whether the record had a PASS or FILTER status in each input VCF . In effect,
  * MergeVcfsAndGenotypes always produces a union of the input VCFs.  However, any part of the Venn of the merged VCFs
- * can be extracted using JEXL expressions on the set attribute using SelectVariants.  If you want to extract just
- * the records in common between two VCFs, you would first run MergeVcfsAndGenotypes on the two files to generate a single
- * VCF and then run SelectVariants to extract the common records with `-select 'set == "Intersection"'`, as worked out
- * in the detailed example in the documentation guide.</p>
+ * can be extracted using JEXL expressions on the set attribute using SelectVariants and the 'set' attribute.
  *
  * <p>Important! If you select defined intervals, by default (in most GATK4-based walkers), any variant spanning the start site will be included
  * If you are running scatter/gather jobs, this is probably not what you want. You can specify --ignore-variants-starting-outside-interval to
