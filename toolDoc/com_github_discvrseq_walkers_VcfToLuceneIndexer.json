@@ -62,21 +62,6 @@
       "options": []
     },
     {
-      "summary": "Annotations to apply",
-      "name": "--annotation-name",
-      "synonyms": "-AN",
-      "type": "List[String]",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "[]",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
       "summary": "One or more specific annotations to exclude from variant calls",
       "name": "--annotations-to-exclude",
       "synonyms": "-AX",
@@ -212,6 +197,21 @@
       "options": []
     },
     {
+      "summary": "Read filters to be disabled before analysis",
+      "name": "--disable-read-filter",
+      "synonyms": "-DF",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "options": []
+    },
+    {
       "summary": "If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!",
       "name": "--disable-sequence-dictionary-validation",
       "synonyms": "-disable-sequence-dictionary-validation",
@@ -239,6 +239,21 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "advanced",
+      "options": []
+    },
+    {
+      "summary": "Disable all tool default read filters (WARNING: many tools will not function correctly without their default read filters on)",
+      "name": "--disable-tool-default-read-filters",
+      "synonyms": "-disable-tool-default-read-filters",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
       "options": []
     },
     {
@@ -515,21 +530,6 @@
       "options": []
     },
     {
-      "summary": "Minimum GQ score for each trio member to accept a site as a violation",
-      "name": "--mendelian-violation-qual-threshold",
-      "synonyms": "NA",
-      "type": "double",
-      "required": "no",
-      "fulltext": "This argument specifies the genotype quality (GQ) threshold that all members of a trio must have in order\n for a site to be accepted as a mendelian violation. Note that the `-mv` flag must be set for this argument\n to have an effect.",
-      "defaultValue": "10.0",
-      "minValue": "-Infinity",
-      "maxValue": "Infinity",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
       "summary": "Output file (if not provided, defaults to STDOUT)",
       "name": "--output",
       "synonyms": "-O",
@@ -560,30 +560,6 @@
       "options": []
     },
     {
-      "summary": "The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT",
-      "name": "--pedigreeValidationType",
-      "synonyms": "-pedValidationType",
-      "type": "PedigreeValidationType",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "STRICT",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": [
-        {
-          "summary": "",
-          "name": "STRICT"
-        },
-        {
-          "summary": "",
-          "name": "SILENT"
-        }
-      ]
-    },
-    {
       "summary": "Whether to suppress job-summary info on System.err.",
       "name": "--QUIET",
       "synonyms": "NA",
@@ -591,6 +567,21 @@
       "required": "no",
       "fulltext": "",
       "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "options": []
+    },
+    {
+      "summary": "Read filters to be applied before analysis",
+      "name": "--read-filter",
+      "synonyms": "-RF",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -646,21 +637,6 @@
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "no",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "optional",
-      "options": []
-    },
-    {
-      "summary": "Reference genotypes VCF",
-      "name": "--reference-genotypes-vcf",
-      "synonyms": "-rg",
-      "type": "FeatureInput[VariantContext]",
       "required": "no",
       "fulltext": "",
       "defaultValue": "null",
@@ -854,7 +830,7 @@
       "options": []
     }
   ],
-  "description": "This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.\n It accepts a list of INFO annotations that will be indexed per site.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VcfToLuceneIndexer\n     -V myVcf.gz \\\n     -O /directory/for/output/\n     -IF AF\n     -AN SampleList\n \u003c/pre\u003e",
+  "description": "This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.\n It accepts a list of INFO annotations that will be indexed per site.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar VcfToLuceneIndexer\n     -V myVcf.gz \\\n     -O /directory/for/output/\n     -IF AF\n \u003c/pre\u003e",
   "name": "VcfToLuceneIndexer",
   "group": "Public/Stable Tools",
   "beta": false,
