@@ -1,40 +1,28 @@
 package com.github.discvrseq.walkers;
 
-import htsjdk.tribble.readers.PositionalBufferedStream;
-import htsjdk.variant.vcf.VCFCodec;
-import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.io.FileUtils;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.LowerCaseFilter;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
@@ -256,6 +244,14 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample1 and Sample3 are variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample1 AND Sample3)"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 2L);
+
+            // Documents where Sample2 and Sample3 are variable.
+            topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample2 AND Sample3)"), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
+
+            // Documents where Sample2 or Sample3 are variable.
+            topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample2 OR Sample3)"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 3L);
 
             // Documents where Sample1 and Sample3 are variable, and where Sample2 is NOT variable.
@@ -272,6 +268,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             Assert.assertEquals(topDocs.totalHits.value, 3L);
 
             // Documents with none of (Sample1, Sample2, Sample3).
+            // Said another way, at least one of Sample1, Sample2, or Sample3 is variable
             topDocs = indexSearcher.search(queryParser.parse("*:* -variableSamples:(Sample1 OR Sample2 OR Sample3)"), 10);
             Assert.assertEquals(topDocs.totalHits.value, 3L);
 
