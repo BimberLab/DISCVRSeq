@@ -1,11 +1,13 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.github.discvrseq.walkers.annotator.DiscvrVariantAnnotator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.variant.variantcontext.Allele;
+import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -14,7 +16,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.barclay.argparser.Argument;
-import org.broadinstitute.barclay.argparser.CommandLinePluginDescriptor;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
@@ -23,15 +24,16 @@ import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.engine.VariantWalker;
 import org.broadinstitute.hellbender.exceptions.GATKException;
-import org.broadinstitute.hellbender.tools.walkers.annotator.Annotation;
-import org.broadinstitute.hellbender.tools.walkers.annotator.InfoFieldAnnotation;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
@@ -43,7 +45,6 @@ import java.util.concurrent.ScheduledExecutorService;
  *     -V myVcf.gz \
  *     -O /directory/for/output/
  *     -IF AF
- *     -AN SampleList
  * </pre>
  */
 @DocumentedFeature
@@ -59,9 +60,6 @@ public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(doc="Info fields to index", fullName = "info-field", shortName = "IF", optional = true)
     List<String> infoFieldsToIndex;
 
-    @Argument(doc="Annotations to apply", fullName = "annotation-name", shortName = "AN", optional = true)
-    List<String> annotationClassNames;
-
     @Argument(fullName = "threads", doc="The number of threads to use.", optional=true)
     public int threads = 1;
 
@@ -74,17 +72,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
     private VCFHeader header;
 
     @Override
-    public List<? extends CommandLinePluginDescriptor<?>> getPluginDescriptors() {
-        // This will eventually be used if we need to implement custom InfoFieldAnnotation classes
-        return Collections.singletonList(new DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor());
-    }
-
-    @Override
     public boolean useVariantAnnotations() {
         return true;
     }
-
-    private final List<InfoFieldAnnotation> annotationsToUse = new ArrayList<>();
 
     @Override
     public void onTraversalStart() {
@@ -111,22 +101,6 @@ public class VcfToLuceneIndexer extends VariantWalker {
            if(!header.hasInfoLine(field)) {
                 throw new GATKException("Non-existent INFO field key: " + field);
            }
-        }
-
-        DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor plugin = getCommandLineParser().getPluginDescriptor(DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor.class);
-        for (String className : annotationClassNames) {
-            Class<?> clazz = plugin.getClassForPluginHelp(className);
-
-            try {
-                Annotation a = new DiscvrVariantAnnotator.DiscvrAnnotationPluginDescriptor().createInstanceForPlugin(clazz);
-                if (!(a instanceof InfoFieldAnnotation)) {
-                    throw new GATKException("All custom annotations must be InfoFieldAnnotation: " + className);
-                }
-                annotationsToUse.add((InfoFieldAnnotation) a);
-            }
-            catch (InstantiationException | IllegalAccessException e) {
-                throw new GATKException("Unable to create annotation: " + className);
-            }
         }
 
         dict = getBestAvailableSequenceDictionary();
@@ -163,7 +137,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
             try {
                 executor.invokeAll(Collections.singletonList(new ApplyRunner(variant, referenceContext)));
             } catch (InterruptedException e) {
-                throw new IllegalStateException("Error running VariantQC", e);
+                throw new IllegalStateException("Error running VcfToLuceneIndexer", e);
             }
         } else {
             new ApplyRunner(variant, referenceContext).call();
@@ -183,85 +157,102 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         @Override
         public Boolean call() {
-            Map<String, List<Object>> toIndex = new HashMap<>();
+            final VCFHeader header = getHeaderForVariants();
 
-            for (String infoField : infoFieldsToIndex) {
-                if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
-                    toIndex.put(infoField, variant.getAttributeAsList(infoField));
-                }
-            }
+            // Index each ALT by itself:
+            for (Allele alt : variant.getAlternateAlleles()) {
+                Document doc = new Document();
+                int alleleIdx = variant.getAlleleIndex(alt); // includes REF
+                int altAlleleIndex = alleleIdx - 1;
 
-            for (InfoFieldAnnotation a : annotationsToUse) {
-                Map<String, Object> infoField = a.annotate(referenceContext, variant, null);
+                for (String infoField : infoFieldsToIndex) {
+                    if (variant.hasAttribute(infoField) && variant.getAttribute(infoField) != null) {
+                        final VCFInfoHeaderLine line = header.getInfoHeaderLine(infoField);
+                        final VCFHeaderLineType datatype = line.getType();
 
-                for (Map.Entry<String, Object> entry : infoField.entrySet()) {
-                    if (toIndex.containsKey(entry.getKey())) {
-                        throw new GATKException("Duplicate INFO field key: " + entry.getKey());
+                        if (line.getCountType() == VCFHeaderLineCount.A) {
+                            List<Object> vals = variant.getAttributeAsList(infoField);
+                            if (vals.size() != variant.getAlternateAlleles().size()) {
+                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                            }
+
+                            Object val = vals.get(altAlleleIndex);
+                            if (val != null) {
+                                addFieldToDocument(doc, datatype, infoField, val);
+                            }
+                        }
+                        else if (line.getCountType() == VCFHeaderLineCount.R) {
+                            List<Object> vals = variant.getAttributeAsList(infoField);
+                            if (vals.size() != variant.getNAlleles()) {
+                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                            }
+
+                            Object val = vals.get(alleleIdx);
+                            if (val != null) {
+                                addFieldToDocument(doc, datatype, infoField, val);
+                            }
+                        }
+                        else if (line.getCountType() == VCFHeaderLineCount.INTEGER || line.getCountType() == VCFHeaderLineCount.UNBOUNDED) {
+                            Object val = variant.getAttribute(infoField);
+                            addFieldToDocument(doc, datatype, infoField, val);
+                        }
                     }
-
-                    toIndex.put(entry.getKey(), Collections.singletonList(entry.getValue()));
                 }
-            }
 
-            Document doc = new Document();
+                // Add standard fields
+                doc.add(new TextField("contig", variant.getContig(), Field.Store.YES));
+                doc.add(new TextField("ref", variant.getReference().getDisplayString(), Field.Store.YES));
+                doc.add(new TextField("alt", alt.getDisplayString(), Field.Store.YES));
 
-            // Add standard fields
-            doc.add(new TextField("contig", variant.getContig(), Field.Store.YES));
+                doc.add(new IntPoint("start", variant.getStart()));
+                doc.add(new StoredField("start", variant.getStart()));
 
-            doc.add(new IntPoint("start", variant.getStart()));
-            doc.add(new StoredField("start", variant.getStart()));
+                doc.add(new IntPoint("end", variant.getEnd()));
+                doc.add(new StoredField("end", variant.getEnd()));
 
-            doc.add(new IntPoint("end", variant.getEnd()));
-            doc.add(new StoredField("end", variant.getEnd()));
+                final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
+                doc.add(new IntPoint("genomicPosition", genomicPosition));
+                doc.add(new StoredField("genomicPosition", genomicPosition));
 
-            final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
-            doc.add(new IntPoint("genomicPosition", genomicPosition));
-            doc.add(new StoredField("genomicPosition", genomicPosition));
+                if (variant.hasGenotypes()) {
+                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
+                }
 
-            addFieldsToDocument(doc, header, toIndex);
-
-            try {
-                writer.addDocument(doc);
-            } catch (IOException e) {
-                throw new GATKException(e.getMessage(), e);
+                try {
+                    writer.addDocument(doc);
+                } catch (IOException e) {
+                    throw new GATKException(e.getMessage(), e);
+                }
             }
 
             return true;
         }
     }
 
-    public static void addFieldsToDocument(Document doc, VCFHeader header, Map<String, List<Object>> toIndex) {
-        for (Map.Entry<String, List<Object>> entry : toIndex.entrySet()) {
-            for (Object value : entry.getValue()) {
-                VCFInfoHeaderLine info = header.getInfoHeaderLine(entry.getKey());
-                VCFHeaderLineType datatype = info == null ? VCFHeaderLineType.String : info.getType();
-                addFieldToDocument(doc, datatype, entry.getKey(), value);
+    private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
+        Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
+        values.forEach(value -> {
+            switch(variantHeaderLineType) {
+                case Character:
+                    doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
+                    break;
+                case Flag:
+                    doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
+                    break;
+                case Float:
+                    doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
+                    doc.add(new StoredField(key, Float.parseFloat(value.toString())));
+                    break;
+                case Integer:
+                    doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
+                    doc.add(new StoredField(key, Integer.parseInt(value.toString())));
+                    break;
+                case String:
+                    doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                    break;
             }
-        }
+        });
     }
-
-    public static void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object value) {
-        switch(variantHeaderLineType) {
-            case Character:
-                doc.add(new StringField(key, (String) value, Field.Store.YES));
-                break;
-            case Flag:
-                doc.add(new StringField(key, (String) value, Field.Store.YES));
-                break;
-            case Float:
-                doc.add(new FloatPoint(key, Float.parseFloat(value.toString())));
-                doc.add(new StoredField(key, Float.parseFloat(value.toString())));
-                break;
-            case Integer:
-                doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
-                doc.add(new StoredField(key, Integer.parseInt(value.toString())));
-                break;
-            case String:
-                doc.add(new TextField(key, (String) value, Field.Store.YES));
-                break;
-            }
-    }
-
 
     @Override
     public Object onTraversalSuccess() {
