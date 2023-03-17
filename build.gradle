@@ -79,16 +79,7 @@ configurations.all {
     }
 }
 
-// Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
-// test execution, and toolDoc generation, but we don't want them as part of the runtime
-// classpath and we don't want to redistribute them in the uber jar.
-final javadocJDKFiles = ToolProvider.getSystemToolClassLoader() == null ? files([]) : files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
-
 dependencies {
-    // javadoc utilities; compile/test only to prevent redistribution of sdk jars
-    compileOnly(javadocJDKFiles)
-    testImplementation(javadocJDKFiles)
-
     implementation 'org.broadinstitute:barclay:' + barclayVersion
     implementation 'org.apache.lucene:lucene-core:' + luceneVersion
     implementation 'org.apache.lucene:lucene-queryparser:' + luceneVersion
@@ -212,8 +203,8 @@ javadoc {
 
 // Generate Online Doc
 task toolDoc(type: Javadoc, dependsOn: classes ) {
-    final File baseDocDir = new File("build/docs")
-    final File toolDocDir = new File("build/docs/toolDoc")
+    final File baseDocDir = new File("$buildDir/docs")
+    final File toolDocDir = new File("$buildDir/docs/toolDoc")
     doFirst {
         // make sure the output folder exists or we can create it
         if (!toolDocDir.exists() && !toolDocDir.mkdirs()) {
@@ -250,8 +241,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
 
     // The doc process instantiates any documented feature classes, so to run it we need the entire
     // runtime classpath, as well as jdk javadoc files such as tools.jar, where com.sun.javadoc lives.
-    classpath = sourceSets.main.runtimeClasspath + javadocJDKFiles
-    
+    classpath = sourceSets.main.runtimeClasspath
     options.docletpath = classpath as List
     options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
 
