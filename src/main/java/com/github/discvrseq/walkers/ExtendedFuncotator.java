@@ -121,26 +121,26 @@ public class ExtendedFuncotator extends Funcotator {
                     funcotatorAnnotationStringBuilder.append(FIELD_DELIMITER);
                 }
 
-                for (final String txId : txToFuncotationMap.getTranscriptList()) {
-                    funcotatorAnnotationStringBuilder.append(START_TRANSCRIPT_DELIMITER);
-                    final List<Funcotation> funcotations = txToFuncotationMap.get(txId);
-                    final Funcotation manualAnnotationFuncotation = createManualAnnotationFuncotation(altAllele);
-
-                    funcotatorAnnotationStringBuilder.append(
-                            Stream.concat(funcotations.stream(), Stream.of(manualAnnotationFuncotation))
-                                    .filter(f -> f.getAltAllele().equals(altAllele))
-                                    .filter(f -> f.getFieldNames().size() > 0)
-                                    .filter(f -> !f.getDataSourceName().equals(FuncotatorConstants.DATASOURCE_NAME_FOR_INPUT_VCFS))
-                                    .map(VcfOutputRenderer::adjustIndelAlleleInformation)
-                                    .map(f -> FuncotatorUtils.renderSanitizedFuncotationForVcf(f, finalFuncotationFieldNames))
-                                    .collect(Collectors.joining(FIELD_DELIMITER))
-                    );
-
-                    funcotatorAnnotationStringBuilder.append(END_TRANSCRIPT_DELIMITER + ALL_TRANSCRIPT_DELIMITER);
-                }
-                // We have a trailing "#" - we need to remove it:
-                funcotatorAnnotationStringBuilder.deleteCharAt(funcotatorAnnotationStringBuilder.length()-1);
-                funcotatorAnnotationStringBuilder.append(VCFConstants.INFO_FIELD_ARRAY_SEPARATOR);
+//                for (final String txId : txToFuncotationMap.getTranscriptList()) {
+//                    funcotatorAnnotationStringBuilder.append(START_TRANSCRIPT_DELIMITER);
+//                    final List<Funcotation> funcotations = txToFuncotationMap.get(txId);
+//                    final Funcotation manualAnnotationFuncotation = createManualAnnotationFuncotation(altAllele);
+//
+//                    funcotatorAnnotationStringBuilder.append(
+//                            Stream.concat(funcotations.stream(), Stream.of(manualAnnotationFuncotation))
+//                                    .filter(f -> f.getAltAllele().equals(altAllele))
+//                                    .filter(f -> f.getFieldNames().size() > 0)
+//                                    .filter(f -> !f.getDataSourceName().equals(FuncotatorConstants.DATASOURCE_NAME_FOR_INPUT_VCFS))
+//                                    .map(VcfOutputRenderer::adjustIndelAlleleInformation)
+//                                    .map(f -> FuncotatorUtils.renderSanitizedFuncotationForVcf(f, finalFuncotationFieldNames))
+//                                    .collect(Collectors.joining(FIELD_DELIMITER))
+//                    );
+//
+//                    funcotatorAnnotationStringBuilder.append(END_TRANSCRIPT_DELIMITER + ALL_TRANSCRIPT_DELIMITER);
+//                }
+//                // We have a trailing "#" - we need to remove it:
+//                funcotatorAnnotationStringBuilder.deleteCharAt(funcotatorAnnotationStringBuilder.length()-1);
+//                funcotatorAnnotationStringBuilder.append(VCFConstants.INFO_FIELD_ARRAY_SEPARATOR);
             }
 
             // We have a trailing "," - we need to remove it:

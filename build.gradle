@@ -57,6 +57,7 @@ final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','8.11.2')
 final testNGVersion = '7.0.0'
 final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.123.25'
+final log4j2Version = System.getProperty('log4j2Version', '2.17.1')
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
@@ -130,6 +131,13 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7.1'
+
+    implementation 'org.apache.logging.log4j:log4j-api:' + log4j2Version
+    implementation 'org.apache.logging.log4j:log4j-core:' + log4j2Version
+    // include the apache commons-logging bridge that matches the log4j version we use so
+    // messages that originate with dependencies that use commons-logging (such as jexl)
+    // are routed to log4j
+    implementation 'org.apache.logging.log4j:log4j-jcl:' + log4j2Version
 }
 
 wrapper {
