@@ -1,4 +1,4 @@
-FROM adoptopenjdk/openjdk8
+FROM adoptopenjdk/openjdk17
 
 # See: https://stackoverflow.com/questions/44331836/apt-get-install-tzdata-noninteractive
 ENV DEBIAN_FRONTEND=noninteractive
