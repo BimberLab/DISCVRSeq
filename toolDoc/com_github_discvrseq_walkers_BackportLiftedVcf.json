@@ -14,6 +14,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -29,6 +30,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -44,6 +46,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -59,6 +62,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -74,6 +78,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -89,6 +94,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -104,6 +110,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -119,6 +126,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -134,6 +142,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -149,6 +158,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -164,6 +174,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -179,6 +190,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -194,6 +206,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -202,13 +215,14 @@
       "synonyms": "-XL",
       "type": "List[String]",
       "required": "no",
-      "fulltext": "Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite).\n This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the\n command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals\n (e.g. -XL myFile.intervals).",
+      "fulltext": "Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite). This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the\n command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals\n (e.g. -XL myFile.intervals). strings gathered from the command line -XL argument to be parsed into intervals to exclude",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -224,6 +238,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -239,6 +254,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -254,6 +270,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -269,6 +286,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -284,6 +302,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -299,6 +318,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -314,6 +334,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -338,6 +359,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -353,6 +375,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -377,6 +400,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -392,6 +416,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -407,6 +432,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -422,6 +448,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
+      "deprecated": false,
       "options": []
     },
     {
@@ -437,6 +464,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -452,6 +480,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -467,6 +496,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -482,6 +512,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -510,6 +541,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
+      "deprecated": false,
       "options": []
     },
     {
@@ -525,6 +557,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -540,6 +573,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -555,6 +589,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "advanced",
+      "deprecated": false,
       "options": []
     },
     {
@@ -570,6 +605,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -585,6 +621,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
+      "deprecated": false,
       "options": []
     },
     {
@@ -600,6 +637,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -615,6 +653,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -630,6 +669,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -645,6 +685,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
+      "deprecated": false,
       "options": []
     },
     {
@@ -660,6 +701,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -692,6 +734,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     }
   ],
@@ -699,5 +742,6 @@
   "name": "BackportLiftedVcf",
   "group": "Specialized/Internal Tools",
   "beta": false,
-  "experimental": false
+  "experimental": false,
+  "deprecated": false
 }

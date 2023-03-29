@@ -14,6 +14,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -29,6 +30,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -44,6 +46,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -52,13 +55,14 @@
       "synonyms": "-G",
       "type": "List[String]",
       "required": "no",
-      "fulltext": "Which groups of annotations to add to the output variant calls.\n Any requirements that are not met (e.g. failing to provide a pedigree file for a pedigree-based annotation) may cause the run to fail.",
+      "fulltext": "Which groups of annotations to add to the output variant calls. Any requirements that are not met (e.g. failing to provide a pedigree file for a pedigree-based annotation) may cause the run to fail.",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -67,13 +71,14 @@
       "synonyms": "-AX",
       "type": "List[String]",
       "required": "no",
-      "fulltext": "Which annotations to exclude from output in the variant calls.  Note that this argument has higher priority than the\n -A or -G arguments, so these annotations will be excluded even if they are explicitly included with the other\n options.",
+      "fulltext": "Which annotations to exclude from output in the variant calls. Note that this argument has higher priority than the\n -A or -G arguments, so these annotations will be excluded even if they are explicitly included with the other\n options.",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -89,6 +94,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -104,6 +110,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -119,6 +126,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -134,6 +142,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -149,6 +158,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -164,6 +174,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -179,6 +190,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -194,6 +206,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -209,6 +222,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -224,6 +238,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -239,6 +254,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "advanced",
+      "deprecated": false,
       "options": []
     },
     {
@@ -254,6 +270,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -269,6 +286,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "advanced",
+      "deprecated": false,
       "options": []
     },
     {
@@ -277,13 +295,14 @@
       "synonyms": "-XL",
       "type": "List[String]",
       "required": "no",
-      "fulltext": "Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite).\n This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the\n command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals\n (e.g. -XL myFile.intervals).",
+      "fulltext": "Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite). This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the\n command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals\n (e.g. -XL myFile.intervals). strings gathered from the command line -XL argument to be parsed into intervals to exclude",
       "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -299,6 +318,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -314,6 +334,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -329,6 +350,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -344,6 +366,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -359,6 +382,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -374,6 +398,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -389,6 +414,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -404,6 +430,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -419,6 +446,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -434,6 +462,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -458,6 +487,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -473,6 +503,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -497,6 +528,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -512,6 +544,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -527,6 +560,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -542,6 +576,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -557,6 +592,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -572,6 +608,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -587,6 +624,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -602,6 +640,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -617,6 +656,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -645,6 +685,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -660,6 +701,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -675,6 +717,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -690,6 +733,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "advanced",
+      "deprecated": false,
       "options": []
     },
     {
@@ -705,6 +749,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -720,6 +765,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     },
     {
@@ -735,6 +781,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -750,6 +797,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -765,6 +813,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": []
     },
     {
@@ -780,6 +829,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "required",
+      "deprecated": false,
       "options": []
     },
     {
@@ -795,6 +845,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "common",
+      "deprecated": false,
       "options": [
         {
           "summary": "",
@@ -827,6 +878,7 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
       "options": []
     }
   ],
@@ -834,5 +886,6 @@
   "name": "VcfToLuceneIndexer",
   "group": "Public/Stable Tools",
   "beta": false,
-  "experimental": false
+  "experimental": false,
+  "deprecated": false
 }

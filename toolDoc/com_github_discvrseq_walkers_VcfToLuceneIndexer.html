@@ -509,8 +509,7 @@
 		</h3>
 		<p class="args">
 			<b>One or more groups of annotations to apply to variant calls</b><br />
-			Which groups of annotations to add to the output variant calls.
- Any requirements that are not met (e.g. failing to provide a pedigree file for a pedigree-based annotation) may cause the run to fail.
+			Which groups of annotations to add to the output variant calls. Any requirements that are not met (e.g. failing to provide a pedigree file for a pedigree-based annotation) may cause the run to fail.
 		</p>
 		<p>
 		<span class="label label-info ">List[String]</span>
@@ -522,7 +521,7 @@
 		</h3>
 		<p class="args">
 			<b>One or more specific annotations to exclude from variant calls</b><br />
-			Which annotations to exclude from output in the variant calls.  Note that this argument has higher priority than the
+			Which annotations to exclude from output in the variant calls. Note that this argument has higher priority than the
  -A or -G arguments, so these annotations will be excluded even if they are explicitly included with the other
  options.
 		</p>
@@ -703,10 +702,9 @@
 		</h3>
 		<p class="args">
 			<b>One or more genomic intervals to exclude from processing</b><br />
-			Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite).
- This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the
+			Use this argument to exclude certain parts of the genome from the analysis (like -L, but the opposite). This argument can be specified multiple times. You can use samtools-style intervals either explicitly on the
  command line (e.g. -XL 1 or -XL 1:100-200) or by loading in a file containing a list of intervals
- (e.g. -XL myFile.intervals).
+ (e.g. -XL myFile.intervals). strings gathered from the command line -XL argument to be parsed into intervals to exclude
 		</p>
 		<p>
 		<span class="label label-info ">List[String]</span>
@@ -1185,7 +1183,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.27 built at 10-03-2023 06:34:29.
+        <p class="version">DISCVR-Seq version 1.3.28 built at 29-03-2023 06:43:36.
         </p>
 
 </div></div>
