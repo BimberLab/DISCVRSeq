@@ -35,13 +35,13 @@ import java.util.stream.Stream;
  *     -O output.annotated.vcf.gz
  * </pre>
  */
-@CommandLineProgramProperties(
-        summary = "Create functional annotations on given variants cross-referenced by a given set of data sources.\n" +
-                "A GATK functional annotation tool (similar functionality to Oncotator).",
-        oneLineSummary = "Functional Annotator",
-        programGroup = DiscvrSeqProgramGroup.class
-)
-@DocumentedFeature
+//@CommandLineProgramProperties(
+//        summary = "Create functional annotations on given variants cross-referenced by a given set of data sources.\n" +
+//                "A GATK functional annotation tool (similar functionality to Oncotator).",
+//        oneLineSummary = "Functional Annotator",
+//        programGroup = DiscvrSeqProgramGroup.class
+//)
+//@DocumentedFeature
 public class ExtendedFuncotator extends Funcotator {
     private static final Logger logger = LogManager.getLogger(ExtendedFuncotator.class);
 
