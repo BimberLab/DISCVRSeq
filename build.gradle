@@ -20,7 +20,6 @@ apply plugin: 'java'
 
 repositories {
     mavenCentral()
-    jcenter()
     maven {
         url "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
     }
@@ -52,12 +51,13 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.3.0.0'
-final htsjdkVersion = System.getProperty('htsjdk.version','3.0.1')
-final barclayVersion = System.getProperty('barclay.version','4.0.2')
+final gatkVersion = '4.4.0.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','3.0.5')
+final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','8.11.2')
 final testNGVersion = '7.0.0'
 final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.123.25'
+final log4j2Version = System.getProperty('log4j2Version', '2.17.1')
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
@@ -68,8 +68,8 @@ configurations.all {
         force 'com.github.samtools:htsjdk:' + htsjdkVersion
         // later versions explode Hadoop
         // TODO: this is the same in GATK, but we should check if they solve this issue in the future
-        force 'com.google.protobuf:protobuf-java:3.8.0'
-        // force testng dependency so we don't pick up a different version via GenomicsDB/GATK
+        force 'com.google.protobuf:protobuf-java:3.21.6'
+        // force testng dependency so we don't pick up a different version via GenomicsDB
         force 'org.testng:testng:' + testNGVersion
         force 'org.broadinstitute:barclay:' + barclayVersion
 
@@ -79,16 +79,7 @@ configurations.all {
     }
 }
 
-// Get the jdk files we need to run javaDoc. We need to use these during compile, testCompile,
-// test execution, and toolDoc generation, but we don't want them as part of the runtime
-// classpath and we don't want to redistribute them in the uber jar.
-final javadocJDKFiles = ToolProvider.getSystemToolClassLoader() == null ? files([]) : files(((URLClassLoader) ToolProvider.getSystemToolClassLoader()).getURLs())
-
 dependencies {
-    // javadoc utilities; compile/test only to prevent redistribution of sdk jars
-    compileOnly(javadocJDKFiles)
-    testImplementation(javadocJDKFiles)
-
     implementation 'org.broadinstitute:barclay:' + barclayVersion
     implementation 'org.apache.lucene:lucene-core:' + luceneVersion
     implementation 'org.apache.lucene:lucene-queryparser:' + luceneVersion
@@ -131,6 +122,13 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7.1'
+
+    implementation 'org.apache.logging.log4j:log4j-api:' + log4j2Version
+    implementation 'org.apache.logging.log4j:log4j-core:' + log4j2Version
+    // include the apache commons-logging bridge that matches the log4j version we use so
+    // messages that originate with dependencies that use commons-logging (such as jexl)
+    // are routed to log4j
+    implementation 'org.apache.logging.log4j:log4j-jcl:' + log4j2Version
 }
 
 wrapper {
@@ -205,8 +203,8 @@ javadoc {
 
 // Generate Online Doc
 task toolDoc(type: Javadoc, dependsOn: classes ) {
-    final File baseDocDir = new File("build/docs")
-    final File toolDocDir = new File("build/docs/toolDoc")
+    final File baseDocDir = new File("$buildDir/docs")
+    final File toolDocDir = new File("$buildDir/docs/toolDoc")
     doFirst {
         // make sure the output folder exists or we can create it
         if (!toolDocDir.exists() && !toolDocDir.mkdirs()) {
@@ -243,8 +241,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
 
     // The doc process instantiates any documented feature classes, so to run it we need the entire
     // runtime classpath, as well as jdk javadoc files such as tools.jar, where com.sun.javadoc lives.
-    classpath = sourceSets.main.runtimeClasspath + javadocJDKFiles
-    
+    classpath = sourceSets.main.runtimeClasspath
     options.docletpath = classpath as List
     options.doclet = "com.github.discvrseq.util.help.DISCVRSeqHelpDoclet"
 

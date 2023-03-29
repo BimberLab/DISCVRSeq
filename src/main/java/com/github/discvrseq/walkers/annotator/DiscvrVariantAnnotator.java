@@ -85,6 +85,8 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
 
     public static class DiscvrAnnotationPluginDescriptor extends GATKAnnotationPluginDescriptor
     {
+        private static final long serialVersionUID = 1L;
+
         @ArgumentCollection
         public GenotypeConcordanceArgumentCollection genotypeConcordanceArgumentCollection = new GenotypeConcordanceArgumentCollection();
 
