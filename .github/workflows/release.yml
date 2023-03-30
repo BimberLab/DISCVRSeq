@@ -9,13 +9,16 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v3
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
       - name: Build with Gradle
         run: |
           ./gradlew build;
@@ -23,10 +26,18 @@ jobs:
           ./gradlew shadowJar -Drelease=true;
           ./gradlew toolDoc -Drelease=true;
           mv ./build/docs ./toolDoc
+
       - name: Inject slug/short variables
         uses: rlespinasse/github-slug-action@v3.x
+
       - name: Branch name
         run: echo running on branch ${{ env.GITHUB_REF_SLUG }}
+
+      - name: Check JAR
+        run: |
+          java -version
+          java -jar build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar -h
+
       - name: Upload Artifacts
         uses: skx/github-action-publish-binaries@master
         env:
