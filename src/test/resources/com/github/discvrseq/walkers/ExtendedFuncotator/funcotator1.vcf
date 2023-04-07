@@ -1,0 +1,21 @@
+##fileformat=VCFv4.2
+##Funcotator Version=Unavailable | Gencode 34 CANONICAL | omim 20180612
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=DS,Number=.,Type=String,Description="The data source this is designed to test">
+##INFO=<ID=FUNCOTATION,Number=A,Type=String,Description="Functional annotation from the Funcotator tool.  Funcotation fields are: Gencode_34_hugoSymbol|Gencode_34_ncbiBuild|Gencode_34_chromosome|Gencode_34_start|Gencode_34_end|Gencode_34_variantClassification|Gencode_34_secondaryVariantClassification|Gencode_34_variantType|Gencode_34_refAllele|Gencode_34_tumorSeqAllele1|Gencode_34_tumorSeqAllele2|Gencode_34_genomeChange|Gencode_34_annotationTranscript|Gencode_34_transcriptStrand|Gencode_34_transcriptExon|Gencode_34_transcriptPos|Gencode_34_cDnaChange|Gencode_34_codonChange|Gencode_34_proteinChange|Gencode_34_gcContent|Gencode_34_referenceContext|Gencode_34_otherTranscripts|omim_MIMNUMBER|omim_GENESYMBOL|omim_PHENOTYPES">
+##INFO=<ID=GENE,Number=.,Type=String,Description="....figure out how to add in those with only GENE_NAME attrib">
+##INFO=<ID=VAL,Number=.,Type=String,Description="The value as expect to be added, or blank if this should not match">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	10000	.	C	G	1	PASS	DS=oreganno;FUNCOTATION=[];VAL=Type="TRANSCRIPTION_FACTOR_BINDING_SITE"
+1	10002	.	C	G	1	PASS	DS=F_NC,F_NCG,F_CG,F_CG;FUNCOTATION=[];VAL=0.49817,C,0.87811,FCI
+1	10003	.	C	G	1	PASS	DS=F_NC;FUNCOTATION=[];VAL=.
+1	10008	.	A	C	1	PASS	DS=F_NC,F_NCG,F_C,F_CG;FUNCOTATION=[];VAL=0.49817,C,0.87811,FCI
+1	10019	.	TA	T	1	PASS	DS=dbSNP;FUNCOTATION=[];VAL=RS=775809821
+1	10069	.	C	A	1	PASS	DS=Capice;FUNCOTATION=[];VAL=.
+1	10106	.	C	T	1	PASS	DS=Capice;FUNCOTATION=[];VAL=3.6949452351109358e-06
+1	10107	.	T	G	1	PASS	DS=CADD_PH;FUNCOTATION=[];VAL=0.080640
+1	10107	.	C	A	1	PASS	DS=CADD_PH;FUNCOTATION=[];VAL=0.01
+1	10107	.	C	G	1	PASS	DS=CADD_PH;FUNCOTATION=[]
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=CGAGA
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=CGAGA
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=.
