@@ -34,8 +34,8 @@ public final class Main extends org.broadinstitute.hellbender.Main {
 
     @VisibleForTesting
     protected boolean printOnlyVersion(final String[] args) {
+        System.out.println("Version: " + getClass().getPackage().getImplementationVersion());
         if (args.length == 1 && ("--version".equals(args[0]) || "-v".equals(args[0]))) {
-            handleResult(getClass().getPackage().getImplementationVersion());
             return true;
         }
         return false;
