@@ -14,8 +14,6 @@ plugins {
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-import javax.tools.ToolProvider
-
 apply plugin: 'java'
 
 repositories {
@@ -235,6 +233,7 @@ shadowJar {
     archiveBaseName = project.name
     archiveClassifier = ''
     mergeServiceFiles('reference.conf')
+    dependsOn(distTar, distZip, startScripts)
 }
 
 task localJar{ dependsOn shadowJar }
