@@ -18,6 +18,8 @@ public class InsertJunctionDescriptor {
     private int mismatchesAllowed = 2;
     private boolean invertHitOrientation = false;
 
+    private int offset = 0;
+
     public InsertJunctionDescriptor() {
 
     }
@@ -48,8 +50,8 @@ public class InsertJunctionDescriptor {
         for (String query : getSearchStrings(false)) {
             Integer match0 = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
             if (match0 != null) {
-                //this is equal to one base after the 1-based end
-                final int start = match0 + query.length() + 2;
+                //this is equal to one base after the 1-based end, adjusted by the offset
+                final int start = match0 + query.length() + 2 + offset;
                 int pos = rec.getReferencePositionAtReadPosition(start);
 
                 int i = 1;
@@ -69,11 +71,13 @@ public class InsertJunctionDescriptor {
         for (String query : getSearchStrings(true)) {
             Integer match0 = SequenceMatcher.fuzzyMatch(query, rec.getReadString().toUpperCase(), mismatchesAllowed);
             if (match0 != null) {
-                int pos = rec.getReferencePositionAtReadPosition(match0);  //this is equal to one base prior to the 1-based start
+                //this is equal to one base prior to the 1-based start, adjusted by the offset
+                final int start = match0 - offset;
+                int pos = rec.getReferencePositionAtReadPosition(start);
 
                 int i = 1;
-                while (pos == 0 && (match0 - i) > 1) {
-                    pos = rec.getReferencePositionAtReadPosition(match0 - i);
+                while (pos == 0 && (start - i) > 1) {
+                    pos = rec.getReferencePositionAtReadPosition(start - i);
                     i++;
                 }
 
@@ -117,6 +121,14 @@ public class InsertJunctionDescriptor {
 
     public boolean isInvertHitOrientation() {
         return invertHitOrientation;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 
     public void setInvertHitOrientation(boolean invertHitOrientation) {
