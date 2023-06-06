@@ -1,0 +1,17 @@
+##fileformat=VCFv4.2
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=VAL,Number=.,Type=String,Description="The value as expect to be added, or blank if this should not match">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	10000	.	C	G	1	PASS	.
+1	10002	.	C	G	1	PASS	.
+1	10003	.	C	G	1	PASS	.
+1	10008	.	A	C,T	1	PASS	.
+1	10019	.	TA	T	1	PASS	.
+1	10069	.	C	A	1	PASS	VAL=0.2
+1	10106	.	C	T	1	PASS	.
+1	10107	.	T	G	1	PASS	.
+1	10107	.	C	A	1	PASS	VAL=0.01
+1	10107	.	C	G	1	PASS	.
+1	13416	.	C	A	1	PASS	.
+1	13416	.	C	A	1	PASS	.
+1	13416	.	C	A	1	PASS	.

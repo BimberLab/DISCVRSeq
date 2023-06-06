@@ -1,0 +1,23 @@
+##fileformat=VCFv4.2
+##Funcotator Version=Unavailable | Gencode 34 CANONICAL | testSource 20180612 | vcfTestSource 20180612
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=FUNCOTATION,Number=A,Type=String,Description="Functional annotation from the Funcotator tool.  Funcotation fields are: Gencode_34_hugoSymbol|Gencode_34_ncbiBuild|Gencode_34_chromosome|Gencode_34_start|Gencode_34_end|Gencode_34_variantClassification|Gencode_34_secondaryVariantClassification|Gencode_34_variantType|Gencode_34_refAllele|Gencode_34_tumorSeqAllele1|Gencode_34_tumorSeqAllele2|Gencode_34_genomeChange|Gencode_34_annotationTranscript|Gencode_34_transcriptStrand|Gencode_34_transcriptExon|Gencode_34_transcriptPos|Gencode_34_cDnaChange|Gencode_34_codonChange|Gencode_34_proteinChange|Gencode_34_gcContent|Gencode_34_referenceContext|Gencode_34_otherTranscripts|testSource_HEADER|testSource_OtherField|testSource_ExpectedResult|vcfTestSource_AA|vcfTestSource_BB|vcfTestSource_ID|vcfTestSource_FILTER">
+##INFO=<ID=VAL,Number=.,Type=String,Description="The value as expect to be added, or blank if this should not match">
+##INFO=<ID=f1,Number=.,Type=String,Description="This is field1">
+##INFO=<ID=f2,Number=.,Type=String,Description="This is field2">
+##INFO=<ID=f3,Number=A,Type=Float,Description="This is field3">
+##INFO=<ID=f4,Number=.,Type=String,Description="This is field4">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	10000	.	C	G	1	PASS	f1=A;f2=Overlap10000;f3=0.2;f4=1
+1	10002	.	C	G	1	PASS	.
+1	10003	.	C	G	1	PASS	.
+1	10008	.	A	C,T	1	PASS	f3=0.3,
+1	10019	.	TA	T	1	PASS	f3=0.4;f4=2,3,4
+1	10069	.	C	A	1	PASS	VAL=0.2;f1=C;f2=Overlap10023
+1	10106	.	C	T	1	PASS	.
+1	10107	.	T	G	1	PASS	.
+1	10107	.	C	A	1	PASS	VAL=0.01
+1	10107	.	C	G	1	PASS	.
+1	13416	.	C	A	1	PASS	f1=E;f2=Overlap13414
+1	13416	.	C	A	1	PASS	f1=E;f2=Overlap13414
+1	13416	.	C	A	1	PASS	f1=E;f2=Overlap13414

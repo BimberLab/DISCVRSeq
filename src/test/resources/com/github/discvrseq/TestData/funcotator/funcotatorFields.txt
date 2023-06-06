@@ -1,0 +1,5 @@
+DataSource	SourceField	ID	Number	Type	Description
+testSource	OtherField	f1	UNBOUNDED	String	This is field1
+testSource	ExpectedResult	f2	UNBOUNDED	String	This is field2
+vcfTestSource	AA	f3	A	Float	This is field3
+vcfTestSource	BB	f4	UNBOUNDED	String	This is field4
