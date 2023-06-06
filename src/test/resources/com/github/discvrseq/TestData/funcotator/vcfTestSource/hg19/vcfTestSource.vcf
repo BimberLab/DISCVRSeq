@@ -1,0 +1,7 @@
+##fileformat=VCFv4.2
+##INFO=<ID=AA,Number=A,Type=Float,Description="This is per-allele">
+##INFO=<ID=BB,Number=.,Type=String,Description="This is unbounded">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+1	10000	.	C	G	1	PASS	AA=0.2;BB=1
+1	10008	.	A	G,C	1	PASS	AA=0.1,0.3
+1	10019	.	TA	T,C	1	PASS	AA=0.4,0.1;BB=2,3,4

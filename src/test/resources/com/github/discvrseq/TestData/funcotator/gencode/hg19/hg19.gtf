@@ -1,3 +1,9 @@
 1	HAVANA	gene	1	10	.	+	.	gene_id "Gene1"; transcript_id "Transcript1"; gene_type "protein_coding"; gene_name "Gene1";
 1	HAVANA	transcript	1	10	.	+	.	gene_id "Gene1"; transcript_id "Transcript1"; gene_type "protein_coding"; gene_name "Gene1";
 1	HAVANA	exon	1	10	.	+	.	gene_id "Gene1"; transcript_id "Transcript1"; gene_type "protein_coding"; gene_name "Gene1"; exon_number 1; exon_id "Gene1.1";
+1	HAVANA	gene	9800	11000	.	+	.	gene_id "Gene2"; transcript_id "Transcript2"; gene_type "protein_coding"; gene_name "Gene2";
+1	HAVANA	transcript	9800	11000	.	+	.	gene_id "Gene2"; transcript_id "Transcript2"; gene_type "protein_coding"; gene_name "Gene2";
+1	HAVANA	exon	9800	11000	.	+	.	gene_id "Gene2"; transcript_id "Transcript2"; gene_type "protein_coding"; gene_name "Gene2"; exon_number 1; exon_id "Gene2.1";
+1	HAVANA	gene	9900	11001	.	+	.	gene_id "Gene3"; transcript_id "Transcript3"; gene_type "protein_coding"; gene_name "Gene3";
+1	HAVANA	transcript	9900	11001	.	+	.	gene_id "Gene3"; transcript_id "Transcript3"; gene_type "protein_coding"; gene_name "Gene3";
+1	HAVANA	exon	9900	11001	.	+	.	gene_id "Gene3"; transcript_id "Transcript3"; gene_type "protein_coding"; gene_name "Gene3"; exon_number 1; exon_id "Gene3.1";

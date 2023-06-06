@@ -1,41 +1,60 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.vcf.VCFConstants;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLine;
+import htsjdk.variant.vcf.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.engine.FeatureContext;
+import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.tools.funcotator.*;
 import org.broadinstitute.hellbender.tools.funcotator.dataSources.DataSourceUtils;
 import org.broadinstitute.hellbender.tools.funcotator.metadata.VcfFuncotationMetadata;
 import org.broadinstitute.hellbender.tools.funcotator.vcfOutput.VcfOutputRenderer;
-import org.broadinstitute.hellbender.utils.Utils;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Create functional annotations on given variants cross-referenced by a given set of data sources.
+ * This is an extension of the GATK Funcotator tool. The primary purpose of this tool is to produce a VCF output where specific fields from Funcotator are output
+ * as discrete INFO field annotations, rather than Funcotator's default, which involves a single INFO field where the annotations are concatenated together.
  *
  * <h3>Usage example:</h3>
  * <pre>
  *  java -jar DISCVRseq.jar ExtendedFuncotator \
  *     -V input.vcf.gz \
+ *     -R myFasta.fasta \
+ *     --ref-version hg19 \
+ *     --data-sources-path ./path/to/dataSource \
+ *     -cf configFile.txt \
  *     -O output.annotated.vcf.gz
+ * </pre>
+ *
+ * The config file must specify the list of Funcotator fields to include, and the VCF info attributes for each. The fields ID, Number, Type, and Description must match valid VCF header values.
+ * <pre>
+ *    DataSource	SourceField	ID	Number	Type	Description
+ *    testSource	OtherField	f1	UNBOUNDED	String	This is field1
+ *    testSource	ExpectedResult	f2	UNBOUNDED	String	This is field2
+ *    vcfTestSource	AA	f3	A	Float	This is field3
+ *    vcfTestSource	BB	f4	UNBOUNDED	String	This is field4
  * </pre>
  */
 @CommandLineProgramProperties(
-        summary = "Create functional annotations on given variants cross-referenced by a given set of data sources.\n" +
-                "A GATK functional annotation tool (similar functionality to Oncotator).",
+        summary = "Create functional annotations on given variants cross-referenced by a given set of data sources. Based on GATK Funcotator, but with expanded output options.\n",
         oneLineSummary = "Functional Annotator",
         programGroup = DiscvrSeqProgramGroup.class
 )
@@ -43,8 +62,14 @@ import java.util.*;
 public class ExtendedFuncotator extends Funcotator {
     private static final Logger logger = LogManager.getLogger(ExtendedFuncotator.class);
 
+    @Argument(doc = "A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.", fullName = "config-file", shortName = "cf", optional = false)
+    public GATKPath configFile = null;
+
     @Override
     public void onTraversalStart() {
+        // This will be ignored anyway
+        getArguments().outputFormatType = FuncotatorArgumentDefinitions.OutputFormatType.VCF;
+
         addOutputVCFCommandLine = false;
 
         // Get our overrides for annotations:
@@ -69,17 +94,45 @@ public class ExtendedFuncotator extends Funcotator {
                 getArguments().minNumBasesForValidSegment
         );
 
+
+        // Read config, etc:
+        List<VcfHeaderDescriptor> fields = new ArrayList<>();
+        IOUtil.assertFileIsReadable(configFile.toPath());
+        try (CSVReader reader = CsvUtils.getTsvReader(configFile.toPath().toFile()))
+        {
+            String[] line;
+            List<String> header = new ArrayList<>();
+            int idx = 0;
+            while ((line = reader.readNext()) != null)
+            {
+                idx++;
+
+                if (idx == 1)
+                {
+                    header.addAll(Arrays.stream(line).map(String::toLowerCase).toList());
+                    continue;
+                }
+
+                fields.add(new VcfHeaderDescriptor(line, header));
+            }
+        }
+        catch (IOException | CsvValidationException e)
+        {
+            throw new GATKException("Unable to read config file", e);
+        }
+
+        fields.forEach(x -> vcfHeader.addMetaDataLine(x.toInfoLine()));
+        List<VCFInfoHeaderLine> headerLines = new ArrayList<>(vcfHeader.getInfoHeaderLines());
+
         funcotatorEngine = new FuncotatorEngine(
                 getArguments(),
                 getSequenceDictionaryForDrivingVariants(),
-                VcfFuncotationMetadata.create(
-                        new ArrayList<>(vcfHeader.getInfoHeaderLines())
-                ),
+                VcfFuncotationMetadata.create(headerLines),
                 dataSourceFuncotationFactories
         );
 
         // Create our output renderer:
-        logger.info("Creating a " + getArguments().outputFormatType + " file for output: " + getArguments().outputFile.toURI());
+        logger.info("Creating output: " + getArguments().outputFile.toURI());
         outputRenderer = new ExtendedVcfOutputRenderer(
                 this.createVCFWriter(getArguments().outputFile),
                 funcotatorEngine.getFuncotationFactories(),
@@ -88,8 +141,66 @@ public class ExtendedFuncotator extends Funcotator {
                 annotationOverridesMap,
                 getDefaultToolVCFHeaderLines(),
                 getArguments().excludedFields,
-                this.getVersion()
+                this.getVersion(),
+                fields
         );
+    }
+
+    private static class VcfHeaderDescriptor
+    {
+        final String dataSource;
+        final String sourceField;
+        final String id;
+        final VCFHeaderLineCount count;
+        final VCFHeaderLineType type;
+        final String description;
+
+        public VcfHeaderDescriptor(String[] line, List<String> headerFields)
+        {
+            dataSource = getField("DataSource", line, headerFields);
+            sourceField = getField("SourceField", line, headerFields);
+            id = getField("ID", line, headerFields);
+
+            String numberString = getField("Number", line, headerFields);
+            try {
+                count = VCFHeaderLineCount.valueOf(numberString);
+            }
+            catch (IllegalArgumentException e) {
+                throw new GATKException("Unknown value for Number columns: " + numberString);
+            }
+
+            String typeString = getField("Type", line, headerFields);
+            try {
+                type = VCFHeaderLineType.valueOf(typeString);
+            }
+            catch (IllegalArgumentException e)
+            {
+                throw new GATKException("Unknown value for type: " + typeString);
+            }
+
+            description = getField("Description", line, headerFields);
+        }
+
+        private String getField(String fieldName, String[] line, List<String> headerFields)
+        {
+            if (!headerFields.contains(fieldName.toLowerCase()))
+            {
+                throw new GATKException("Config file should contain the column: " + fieldName);
+            }
+
+            int idx = headerFields.indexOf(fieldName.toLowerCase());
+            if (idx > line.length)
+            {
+                throw new GATKException("Missing value for column: " + fieldName);
+            }
+
+            return line[idx];
+        }
+
+        public VCFInfoHeaderLine toInfoLine()
+        {
+            return new VCFInfoHeaderLine(id, count, type, description);
+        }
     }
 
     protected void enqueueAndHandleVariant(final VariantContext variant, final ReferenceContext referenceContext, final FeatureContext featureContext) {
@@ -103,6 +214,8 @@ public class ExtendedFuncotator extends Funcotator {
     private static final class ExtendedVcfOutputRenderer extends VcfOutputRenderer {
         private final VariantContextWriter vcfWriter;
 
+        private final List<VcfHeaderDescriptor> fieldsToOutput;
+
         public ExtendedVcfOutputRenderer(final VariantContextWriter vcfWriter,
                                  final List<DataSourceFuncotationFactory> dataSources,
                                  final VCFHeader existingHeader,
@@ -110,9 +223,12 @@ public class ExtendedFuncotator extends Funcotator {
                                  final LinkedHashMap<String, String> unaccountedForOverrideAnnotations,
                                  final Set<VCFHeaderLine> defaultToolVcfHeaderLines,
                                  final Set<String> excludedOutputFields,
-                                 final String toolVersion) {
+                                 final String toolVersion,
+                                 final List<VcfHeaderDescriptor> fieldsToOutput) {
             super(vcfWriter, dataSources, existingHeader, unaccountedForDefaultAnnotations, unaccountedForOverrideAnnotations, defaultToolVcfHeaderLines, excludedOutputFields, toolVersion);
             this.vcfWriter = vcfWriter;
+
+            this.fieldsToOutput = fieldsToOutput;
         }
 
         @Override
@@ -121,62 +237,84 @@ public class ExtendedFuncotator extends Funcotator {
             // Create a new variant context builder:
             final VariantContextBuilder variantContextOutputBuilder = new VariantContextBuilder(variant);
 
-            final StringBuilder funcotatorAnnotationStringBuilder = new StringBuilder();
-
-            // Get the old VCF Annotation field and append the new information to it:
-            final Object existingAnnotation = variant.getAttribute(FUNCOTATOR_VCF_FIELD_NAME, null);
-            final List<String> existingAlleleAnnotations;
-            if ( existingAnnotation != null) {
-                existingAlleleAnnotations = Utils.split(existingAnnotation.toString(), ',');
-            }
-            else {
-                existingAlleleAnnotations = Collections.emptyList();
-            }
-
-            // Go through each allele and add it to the writer separately:
-            final List<Allele> alternateAlleles = variant.getAlternateAlleles();
-            for ( int alleleIndex = 0; alleleIndex < alternateAlleles.size() ; ++alleleIndex ) {
-
-                final Allele altAllele = alternateAlleles.get(alleleIndex);
-
-                if ( alleleIndex < existingAlleleAnnotations.size() ) {
-                    funcotatorAnnotationStringBuilder.append( existingAlleleAnnotations.get(alleleIndex) );
-                    funcotatorAnnotationStringBuilder.append(FIELD_DELIMITER);
-                }
+            // Add our new annotations:
+            for (VcfHeaderDescriptor vd : fieldsToOutput) {
+                final String target = vd.dataSource + "_" + vd.sourceField;
+                final Map<Allele, List<String>> valMap = new HashMap<>();
 
                 for (final String txId : txToFuncotationMap.getTranscriptList()) {
-                    funcotatorAnnotationStringBuilder.append(START_TRANSCRIPT_DELIMITER);
                     final List<Funcotation> funcotations = txToFuncotationMap.get(txId);
-                    final Funcotation manualAnnotationFuncotation = OutputRenderer.createFuncotationFromLinkedHashMap(manualAnnotations, altAllele, "UnaccountedManualAnnotations");
+                    List<Funcotation> funcotationList = funcotations.stream()
+                            .filter(f -> f.getFieldNames().size() > 0)
+                            .filter(f -> f.getDataSourceName().equalsIgnoreCase(vd.dataSource))
+                            .filter(f -> f.getFieldNames().contains(target))
+                            .toList();
 
-//                    funcotatorAnnotationStringBuilder.append(
-//                            Stream.concat(funcotations.stream(), Stream.of(manualAnnotationFuncotation))
-//                                    .filter(f -> f.getAltAllele().equals(altAllele))
-//                                    .filter(f -> f.getFieldNames().size() > 0)
-//                                    .filter(f -> !f.getDataSourceName().equals(FuncotatorConstants.DATASOURCE_NAME_FOR_INPUT_VCFS))
-//                                    .map(VcfOutputRenderer::adjustIndelAlleleInformation)
-//                                    .map(f -> FuncotatorUtils.renderSanitizedFuncotationForVcf(f, finalFuncotationFieldNames))
-//                                    .collect(Collectors.joining(FIELD_DELIMITER))
-//                    );
+                    if (funcotationList.isEmpty()) {
+                        continue;
+                    }
 
-                    funcotatorAnnotationStringBuilder.append(END_TRANSCRIPT_DELIMITER + ALL_TRANSCRIPT_DELIMITER);
+                    funcotationList.forEach(f -> {
+                        if (!valMap.containsKey(f.getAltAllele())) {
+                            valMap.put(f.getAltAllele(), new ArrayList<>());
+                        }
+
+                        if (f.getField(target) != null && !f.getField(target).isEmpty()) {
+                            valMap.get(f.getAltAllele()).add(f.getField(target));
+                        }
+                    });
                 }
-                // We have a trailing "#" - we need to remove it:
-                funcotatorAnnotationStringBuilder.deleteCharAt(funcotatorAnnotationStringBuilder.length()-1);
-                funcotatorAnnotationStringBuilder.append(VCFConstants.INFO_FIELD_ARRAY_SEPARATOR);
+
+                List<List<String>> toAdd;
+                switch (vd.count) {
+                    case A -> {
+                        toAdd = variant.getAlternateAlleles().stream().map(a -> valMap.getOrDefault(a, Collections.emptyList())).toList();
+                        if (toAdd.stream().anyMatch(x -> x.size() > 1)) {
+                            throw new GATKException("Expected a 0-1 values per allele for annotation: " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes());
+                        }
+
+                        // We expect only one value per allele, so grab the first:
+                        if (!toAdd.isEmpty() && !toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).allMatch(String::isEmpty)) {
+                            String val = toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).collect(Collectors.joining(","));
+                            if (!val.isEmpty()) {
+                                variantContextOutputBuilder.attribute(vd.id, val);
+                            }
+                        }
+                    }
+                    case R -> {
+                        toAdd = variant.getAlleles().stream().map(a -> valMap.getOrDefault(a, Collections.emptyList())).toList();
+                        if (toAdd.stream().anyMatch(x -> x.size() > 1)) {
+                            throw new GATKException("Expected a 0-1 values per allele for annotation: " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes());
+                        }
+
+                        // We expect only one value per allele, so grab the first:
+                        if (!toAdd.isEmpty() && !toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).allMatch(String::isEmpty)) {
+                            String val = toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).collect(Collectors.joining(","));
+                            if (!val.isEmpty()) {
+                                variantContextOutputBuilder.attribute(vd.id, val);
+                            }
+                        }
+                    }
+                    case INTEGER, UNBOUNDED -> {
+                        toAdd = valMap.values().stream().distinct().toList();
+                        if (toAdd.size() > 1) {
+                            throw new GATKException("Expected a one set of values per site for annotation: " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes());
+                        }
+                        if (!toAdd.get(0).isEmpty()) {
+                            String val = toAdd.get(0).stream().filter(x -> !x.isEmpty()).collect(Collectors.joining(","));
+                            if (!val.isEmpty()) {
+                                variantContextOutputBuilder.attribute(vd.id, val);
+                            }
+                        }
+                    }
+                }
             }
 
-            // We have a trailing "," - we need to remove it:
-            funcotatorAnnotationStringBuilder.deleteCharAt(funcotatorAnnotationStringBuilder.length()-1);
-
-            // Add our new annotation:
-            variantContextOutputBuilder.attribute(FUNCOTATOR_VCF_FIELD_NAME, funcotatorAnnotationStringBuilder.toString());
-
             // Add the genotypes from the variant:
-            variantContextOutputBuilder.genotypes( variant.getGenotypes() );
+            variantContextOutputBuilder.genotypes(variant.getGenotypes());
 
             // Render and add our VCF line:
-            vcfWriter.add( variantContextOutputBuilder.make() );
+            vcfWriter.add(variantContextOutputBuilder.make());
         }
     }
 }

@@ -2,6 +2,7 @@ package com.github.discvrseq.walkers;
 
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
+import org.broadinstitute.hellbender.utils.codecs.gtf.EnsemblGtfCodec;
 import org.broadinstitute.hellbender.utils.codecs.table.TableCodec;
 import org.testng.annotations.Test;
 
@@ -43,6 +44,8 @@ public class ExtendedFuncotatorIntegrationTest extends  BaseIntegrationTest {
         args.addRaw(getTmpDir());
 
         ensureIndex(new File(testBaseDir, "funcotator/testSource/hg19/testSource.table"), new TableCodec());
+        ensureIndex(new File(testBaseDir, "funcotator/gencode/hg19/hg19.gtf"), new EnsemblGtfCodec());
+        ensureVcfIndex(new File(testBaseDir, "funcotator/vcfTestSource/hg19/vcfTestSource.vcf"));
 
         return args;
     }
