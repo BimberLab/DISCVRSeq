@@ -2,6 +2,7 @@ package com.github.discvrseq.walkers;
 
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
+import org.broadinstitute.hellbender.utils.codecs.table.TableCodec;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -34,11 +35,14 @@ public class ExtendedFuncotatorIntegrationTest extends  BaseIntegrationTest {
 
         args.add("data-sources-path", normalizePath(new File(testBaseDir, "funcotator")));
         args.add("output-file-format", "VCF");
+        args.add("cf", normalizePath(new File(testBaseDir, "funcotator/funcotatorFields.txt")));
 
         args.addRaw("-O");
         args.addRaw("%s");
         args.addRaw("--tmp-dir");
         args.addRaw(getTmpDir());
+
+        ensureIndex(new File(testBaseDir, "funcotator/testSource/hg19/testSource.table"), new TableCodec());
 
         return args;
     }

@@ -1,0 +1,3 @@
+DataSource	SourceField	ID	Number	Type	Description
+testSource	OtherField	f1	UNBOUNDED	String	This is field1
+testSource	ExpectedResult	f2	UNBOUNDED	String	This is field2

@@ -1,21 +1,21 @@
 ##fileformat=VCFv4.2
-##Funcotator Version=Unavailable | Gencode 34 CANONICAL | omim 20180612
+##Funcotator Version=Unavailable | Gencode 34 CANONICAL | testSource 20180612
 ##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
 ##INFO=<ID=DS,Number=.,Type=String,Description="The data source this is designed to test">
-##INFO=<ID=FUNCOTATION,Number=A,Type=String,Description="Functional annotation from the Funcotator tool.  Funcotation fields are: Gencode_34_hugoSymbol|Gencode_34_ncbiBuild|Gencode_34_chromosome|Gencode_34_start|Gencode_34_end|Gencode_34_variantClassification|Gencode_34_secondaryVariantClassification|Gencode_34_variantType|Gencode_34_refAllele|Gencode_34_tumorSeqAllele1|Gencode_34_tumorSeqAllele2|Gencode_34_genomeChange|Gencode_34_annotationTranscript|Gencode_34_transcriptStrand|Gencode_34_transcriptExon|Gencode_34_transcriptPos|Gencode_34_cDnaChange|Gencode_34_codonChange|Gencode_34_proteinChange|Gencode_34_gcContent|Gencode_34_referenceContext|Gencode_34_otherTranscripts|omim_MIMNUMBER|omim_GENESYMBOL|omim_PHENOTYPES">
+##INFO=<ID=FUNCOTATION,Number=A,Type=String,Description="Functional annotation from the Funcotator tool.  Funcotation fields are: Gencode_34_hugoSymbol|Gencode_34_ncbiBuild|Gencode_34_chromosome|Gencode_34_start|Gencode_34_end|Gencode_34_variantClassification|Gencode_34_secondaryVariantClassification|Gencode_34_variantType|Gencode_34_refAllele|Gencode_34_tumorSeqAllele1|Gencode_34_tumorSeqAllele2|Gencode_34_genomeChange|Gencode_34_annotationTranscript|Gencode_34_transcriptStrand|Gencode_34_transcriptExon|Gencode_34_transcriptPos|Gencode_34_cDnaChange|Gencode_34_codonChange|Gencode_34_proteinChange|Gencode_34_gcContent|Gencode_34_referenceContext|Gencode_34_otherTranscripts|testSource_HEADER|testSource_OtherField|testSource_ExpectedResult">
 ##INFO=<ID=GENE,Number=.,Type=String,Description="....figure out how to add in those with only GENE_NAME attrib">
 ##INFO=<ID=VAL,Number=.,Type=String,Description="The value as expect to be added, or blank if this should not match">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
-1	10000	.	C	G	1	PASS	DS=oreganno;FUNCOTATION=[];VAL=Type="TRANSCRIPTION_FACTOR_BINDING_SITE"
-1	10002	.	C	G	1	PASS	DS=F_NC,F_NCG,F_CG,F_CG;FUNCOTATION=[];VAL=0.49817,C,0.87811,FCI
-1	10003	.	C	G	1	PASS	DS=F_NC;FUNCOTATION=[];VAL=.
-1	10008	.	A	C	1	PASS	DS=F_NC,F_NCG,F_C,F_CG;FUNCOTATION=[];VAL=0.49817,C,0.87811,FCI
-1	10019	.	TA	T	1	PASS	DS=dbSNP;FUNCOTATION=[];VAL=RS=775809821
-1	10069	.	C	A	1	PASS	DS=Capice;FUNCOTATION=[];VAL=.
-1	10106	.	C	T	1	PASS	DS=Capice;FUNCOTATION=[];VAL=3.6949452351109358e-06
-1	10107	.	T	G	1	PASS	DS=CADD_PH;FUNCOTATION=[];VAL=0.080640
-1	10107	.	C	A	1	PASS	DS=CADD_PH;FUNCOTATION=[];VAL=0.01
-1	10107	.	C	G	1	PASS	DS=CADD_PH;FUNCOTATION=[]
-1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=CGAGA
-1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=CGAGA
-1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[];VAL=.
+1	10000	.	C	G	1	PASS	DS=oreganno;FUNCOTATION=[Unknown|hg38|1|10000|10000|IGR||SNP|C|C|G|g.1:10000C>G|no_transcript|||||||0.24688279301745636|NNNNNNNNNNNTAACCCTAAC||1:10000-10000|A|Overlap10000];VAL=Type="TRANSCRIPTION_FACTOR_BINDING_SITE"
+1	10002	.	C	G	1	PASS	DS=F_NC,F_NCG,F_CG,F_CG;FUNCOTATION=[Unknown|hg38|1|10002|10002|IGR||SNP|C|C|G|g.1:10002C>G|no_transcript|||||||0.2518703241895262|NNNNNNNNNTAACCCTAACCC||||];VAL=0.49817,C,0.87811,FCI
+1	10003	.	C	G	1	PASS	DS=F_NC;FUNCOTATION=[Unknown|hg38|1|10003|10003|IGR||SNP|C|C|G|g.1:10003C>G|no_transcript|||||||0.2543640897755611|NNNNNNNNTAACCCTAACCCT||||];VAL=.
+1	10008	.	A	C	1	PASS	DS=F_NC,F_NCG,F_C,F_CG;FUNCOTATION=[Unknown|hg38|1|10008|10008|IGR||SNP|A|A|C|g.1:10008A>C|no_transcript|||||||0.2593516209476309|NNNTAACCCTAACCCTAACCC||||];VAL=0.49817,C,0.87811,FCI
+1	10019	.	TA	T	1	PASS	DS=dbSNP;FUNCOTATION=[Unknown|hg38|1|10020|10020|IGR||DEL|A|A|-|g.1:10020delA|no_transcript|||||||0.2743142144638404|CCCTAACCCTAACCCTAACCC||||];VAL=RS=775809821
+1	10069	.	C	A	1	PASS	DS=Capice;FUNCOTATION=[Unknown|hg38|1|10069|10069|IGR||SNP|C|C|A|g.1:10069C>A|no_transcript|||||||0.3316708229426434|CCTAACCCTAACCCTAACCCT||1:10023-10100|C|Overlap10023];VAL=.
+1	10106	.	C	T	1	PASS	DS=Capice;FUNCOTATION=[Unknown|hg38|1|10106|10106|IGR||SNP|C|C|T|g.1:10106C>T|no_transcript|||||||0.3865336658354115|CTAACCCTAACCCAACCCTAA||||];VAL=3.6949452351109358e-06
+1	10107	.	T	G	1	PASS	DS=CADD_PH;FUNCOTATION=[Unknown|hg38|1|10107|10107|IGR||SNP|T|T|G|g.1:10107T>G|no_transcript|||||||0.38902743142144636|TAACCCTAACCCAACCCTAAC||||];VAL=0.080640
+1	10107	.	C	A	1	PASS	DS=CADD_PH;FUNCOTATION=[Unknown|hg38|1|10107|10107|IGR||SNP|C|C|A|g.1:10107C>A|no_transcript|||||||0.38902743142144636|TAACCCTAACCCAACCCTAAC||||];VAL=0.01
+1	10107	.	C	G	1	PASS	DS=CADD_PH;FUNCOTATION=[Unknown|hg38|1|10107|10107|IGR||SNP|C|C|G|g.1:10107C>G|no_transcript|||||||0.38902743142144636|TAACCCTAACCCAACCCTAAC||||]
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[Unknown|hg38|1|13416|13416|IGR||SNP|C|C|A|g.1:13416C>A|no_transcript|||||||0.5785536159600998|CTCCACCACCCCGAGATCACA||1:13414-13418|E|Overlap13414];VAL=CGAGA
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[Unknown|hg38|1|13416|13416|IGR||SNP|C|C|A|g.1:13416C>A|no_transcript|||||||0.5785536159600998|CTCCACCACCCCGAGATCACA||1:13414-13418|E|Overlap13414];VAL=CGAGA
+1	13416	.	C	A	1	PASS	DS=ExAC;FUNCOTATION=[Unknown|hg38|1|13416|13416|IGR||SNP|C|C|A|g.1:13416C>A|no_transcript|||||||0.5785536159600998|CTCCACCACCCCGAGATCACA||1:13414-13418|E|Overlap13414];VAL=.
