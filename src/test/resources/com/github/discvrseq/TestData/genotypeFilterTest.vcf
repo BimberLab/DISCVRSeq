@@ -1,0 +1,18 @@
+##fileformat=VCFv4.2
+##INFO=<ID=MAC,Number=1,Type=Integer,Description="Matching ALT allele count">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
+##FORMAT=<ID=FT,Number=.,Type=String,Description="Genotype-level filter">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=RGQ,Number=1,Type=Integer,Description="Ref Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=MV,Number=1,Type=Integer,Description="Number of mendelian violations observed for this sample.">
+##FORMAT=<ID=PGT,Number=1,Type=String,Description="Physical phasing haplotype information, describing how the alternate alleles are phased in relation to one another">
+##FORMAT=<ID=PID,Number=1,Type=String,Description="Physical phasing ID information, where each unique ID within a given sample (but not across samples) connects records within a phasing group">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
+1	2	.	G	A	2328.69	PASS	MAC=1	GT:AD:DP:FT:GQ:MV:PGT:PID:PL	0/0:13,0:13:PASS:39:0:.:.:0,39,418	0/1:11,9:20:PASS:99:0:.:.:241,0,379
+1	4	.	G	T	2328.69	PASS	MAC=1	GT:AD:DP:FT:MV:PGT:PID:RGQ	0/0:14,0:14:PASS:0:.:.:30	0/0:19,0:19:PASS:0:.:.:12
+1	11	.	G	A	12328.69	PASS	MAC=0	GT:AD:DP:FT:GQ:MV:PL	0/0:17,0:17:PASS:51:0:0,51,614	0/0:29,0:29:PASS:69:0:0,69,1035
