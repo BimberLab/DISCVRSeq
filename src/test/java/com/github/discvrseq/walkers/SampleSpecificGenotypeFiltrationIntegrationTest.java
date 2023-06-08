@@ -11,7 +11,7 @@ import java.util.Collections;
 public class SampleSpecificGenotypeFiltrationIntegrationTest extends BaseIntegrationTest {
     @Test
     public void testBasicOperation() throws Exception {
-        ArgumentsBuilder args = getBaseArgs();
+        ArgumentsBuilder args = getBaseArgs("ClinvarAnnotator.vcf");
 
         String fn = "basicTestOut.vcf";
 
@@ -37,12 +37,43 @@ public class SampleSpecificGenotypeFiltrationIntegrationTest extends BaseIntegra
         spec.executeTest("testBasicOperation", this);
     }
 
-    private ArgumentsBuilder getBaseArgs() {
+    @Test
+    public void testRGQFilter() throws Exception {
+        ArgumentsBuilder args = getBaseArgs("genotypeFilterTest.vcf");
+
+        String fn = "rgqTestOut.vcf";
+
+        args.addFlag(VariantFiltration.NO_CALL_GTS_LONG_NAME);
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\") && GQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-1");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:!g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && RGQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-2");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && GQ<20 && RGQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-3");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:!g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\")'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-4");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Collections.singletonList(getTestFile(fn).getPath()));
+
+        spec.executeTest("testBasicOperation", this);
+    }
+
+    private ArgumentsBuilder getBaseArgs(String inputVcf) {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         args.add("R", normalizePath(getHg19Micro()));
         args.addRaw("--variant");
-        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        File input = new File(testBaseDir, inputVcf);
         ensureVcfIndex(input);
         args.addRaw(normalizePath(input));
 
