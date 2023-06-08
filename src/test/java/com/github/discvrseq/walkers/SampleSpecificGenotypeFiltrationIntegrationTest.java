@@ -49,8 +49,17 @@ public class SampleSpecificGenotypeFiltrationIntegrationTest extends BaseIntegra
         args.addRaw("--tmp-dir");
         args.addRaw(getTmpDir());
 
-        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:GQ<20 && RGQ<20'");
-        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20");
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\") && GQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-1");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:!g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && RGQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-2");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && GQ<20 && RGQ<20'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-3");
+
+        args.add(VariantFiltration.GENOTYPE_FILTER_EXPRESSION_LONG_NAME, "'Set2:!g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\")'");
+        args.add(VariantFiltration.GENOTYPE_FILTER_NAME_LONG_NAME, "GQ-LT20-4");
 
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),

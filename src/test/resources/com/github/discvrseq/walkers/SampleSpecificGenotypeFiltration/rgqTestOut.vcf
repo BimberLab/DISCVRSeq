@@ -1,5 +1,8 @@
 ##fileformat=VCFv4.2
-##FILTER=<ID=GQ-LT20,Description="GQ<20 && RGQ<20">
+##FILTER=<ID=GQ-LT20-1,Description="g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\") && GQ<20">
+##FILTER=<ID=GQ-LT20-2,Description="!g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && RGQ<20">
+##FILTER=<ID=GQ-LT20-3,Description="g.hasGQ() && g.hasExtendedAttribute(\"RGQ\") && GQ<20 && RGQ<20">
+##FILTER=<ID=GQ-LT20-4,Description="!g.hasGQ() && !g.hasExtendedAttribute(\"RGQ\")">
 ##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
 ##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads with MQ=255 or with bad mates are filtered)">
 ##FORMAT=<ID=FT,Number=.,Type=String,Description="Genotype-level filter">
@@ -17,6 +20,10 @@
 ##contig=<ID=1,length=16000>
 ##contig=<ID=2,length=16000>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1	sample2
-1	2	.	G	A	2328.69	PASS	MAC=1	GT:AD:DP:GQ:MV:PL	0/0:13,0:13:39:0:0,39,418	0/1:11,9:20:99:0:241,0,379
-1	4	.	G	T	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1	GT:AD:DP:FT:MV:RGQ	0/0:14,0:14:PASS:0:30	./.:19,0:19:GQ-LT20:0:12
+1	2	.	G	A	2328.69	PASS	MAC=1	GT:AD:DP:GQ:MV:PL	0/0:13,0:13:39:0:0,39,418	0/1:11,9:20:21:0:241,0,379
+1	2	.	G	A	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1	GT:AD:DP:FT:GQ:MV:PL	0/0:13,0:13:PASS:39:0:0,39,418	./.:11,9:20:GQ-LT20-1:19:0:241,0,379
+1	2	.	G	A	2328.69	PASS	MAC=1	GT:AD:DP:GQ:MV:PL:RGQ	0/0:13,0:13:39:0:0,39,418:19	0/1:11,9:20:19:0:241,0,379:21
+1	2	.	G	A	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1	GT:AD:DP:FT:GQ:MV:PL:RGQ	0/0:13,0:13:PASS:39:0:0,39,418:19	./.:11,9:20:GQ-LT20-3:19:0:241,0,379:19
+1	4	.	G	T	2328.69	PASS	MAC=1	GT:AD:DP:MV:RGQ	0/0:14,0:14:0:30	0/0:19,0:19:0:21
+1	4	.	G	T	2328.69	PASS	AC=0;AF=0.00;AN=2;MAC=1	GT:AD:DP:FT:MV:RGQ	0/0:14,0:14:PASS:0:30	./.:19,0:19:GQ-LT20-2:0:19
 1	11	.	G	A	12328.69	PASS	MAC=0	GT:AD:DP:GQ:MV:PL	0/0:17,0:17:51:0:0,51,614	0/0:29,0:29:69:0:0,69,1035
