@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import htsjdk.variant.vcf.VCFMetaHeaderLine;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -51,6 +52,12 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="Cassandra Annotated VCF", fullName = "cassandra", shortName = "c", optional = true)
     public FeatureInput<VariantContext> cassandraVariants = null;
 
+    @Argument(doc="SnpSift Annotated VCF", fullName = "snpsift", shortName = "ss", optional = true)
+    public FeatureInput<VariantContext> snpSiftVariants = null;
+
+    @Argument(doc="Funcotator Annotated VCF", fullName = "funcotator", shortName = "f", optional = true)
+    public FeatureInput<VariantContext> funcotatorVariants = null;
+
     private VariantContextWriter writer;
 
     private final List<String> CLINVAR_INFO = Arrays.asList(
@@ -73,6 +80,68 @@ public class MultiSourceAnnotator extends VariantWalker {
             "CLN_VC",
             "CLN_VCSO",
             "CLN_VI"
+    );
+
+    private final List<String> FUNCOTATOR_INFO = Arrays.asList(
+
+    );
+
+    private final List<String> SNPSIFT_INFO = Arrays.asList(
+            "1000Gp1_AF",
+            "1000Gp1_AFR_AF",
+            "1000Gp1_AMR_AF",
+            "1000Gp1_ASN_AF",
+            "1000Gp1_EUR_AF",
+            "1000Gp3_AC",
+            "1000Gp3_AF",
+            "1000Gp3_AFR_AC",
+            "1000Gp3_AFR_AF",
+            "1000Gp3_AMR_AC",
+            "1000Gp3_AMR_AF",
+            "1000Gp3_EAS_AC",
+            "1000Gp3_EAS_AF",
+            "1000Gp3_EUR_AC",
+            "1000Gp3_EUR_AF",
+            "1000Gp3_SAS_AC",
+            "1000Gp3_SAS_AF",
+            "CADD_phred",
+            "ESP6500_AA_AC",
+            "ESP6500_AA_AF",
+            "ESP6500_AA_AF",
+            "ESP6500_EA_AC",
+            "ESP6500_EA_AF",
+            "ESP6500_EA_AF",
+            "ExAC_AC",
+            "ExAC_Adj_AC",
+            "ExAC_Adj_AF",
+            "ExAC_AF",
+            "ExAC_AFR_AC",
+            "ExAC_AFR_AF",
+            "ExAC_AMR_AC",
+            "ExAC_AMR_AF",
+            "ExAC_EAS_AC",
+            "ExAC_EAS_AF",
+            "ExAC_FIN_AC",
+            "ExAC_FIN_AF",
+            "ExAC_NFE_AC",
+            "ExAC_NFE_AF",
+            "ExAC_SAS_AC",
+            "ExAC_SAS_AF",
+            "FATHMM_pred",
+            "GERP++_NR",
+            "GERP++_RS",
+            "Interpro_domain",
+            "LRT_pred",
+            "MetaSVM_pred",
+            "MutationAssessor_pred",
+            "MutationTaster_pred",
+            "MutationTaster_pred",
+            "phastCons100way_vertebrate",
+            "Polyphen2_HDIV_pred",
+            "Polyphen2_HVAR_pred",
+            "PROVEAN_pred",
+            "SIFT_pred",
+            "Uniprot_acc"
     );
 
     private final List<String> CASSENDRA_INFO = Arrays.asList(
@@ -191,6 +260,8 @@ public class MultiSourceAnnotator extends VariantWalker {
     private long clinvar = 0L;
     private long cassandra = 0L;
     private long rejectedLiftover = 0L;
+    private long funcotator = 0L;
+    private long snpSift = 0L;
 
     private final VCFInfoHeaderLine UNABLE_TO_LIFT = new VCFInfoHeaderLine("LF", 1, VCFHeaderLineType.String, "Could not be lifted to alternate genome");
 
@@ -212,6 +283,12 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
                 header.addMetaDataLine(line);
             }
+
+            List<String> allKeys = new ArrayList<>(clinvarHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
+            allKeys.removeAll(CLINVAR_INFO);
+            if (!allKeys.isEmpty()) {
+                logger.info("The following ClinVar fields will not be retained: " + StringUtils.join(allKeys, ", "));
+            }
         }
 
         if (cassandraVariants != null) {
@@ -223,11 +300,47 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
                 header.addMetaDataLine(line);
             }
+
+            List<String> allKeys = new ArrayList<>(cassandraHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
+            allKeys.removeAll(CASSENDRA_INFO);
+            if (!allKeys.isEmpty()) {
+                logger.info("The following Cassandra fields will not be retained: " + StringUtils.join(allKeys, ", "));
+            }
         }
 
-        //TODO: annotation source versions?
-        //##META='Cassandra_version=15.4.10'
-        //cassandraHeader.getMetaDataLine()
+        if (snpSiftVariants != null) {
+            VCFHeader snpSiftHeader = (VCFHeader) getHeaderForFeatures(snpSiftVariants);
+            for (String id : SNPSIFT_INFO) {
+                VCFInfoHeaderLine line = snpSiftHeader.getInfoHeaderLine(id);
+                if (line == null) {
+                    throw new GATKException("SnpSift missing expected header line: " + id);
+                }
+                header.addMetaDataLine(line);
+            }
+
+            List<String> allKeys = new ArrayList<>(snpSiftHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
+            allKeys.removeAll(SNPSIFT_INFO);
+            if (!allKeys.isEmpty()) {
+                logger.info("The following SnpSift fields will not be retained: " + StringUtils.join(allKeys, ", "));
+            }
+        }
+
+        if (funcotatorVariants != null) {
+            VCFHeader funcotatorHeader = (VCFHeader) getHeaderForFeatures(funcotatorVariants);
+            for (String id : FUNCOTATOR_INFO) {
+                VCFInfoHeaderLine line = funcotatorHeader.getInfoHeaderLine(id);
+                if (line == null) {
+                    throw new GATKException("Funcotator missing expected header line: " + id);
+                }
+                header.addMetaDataLine(line);
+            }
+
+            List<String> allKeys = new ArrayList<>(funcotatorHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
+            allKeys.removeAll(FUNCOTATOR_INFO);
+            if (!allKeys.isEmpty()) {
+                logger.info("The following Funcotator fields will not be retained: " + StringUtils.join(allKeys, ", "));
+            }
+        }
 
         header.addMetaDataLine(UNABLE_TO_LIFT);
 
@@ -257,6 +370,28 @@ public class MultiSourceAnnotator extends VariantWalker {
 
                 cassandra++;
                 transferInfoData(vcb, vc, CASSENDRA_INFO);
+            }
+        }
+
+        if (snpSiftVariants != null) {
+            for (VariantContext vc : featureContext.getValues(snpSiftVariants)) {
+                if (!matches(variant, vc)) {
+                    continue;
+                }
+
+                snpSift++;
+                transferInfoData(vcb, vc, SNPSIFT_INFO);
+            }
+        }
+
+        if (funcotatorVariants != null) {
+            for (VariantContext vc : featureContext.getValues(funcotatorVariants)) {
+                if (!matches(variant, vc)) {
+                    continue;
+                }
+
+                funcotator++;
+                transferInfoData(vcb, vc, FUNCOTATOR_INFO);
             }
         }
 
@@ -307,6 +442,8 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         logger.info("Total variants annotated from ClinVar: " + clinvar);
         logger.info("Total variants annotated from Cassandra: " + cassandra);
+        logger.info("Total variants annotated from Funcotator: " + funcotator);
+        logger.info("Total variants annotated from SnpSift: " + snpSift);
         logger.info("Total variants annotated as failing liftover: " + rejectedLiftover);
     }
 }
