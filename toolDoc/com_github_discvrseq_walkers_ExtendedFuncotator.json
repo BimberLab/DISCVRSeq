@@ -1,5 +1,5 @@
 {
-  "summary": "Transfers annotations from ClinvarAnnotator and Cassandra VCFs to a source VCF",
+  "summary": "Functional Annotator",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -34,10 +34,10 @@
       "options": []
     },
     {
-      "summary": "read one or more arguments files and add them to the command line",
-      "name": "--arguments_file",
+      "summary": "Annotations to include in all annotated variants if the annotation is not specified in the data sources (in the format \u003cANNOTATION\u003e:\u003cVALUE\u003e).  This will add the specified annotation to every annotated variant if it is not already present.",
+      "name": "--annotation-default",
       "synonyms": "NA",
-      "type": "List[File]",
+      "type": "List[String]",
       "required": "no",
       "fulltext": "",
       "defaultValue": "[]",
@@ -50,13 +50,13 @@
       "options": []
     },
     {
-      "summary": "Cassandra Annotated VCF",
-      "name": "--cassandra",
-      "synonyms": "-c",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "Override values for annotations (in the format \u003cANNOTATION\u003e:\u003cVALUE\u003e).  Replaces existing annotations of the given name with given values.",
+      "name": "--annotation-override",
+      "synonyms": "NA",
+      "type": "List[String]",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
+      "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -66,13 +66,13 @@
       "options": []
     },
     {
-      "summary": "Clinvar Annotated VCF",
-      "name": "--clinvar",
-      "synonyms": "-cv",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "read one or more arguments files and add them to the command line",
+      "name": "--arguments_file",
+      "synonyms": "NA",
+      "type": "List[File]",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
+      "defaultValue": "[]",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -110,6 +110,22 @@
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.",
+      "name": "--config-file",
+      "synonyms": "-cf",
+      "type": "GATKPath",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
       "deprecated": false,
       "options": []
     },
@@ -178,6 +194,38 @@
       "options": []
     },
     {
+      "summary": "TSV File containing custom Variant Classification severity map of the form: VARIANT_CLASSIFICATION\tSEV.  VARIANT_CLASSIFICATION must match one of the VariantClassification names (COULD_NOT_DETERMINE, INTRON, FIVE_PRIME_UTR, THREE_PRIME_UTR, IGR, FIVE_PRIME_FLANK, THREE_PRIME_FLANK, MISSENSE, NONSENSE, NONSTOP, SILENT, SPLICE_SITE, IN_FRAME_DEL, IN_FRAME_INS, FRAME_SHIFT_INS, FRAME_SHIFT_DEL, START_CODON_SNP, START_CODON_INS, START_CODON_DEL, DE_NOVO_START_IN_FRAME, DE_NOVO_START_OUT_FRAME, RNA, LINCRNA).  SEV is an unsigned integer, where lower is sorted first.  When using this option it is HIGHLY recommended you also use the `BEST_EFFECT` transcript selection mode.",
+      "name": "--custom-variant-classification-order",
+      "synonyms": "NA",
+      "type": "GATKPath",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "The path to a data source folder for Funcotator.  May be specified more than once to handle multiple data source folders.",
+      "name": "--data-sources-path",
+      "synonyms": "NA",
+      "type": "List[String]",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "If true, don\u0027t cache bam indexes, this will reduce memory requirements but may harm performance if many intervals are specified.  Caching is automatically disabled if there are no intervals specified.",
       "name": "--disable-bam-index-caching",
       "synonyms": "-DBIC",
@@ -242,6 +290,22 @@
       "options": []
     },
     {
+      "summary": "Fields that should not be rendered in the final output.  Only exact name matches will be excluded.",
+      "name": "--exclude-field",
+      "synonyms": "NA",
+      "type": "Set[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "One or more genomic intervals to exclude from processing",
       "name": "--exclude-intervals",
       "synonyms": "-XL",
@@ -258,15 +322,15 @@
       "options": []
     },
     {
-      "summary": "Funcotator Annotated VCF",
-      "name": "--funcotator",
-      "synonyms": "-f",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "Variants within this many bases of the 5\u0027 end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 5\u0027 flanking region of that transcript",
+      "name": "--five-prime-flank-size",
+      "synonyms": "NA",
+      "type": "int",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
+      "defaultValue": "5000",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
@@ -468,15 +532,15 @@
       "options": []
     },
     {
-      "summary": "Liftover Reject VCF",
-      "name": "--liftoverReject",
-      "synonyms": "-lr",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "Number of base-pairs to cache when querying variants.  Can be overridden in individual data source configuration files.",
+      "name": "--lookahead-cache-bp",
+      "synonyms": "NA",
+      "type": "int",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
+      "defaultValue": "100000",
+      "minValue": "0.0",
+      "maxValue": "Infinity",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
@@ -500,10 +564,26 @@
       "options": []
     },
     {
-      "summary": "File to which variants should be written",
+      "summary": "The minimum number of bases for a variant to be annotated as a segment.  Recommended to be changed only for use with FuncotateSegments.  Defaults to 150",
+      "name": "--min-num-bases-for-segment-funcotation",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "150",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "Output file to which annotated variants should be written.",
       "name": "--output",
       "synonyms": "-O",
-      "type": "String",
+      "type": "File",
       "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
@@ -514,6 +594,35 @@
       "kind": "required",
       "deprecated": false,
       "options": []
+    },
+    {
+      "summary": "The output file format.  Either VCF, MAF, or SEG.  Please note that MAF output for germline use case VCFs is unsupported.  SEG will generate two output files: a simple tsv and a gene list.",
+      "name": "--output-file-format",
+      "synonyms": "NA",
+      "type": "OutputFormatType",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "",
+          "name": "VCF"
+        },
+        {
+          "summary": "",
+          "name": "MAF"
+        },
+        {
+          "summary": "",
+          "name": "SEG"
+        }
+      ]
     },
     {
       "summary": "Whether to suppress job-summary info on System.err.",
@@ -593,13 +702,61 @@
       ]
     },
     {
-      "summary": "Reference sequence",
+      "summary": "When input VCF has already been annotated, still annotate again.",
+      "name": "--reannotate-vcf",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "The version of the Human Genome reference to use (e.g. hg19, hg38, etc.).  This will correspond to a sub-folder of each data source corresponding to that data source for the given reference.",
+      "name": "--ref-version",
+      "synonyms": "NA",
+      "type": "String",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "Reference sequence file",
       "name": "--reference",
       "synonyms": "-R",
       "type": "GATKPath",
-      "required": "no",
+      "required": "yes",
       "fulltext": "",
       "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "Ignore/drop variants that have been filtered in the input.  These variants will not appear in the output file.",
+      "name": "--remove-filtered-variants",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -673,15 +830,15 @@
       "options": []
     },
     {
-      "summary": "SnpSift Annotated VCF",
-      "name": "--snpsift",
-      "synonyms": "-ss",
-      "type": "FeatureInput[VariantContext]",
+      "summary": "Variants within this many bases of the 3\u0027 end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 3\u0027 flanking region of that transcript",
+      "name": "--three-prime-flank-size",
+      "synonyms": "NA",
+      "type": "int",
       "required": "no",
       "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
+      "defaultValue": "0",
+      "minValue": "-Infinity",
+      "maxValue": "Infinity",
       "minRecValue": "NA",
       "maxRecValue": "NA",
       "kind": "optional",
@@ -703,6 +860,51 @@
       "kind": "common",
       "deprecated": false,
       "options": []
+    },
+    {
+      "summary": "File to use as a list of transcripts (one transcript ID per line, version numbers are ignored) OR A set of transcript IDs to use for annotation to override selected transcript.",
+      "name": "--transcript-list",
+      "synonyms": "NA",
+      "type": "Set[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "Method of detailed transcript selection.  This will select the transcript for detailed annotation (CANONICAL, ALL, or BEST_EFFECT).",
+      "name": "--transcript-selection-mode",
+      "synonyms": "NA",
+      "type": "TranscriptSelectionMode",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "CANONICAL",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "",
+          "name": "BEST_EFFECT"
+        },
+        {
+          "summary": "",
+          "name": "CANONICAL"
+        },
+        {
+          "summary": "",
+          "name": "ALL"
+        }
+      ]
     },
     {
       "summary": "Whether to use the JdkDeflater (as opposed to IntelDeflater)",
@@ -802,9 +1004,9 @@
       "options": []
     }
   ],
-  "description": "This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and \u003ca href\u003d\"https://www.hgsc.bcm.edu/software/cassandra\"\u003eCassandra\u003c/a\u003e,\n and transfer select annotations from those VCFs to the input VCF.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar MultiSourceAnnotator \\\n     -cv clinvar.vcf.gz \\\n     -lr liftoverFailures.vcf \\\n     -c cassandraVcf.vcf.gz \\\n     -O output.vcf.gz\n \u003c/pre\u003e",
-  "name": "MultiSourceAnnotator",
-  "group": "Specialized/Internal Tools",
+  "description": "This is an extension of the GATK Funcotator tool. The primary purpose of this tool is to produce a VCF output where specific fields from Funcotator are output\n as discrete INFO field annotations, rather than Funcotator\u0027s default, which involves a single INFO field where the annotations are concatenated together.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar ExtendedFuncotator \\\n     -V input.vcf.gz \\\n     -R myFasta.fasta \\\n     --ref-version hg19 \\\n     --data-sources-path ./path/to/dataSource \\\n     -cf configFile.txt \\\n     -O output.annotated.vcf.gz\n \u003c/pre\u003e\n\n The config file must specify the list of Funcotator fields to include, and the VCF info attributes for each. The fields ID, Number, Type, and Description must match valid VCF header values.\n \u003cpre\u003e\n    DataSource\tSourceField\tID\tNumber\tType\tDescription\n    testSource\tOtherField\tf1\tUNBOUNDED\tString\tThis is field1\n    testSource\tExpectedResult\tf2\tUNBOUNDED\tString\tThis is field2\n    vcfTestSource\tAA\tf3\tA\tFloat\tThis is field3\n    vcfTestSource\tBB\tf4\tUNBOUNDED\tString\tThis is field4\n \u003c/pre\u003e",
+  "name": "ExtendedFuncotator",
+  "group": "Public/Stable Tools",
   "beta": false,
   "experimental": false,
   "deprecated": false

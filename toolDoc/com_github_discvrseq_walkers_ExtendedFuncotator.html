@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>SplitVcfBySamples</title>
+<title>ExtendedFuncotator</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,24 +13,36 @@
 
 	<div class="span8">
 
-			<h1>SplitVcfBySamples</h1>
+			<h1>ExtendedFuncotator</h1>
 
-		<p>Splits a VCF into multiple VCFs based on samples</p>
+		<p>Functional Annotator</p>
 
 			<h3>Category
 				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This takes an input VCF and subsets it into new VCFs where each contains a subset of the original samples.
+		This is an extension of the GATK Funcotator tool. The primary purpose of this tool is to produce a VCF output where specific fields from Funcotator are output
+ as discrete INFO field annotations, rather than Funcotator's default, which involves a single INFO field where the annotations are concatenated together.
 
  <h3>Usage example:</h3>
  <pre>
-  java -jar DISCVRseq.jar SplitVcfBySample \
-     -V myVCF.vcf \
-     -O /outputFolder \
-     -samplesPerVcf 100 \
-     -minAllowableInFinalVcf 20
+  java -jar DISCVRseq.jar ExtendedFuncotator \
+     -V input.vcf.gz \
+     -R myFasta.fasta \
+     --ref-version hg19 \
+     --data-sources-path ./path/to/dataSource \
+     -cf configFile.txt \
+     -O output.annotated.vcf.gz
+ </pre>
+
+ The config file must specify the list of Funcotator fields to include, and the VCF info attributes for each. The fields ID, Number, Type, and Description must match valid VCF header values.
+ <pre>
+    DataSource	SourceField	ID	Number	Type	Description
+    testSource	OtherField	f1	UNBOUNDED	String	This is field1
+    testSource	ExpectedResult	f2	UNBOUNDED	String	This is field2
+    vcfTestSource	AA	f3	A	Float	This is field3
+    vcfTestSource	BB	f4	UNBOUNDED	String	This is field4
  </pre>
 
 		<hr>
@@ -40,12 +52,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by SplitVcfBySamples.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by ExtendedFuncotator.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>SplitVcfBySamples specific arguments</h3>
+				<h3>ExtendedFuncotator specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -60,19 +72,49 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
+					<td><a href="#--config-file">--config-file</a><br />
+								&nbsp;<em>-cf</em>
 					</td>
 					<!--<td>GATKPath</td> -->
 					<td>null</td>
-					<td>The output directory where VCFs will be written</td>
+					<td>A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.</td>
 				</tr>
 				<tr>
-					<td><a href="#--samplesPerVcf">--samplesPerVcf</a><br />
+					<td><a href="#--data-sources-path">--data-sources-path</a><br />
 					</td>
-					<!--<td>Integer</td> -->
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>The path to a data source folder for Funcotator.  May be specified more than once to handle multiple data source folders.</td>
+				</tr>
+				<tr>
+					<td><a href="#--output">--output</a><br />
+								&nbsp;<em>-O</em>
+					</td>
+					<!--<td>File</td> -->
 					<td>null</td>
-					<td>The max number of samples to write per VCF</td>
+					<td>Output file to which annotated variants should be written.</td>
+				</tr>
+				<tr>
+					<td><a href="#--output-file-format">--output-file-format</a><br />
+					</td>
+					<!--<td>OutputFormatType</td> -->
+					<td>null</td>
+					<td>The output file format.  Either VCF, MAF, or SEG.  Please note that MAF output for germline use case VCFs is unsupported.  SEG will generate two output files: a simple tsv and a gene list.</td>
+				</tr>
+				<tr>
+					<td><a href="#--ref-version">--ref-version</a><br />
+					</td>
+					<!--<td>String</td> -->
+					<td>null</td>
+					<td>The version of the Human Genome reference to use (e.g. hg19, hg38, etc.).  This will correspond to a sub-folder of each data source corresponding to that data source for the given reference.</td>
+				</tr>
+				<tr>
+					<td><a href="#--reference">--reference</a><br />
+								&nbsp;<em>-R</em>
+					</td>
+					<!--<td>GATKPath</td> -->
+					<td>null</td>
+					<td>Reference sequence file</td>
 				</tr>
 				<tr>
 					<td><a href="#--variant">--variant</a><br />
@@ -85,6 +127,20 @@
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
 			</tr>
+				<tr>
+					<td><a href="#--annotation-default">--annotation-default</a><br />
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Annotations to include in all annotated variants if the annotation is not specified in the data sources (in the format <ANNOTATION>:<VALUE>).  This will add the specified annotation to every annotated variant if it is not already present.</td>
+				</tr>
+				<tr>
+					<td><a href="#--annotation-override">--annotation-override</a><br />
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Override values for annotations (in the format <ANNOTATION>:<VALUE>).  Replaces existing annotations of the given name with given values.</td>
+				</tr>
 				<tr>
 					<td><a href="#--arguments_file">--arguments_file</a><br />
 					</td>
@@ -109,6 +165,13 @@
 					<td>Size of the cloud-only prefetch buffer (in MB; 0 to disable).</td>
 				</tr>
 				<tr>
+					<td><a href="#--custom-variant-classification-order">--custom-variant-classification-order</a><br />
+					</td>
+					<!--<td>GATKPath</td> -->
+					<td>null</td>
+					<td>TSV File containing custom Variant Classification severity map of the form: VARIANT_CLASSIFICATION	SEV.  VARIANT_CLASSIFICATION must match one of the VariantClassification names (COULD_NOT_DETERMINE, INTRON, FIVE_PRIME_UTR, THREE_PRIME_UTR, IGR, FIVE_PRIME_FLANK, THREE_PRIME_FLANK, MISSENSE, NONSENSE, NONSTOP, SILENT, SPLICE_SITE, IN_FRAME_DEL, IN_FRAME_INS, FRAME_SHIFT_INS, FRAME_SHIFT_DEL, START_CODON_SNP, START_CODON_INS, START_CODON_DEL, DE_NOVO_START_IN_FRAME, DE_NOVO_START_OUT_FRAME, RNA, LINCRNA).  SEV is an unsigned integer, where lower is sorted first.  When using this option it is HIGHLY recommended you also use the `BEST_EFFECT` transcript selection mode.</td>
+				</tr>
+				<tr>
 					<td><a href="#--disable-bam-index-caching">--disable-bam-index-caching</a><br />
 								&nbsp;<em>-DBIC</em>
 					</td>
@@ -124,11 +187,18 @@
 					<td>If specified, do not check the sequence dictionaries from our inputs for compatibility. Use at your own risk!</td>
 				</tr>
 				<tr>
-					<td><a href="#--discardNonVariantSites">--discardNonVariantSites</a><br />
+					<td><a href="#--exclude-field">--exclude-field</a><br />
 					</td>
-					<!--<td>boolean</td> -->
-					<td>false</td>
-					<td>If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded</td>
+					<!--<td>Set[String]</td> -->
+					<td>[]</td>
+					<td>Fields that should not be rendered in the final output.  Only exact name matches will be excluded.</td>
+				</tr>
+				<tr>
+					<td><a href="#--five-prime-flank-size">--five-prime-flank-size</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>5000</td>
+					<td>Variants within this many bases of the 5' end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 5' flanking region of that transcript</td>
 				</tr>
 				<tr>
 					<td><a href="#--gcs-max-retries">--gcs-max-retries</a><br />
@@ -170,26 +240,25 @@
 					<td>One or more genomic intervals over which to operate</td>
 				</tr>
 				<tr>
-					<td><a href="#--minAllowableInFinalVcf">--minAllowableInFinalVcf</a><br />
+					<td><a href="#--lookahead-cache-bp">--lookahead-cache-bp</a><br />
 					</td>
-					<!--<td>Integer</td> -->
-					<td>null</td>
-					<td>If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF</td>
+					<!--<td>int</td> -->
+					<td>100000</td>
+					<td>Number of base-pairs to cache when querying variants.  Can be overridden in individual data source configuration files.</td>
 				</tr>
 				<tr>
-					<td><a href="#--reference">--reference</a><br />
-								&nbsp;<em>-R</em>
-					</td>
-					<!--<td>GATKPath</td> -->
-					<td>null</td>
-					<td>Reference sequence</td>
-				</tr>
-				<tr>
-					<td><a href="#--remove-unused-alternates">--remove-unused-alternates</a><br />
+					<td><a href="#--reannotate-vcf">--reannotate-vcf</a><br />
 					</td>
 					<!--<td>boolean</td> -->
 					<td>false</td>
-					<td>Remove alternate alleles not present in any genotypes</td>
+					<td>When input VCF has already been annotated, still annotate again.</td>
+				</tr>
+				<tr>
+					<td><a href="#--remove-filtered-variants">--remove-filtered-variants</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Ignore/drop variants that have been filtered in the input.  These variants will not appear in the output file.</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -197,6 +266,27 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>If true, don't emit genotype fields when writing vcf file output.</td>
+				</tr>
+				<tr>
+					<td><a href="#--three-prime-flank-size">--three-prime-flank-size</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>0</td>
+					<td>Variants within this many bases of the 3' end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 3' flanking region of that transcript</td>
+				</tr>
+				<tr>
+					<td><a href="#--transcript-list">--transcript-list</a><br />
+					</td>
+					<!--<td>Set[String]</td> -->
+					<td>[]</td>
+					<td>File to use as a list of transcripts (one transcript ID per line, version numbers are ignored) OR A set of transcript IDs to use for annotation to override selected transcript.</td>
+				</tr>
+				<tr>
+					<td><a href="#--transcript-selection-mode">--transcript-selection-mode</a><br />
+					</td>
+					<!--<td>TranscriptSelectionMode</td> -->
+					<td>CANONICAL</td>
+					<td>Method of detailed transcript selection.  This will select the transcript for detailed annotation (CANONICAL, ALL, or BEST_EFFECT).</td>
 				</tr>
 				<tr>
 					<td><a href="#--version">--version</a><br />
@@ -409,6 +499,13 @@
 				<th colspan="4" id="row-divider">Advanced Arguments</th>
 			</tr>
 				<tr>
+					<td><a href="#--min-num-bases-for-segment-funcotation">--min-num-bases-for-segment-funcotation</a><br />
+					</td>
+					<!--<td>int</td> -->
+					<td>150</td>
+					<td>The minimum number of bases for a variant to be annotated as a segment.  Recommended to be changed only for use with FuncotateSegments.  Defaults to 150</td>
+				</tr>
+				<tr>
 					<td><a href="#--showHidden">--showHidden</a><br />
 					</td>
 					<!--<td>boolean</td> -->
@@ -443,6 +540,30 @@
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">true</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--annotation-default">--annotation-default </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Annotations to include in all annotated variants if the annotation is not specified in the data sources (in the format <ANNOTATION>:<VALUE>).  This will add the specified annotation to every annotated variant if it is not already present.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--annotation-override">--annotation-override </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Override values for annotations (in the format <ANNOTATION>:<VALUE>).  Replaces existing annotations of the given name with given values.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--arguments_file">--arguments_file </a>
@@ -483,6 +604,19 @@
 			&nbsp;<span class="label">40</span>
 			&nbsp;<span class="label label-warning">[ [ -∞</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--config-file">--config-file </a>
+			 / <small>-cf</small>
+		</h3>
+		<p class="args">
+			<b>A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--create-output-bam-index">--create-output-bam-index </a>
@@ -533,6 +667,31 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--custom-variant-classification-order">--custom-variant-classification-order </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>TSV File containing custom Variant Classification severity map of the form: VARIANT_CLASSIFICATION	SEV.  VARIANT_CLASSIFICATION must match one of the VariantClassification names (COULD_NOT_DETERMINE, INTRON, FIVE_PRIME_UTR, THREE_PRIME_UTR, IGR, FIVE_PRIME_FLANK, THREE_PRIME_FLANK, MISSENSE, NONSENSE, NONSTOP, SILENT, SPLICE_SITE, IN_FRAME_DEL, IN_FRAME_INS, FRAME_SHIFT_INS, FRAME_SHIFT_DEL, START_CODON_SNP, START_CODON_INS, START_CODON_DEL, DE_NOVO_START_IN_FRAME, DE_NOVO_START_OUT_FRAME, RNA, LINCRNA).  SEV is an unsigned integer, where lower is sorted first.  When using this option it is HIGHLY recommended you also use the `BEST_EFFECT` transcript selection mode.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--data-sources-path">--data-sources-path </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The path to a data source folder for Funcotator.  May be specified more than once to handle multiple data source folders.</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--disable-bam-index-caching">--disable-bam-index-caching </a>
 			 / <small>-DBIC</small>
 		</h3>
@@ -581,16 +740,16 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--discardNonVariantSites">--discardNonVariantSites </a>
+		<h3><a name="--exclude-field">--exclude-field </a>
 			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>If selected, any site in a subset VCF lacking at least one genotype with a variant will be discarded</b><br />
+			<b>Fields that should not be rendered in the final output.  Only exact name matches will be excluded.</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">boolean</span>
-			&nbsp;<span class="label">false</span>
+		<span class="label label-info ">Set[String]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--exclude-intervals">--exclude-intervals </a>
@@ -605,6 +764,20 @@
 		<p>
 		<span class="label label-info ">List[String]</span>
 			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--five-prime-flank-size">--five-prime-flank-size </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Variants within this many bases of the 5' end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 5' flanking region of that transcript</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">5000</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--gatk-config-file">--gatk-config-file </a>
@@ -775,6 +948,20 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--lookahead-cache-bp">--lookahead-cache-bp </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Number of base-pairs to cache when querying variants.  Can be overridden in individual data source configuration files.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">100000</span>
+			&nbsp;<span class="label label-warning">[ [ 0</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--max-variants-per-shard">--max-variants-per-shard </a>
 			 / <small>NA</small>
 		</h3>
@@ -789,28 +976,54 @@
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minAllowableInFinalVcf">--minAllowableInFinalVcf </a>
+		<h3><a name="--min-num-bases-for-segment-funcotation">--min-num-bases-for-segment-funcotation </a>
 			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF</b><br />
+			<b>The minimum number of bases for a variant to be annotated as a segment.  Recommended to be changed only for use with FuncotateSegments.  Defaults to 150</b><br />
 			
 		</p>
 		<p>
-		<span class="label label-info ">Integer</span>
-			&nbsp;<span class="label">null</span>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">150</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--output">--output </a>
 			 / <small>-O</small>
 		</h3>
 		<p class="args">
-			<b>The output directory where VCFs will be written</b><br />
+			<b>Output file to which annotated variants should be written.</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">GATKPath</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--output-file-format">--output-file-format </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file format.  Either VCF, MAF, or SEG.  Please note that MAF output for germline use case VCFs is unsupported.  SEG will generate two output files: a simple tsv and a gene list.</b><br />
+			
+		</p>
+			<p>
+				The --output-file-format argument is an enumerated type (OutputFormatType), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">VCF</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">MAF</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">SEG</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">OutputFormatType</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
@@ -873,43 +1086,54 @@
 			&nbsp;<span class="label">SILENT</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--reference">--reference </a>
-			 / <small>-R</small>
-		</h3>
-		<p class="args">
-			<b>Reference sequence</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">GATKPath</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--remove-unused-alternates">--remove-unused-alternates </a>
+		<h3><a name="--reannotate-vcf">--reannotate-vcf </a>
 			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>Remove alternate alleles not present in any genotypes</b><br />
-			When this flag is enabled, all alternate alleles that are not present in the (output) samples will be removed. Note that this even extends to biallelic SNPs - if the alternate allele is not present in any sample, it will be
- removed and the record will contain a '.' in the ALT column. Note also that sites-only VCFs, by definition, do
- not include the alternate allele in any genotype calls.
+			<b>When input VCF has already been annotated, still annotate again.</b><br />
+			
 		</p>
 		<p>
 		<span class="label label-info ">boolean</span>
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--samplesPerVcf">--samplesPerVcf </a>
+		<h3><a name="--ref-version">--ref-version </a>
 			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>The max number of samples to write per VCF</b><br />
+			<b>The version of the Human Genome reference to use (e.g. hg19, hg38, etc.).  This will correspond to a sub-folder of each data source corresponding to that data source for the given reference.</b><br />
 			
 		</p>
 		<p>
 				<span class="badge badge-important">R</span>
-		<span class="label label-info ">Integer</span>
+		<span class="label label-info ">String</span>
 			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--reference">--reference </a>
+			 / <small>-R</small>
+		</h3>
+		<p class="args">
+			<b>Reference sequence file</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--remove-filtered-variants">--remove-filtered-variants </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Ignore/drop variants that have been filtered in the input.  These variants will not appear in the output file.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--seconds-between-progress-updates">--seconds-between-progress-updates </a>
@@ -962,6 +1186,20 @@
 			&nbsp;<span class="label">false</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--three-prime-flank-size">--three-prime-flank-size </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Variants within this many bases of the 3' end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 3' flanking region of that transcript</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">int</span>
+			&nbsp;<span class="label">0</span>
+			&nbsp;<span class="label label-warning">[ [ -∞</span>
+			&nbsp;<span class="label label-warning">∞ ] ]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
 			 / <small>NA</small>
 		</h3>
@@ -972,6 +1210,41 @@
 		<p>
 		<span class="label label-info ">GATKPath</span>
 			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--transcript-list">--transcript-list </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>File to use as a list of transcripts (one transcript ID per line, version numbers are ignored) OR A set of transcript IDs to use for annotation to override selected transcript.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">Set[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--transcript-selection-mode">--transcript-selection-mode </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Method of detailed transcript selection.  This will select the transcript for detailed annotation (CANONICAL, ALL, or BEST_EFFECT).</b><br />
+			
+		</p>
+			<p>
+				The --transcript-selection-mode argument is an enumerated type (TranscriptSelectionMode), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">BEST_EFFECT</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">CANONICAL</dt>
+					<dd class="enum"></dd>
+					<dt class="enum">ALL</dt>
+					<dd class="enum"></dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">TranscriptSelectionMode</span>
+			&nbsp;<span class="label">CANONICAL</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--use-jdk-deflater">--use-jdk-deflater </a>
