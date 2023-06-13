@@ -1,13 +1,13 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import com.github.discvrseq.walkers.annotator.Impact;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
-import htsjdk.variant.vcf.VCFMetaHeaderLine;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -347,6 +347,8 @@ public class MultiSourceAnnotator extends VariantWalker {
         writer.writeHeader(header);
     }
 
+    private final Impact IMPACT = new Impact();
+
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
@@ -406,6 +408,11 @@ public class MultiSourceAnnotator extends VariantWalker {
                 filters.retainAll(ALLOWABLE_FILTERS);
                 vcb.attribute(UNABLE_TO_LIFT.getID(), StringUtils.join(filters, ","));
             }
+        }
+
+        Map<String, Object> toAnnotate = IMPACT.annotate(referenceContext, variant, null);
+        if (toAnnotate != null) {
+            vcb.putAttributes(toAnnotate);
         }
 
         writer.add(vcb.make());
