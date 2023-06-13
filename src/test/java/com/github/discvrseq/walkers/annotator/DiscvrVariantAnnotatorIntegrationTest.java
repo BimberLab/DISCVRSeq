@@ -42,6 +42,7 @@ public class DiscvrVariantAnnotatorIntegrationTest extends BaseIntegrationTest {
         args.add("A", "GenotypeConcordanceBySite");
         args.add("A", "MendelianViolationCount");
         args.add("A", "MinorAlleleFrequency");
+        args.add("A", "Impact");
 
         args.add("A", "GenotypeConcordance");
         args.add("A", "MendelianViolationBySample");
