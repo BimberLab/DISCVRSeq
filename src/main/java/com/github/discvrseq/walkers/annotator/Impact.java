@@ -60,6 +60,6 @@ public class Impact implements InfoFieldAnnotation, StandardAnnotation {
     public List<String> getKeyNames() { return Collections.singletonList(IMPACT_KEY); }
 
     public List<VCFCompoundHeaderLine> getDescriptions() { return Collections.singletonList(
-            new VCFInfoHeaderLine(IMPACT_KEY, 1, VCFHeaderLineType.String, "The highest impact annotation provided by SnpEff"));
+            new VCFInfoHeaderLine(IMPACT_KEY, 1, VCFHeaderLineType.String, "The highest impact annotation provided by SnpEff, limited to protein_coding features"));
     }
 }
