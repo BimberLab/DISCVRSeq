@@ -96,7 +96,8 @@ public class SampleSpecificGenotypeFiltration extends VariantWalker {
             String genotypeExpr = StringUtils.join(Arrays.copyOfRange(tokens, 1, tokens.length));
 
             if (!allSetNames.contains(setName)) {
-                throw new GATKException("Unknown set name for filter: " + expr);
+                logger.warn("Unknown set name for filter, skipping: " + expr);
+                continue;
             }
 
             Pair<List<String>, List<String>> filters = setToFilterStrings.get(setName);
