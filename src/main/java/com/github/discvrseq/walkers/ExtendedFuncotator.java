@@ -300,7 +300,8 @@ public class ExtendedFuncotator extends Funcotator {
                         if (toAdd.size() > 1) {
                             throw new GATKException("Expected a one set of values per site for annotation: " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes());
                         }
-                        if (!toAdd.get(0).isEmpty()) {
+
+                        if (!toAdd.isEmpty() && !toAdd.get(0).isEmpty()) {
                             String val = toAdd.get(0).stream().filter(x -> !x.isEmpty()).collect(Collectors.joining(","));
                             if (!val.isEmpty()) {
                                 variantContextOutputBuilder.attribute(vd.id, val);
