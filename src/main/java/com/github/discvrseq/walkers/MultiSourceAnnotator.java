@@ -6,6 +6,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
@@ -444,6 +445,8 @@ public class MultiSourceAnnotator extends VariantWalker {
 
     private final VCFInfoHeaderLine UNABLE_TO_LIFT = new VCFInfoHeaderLine("LF", 1, VCFHeaderLineType.String, "Could not be lifted to alternate genome");
 
+    private final Impact IMPACT_ANNOTATION = new Impact();
+
     private final Collection<String> ALLOWABLE_FILTERS = Arrays.asList("ReverseComplementedIndel", "NoTarget", "MismatchedRefAllele", "IndelStraddlesMultipleIntevals");
 
     @Override
@@ -452,6 +455,7 @@ public class MultiSourceAnnotator extends VariantWalker {
         writer = createVCFWriter(new File(outFile));
 
         VCFHeader header = new VCFHeader(getHeaderForVariants());
+        IMPACT_ANNOTATION.getDescriptions().forEach(header::addMetaDataLine);
 
         if (clinvarVariants != null) {
             VCFHeader clinvarHeader = (VCFHeader) getHeaderForFeatures(clinvarVariants);
@@ -529,8 +533,6 @@ public class MultiSourceAnnotator extends VariantWalker {
         writer.writeHeader(header);
     }
 
-    private final Impact IMPACT = new Impact();
-
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
@@ -592,7 +594,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
         }
 
-        Map<String, Object> toAnnotate = IMPACT.annotate(referenceContext, variant, null);
+        Map<String, Object> toAnnotate = IMPACT_ANNOTATION.annotate(referenceContext, variant, null);
         if (toAnnotate != null) {
             vcb.putAttributes(toAnnotate);
         }

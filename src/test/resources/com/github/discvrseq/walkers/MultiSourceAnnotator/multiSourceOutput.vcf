@@ -119,6 +119,7 @@
 ##INFO=<ID=IEN,Number=.,Type=String,Description="Near-by indels in ESE">
 ##INFO=<ID=IEO,Number=.,Type=String,Description="ESE indel-count from non-TCGA">
 ##INFO=<ID=IET,Number=.,Type=String,Description="ESE indel-count from TCGA">
+##INFO=<ID=IMPACT,Number=1,Type=String,Description="The highest impact annotation provided by SnpEff, limited to protein_coding features">
 ##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description="Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation">
 ##INFO=<ID=LF,Number=1,Type=String,Description="Could not be lifted to alternate genome">
 ##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected'">
