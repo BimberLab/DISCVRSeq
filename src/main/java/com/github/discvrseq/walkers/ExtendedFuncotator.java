@@ -10,6 +10,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.broadinstitute.barclay.argparser.Argument;
@@ -296,9 +297,12 @@ public class ExtendedFuncotator extends Funcotator {
                         }
                     }
                     case INTEGER, UNBOUNDED -> {
+                        // The assumption is that if the annotation applies to every ALT allele, it will get annotated on each
+                        // We therefore take the unique values annotated to each allele, which should produce one list
                         toAdd = valMap.values().stream().distinct().toList();
-                        if (toAdd.size() > 1) {
-                            throw new GATKException("Expected a one set of values per site for annotation: " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes());
+                        if (toAdd.size() > 1 && vd.count != VCFHeaderLineCount.UNBOUNDED) {
+                            String values = valMap.keySet().stream().map(key -> key + ":" + StringUtils.join(valMap.get(key), ",")).collect(Collectors.joining("; "));
+                            throw new GATKException("Expected a one set of values per site for annotation: " + vd.dataSource + " / " + vd.sourceField + ". Problem at site: " + variant.toStringWithoutGenotypes() + ", with annotation: " + values);
                         }
 
                         if (!toAdd.isEmpty() && !toAdd.get(0).isEmpty()) {
