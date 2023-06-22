@@ -93,9 +93,6 @@ dependencies {
     implementation group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
     implementation googleCloudNioDependency
 
-    // Required for SV Discovery machine learning
-    implementation group: 'biz.k11i', name: 'xgboost-predictor', version: '0.3.0'
-
     // this comes built-in when running on Google Dataproc, but the library
     // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
     // should we want to)
