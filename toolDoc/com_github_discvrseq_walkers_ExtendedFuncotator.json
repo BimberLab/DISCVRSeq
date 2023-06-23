@@ -625,6 +625,22 @@
       ]
     },
     {
+      "summary": "If specified, a list of all fields present in the data sources but not included in the output will be printed.",
+      "name": "--print-missing-fields",
+      "synonyms": "-pmf",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Whether to suppress job-summary info on System.err.",
       "name": "--QUIET",
       "synonyms": "NA",
