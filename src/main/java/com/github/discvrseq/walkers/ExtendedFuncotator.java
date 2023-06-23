@@ -66,6 +66,9 @@ public class ExtendedFuncotator extends Funcotator {
     @Argument(doc = "A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.", fullName = "config-file", shortName = "cf", optional = false)
     public GATKPath configFile = null;
 
+    @Argument(doc = "If specified, a list of all fields present in the data sources but not included in the output will be printed.", fullName = "print-missing-fields", shortName = "pmf", optional = true)
+    public boolean printMissingFields = false;
+
     @Override
     public void onTraversalStart() {
         // This will be ignored anyway
@@ -131,6 +134,33 @@ public class ExtendedFuncotator extends Funcotator {
                 VcfFuncotationMetadata.create(headerLines),
                 dataSourceFuncotationFactories
         );
+
+        if (printMissingFields) {
+            Map<String, List<String>> allFields = new HashMap<>();
+
+            dataSourceFuncotationFactories.stream().forEach(f -> {
+                allFields.put(f.getName(), new ArrayList<>(f.getSupportedFuncotationFields()));
+            });
+
+            fields.forEach(f -> {
+                if (!allFields.containsKey(f.dataSource)) {
+                    logger.warn("Requested field from non-existing data source: " + f.dataSource);
+                    return;
+                }
+
+                String target = f.dataSource + "_" + f.sourceField;
+                allFields.get(f.dataSource).remove(target);
+            });
+
+            allFields.keySet().forEach(f -> {
+                if (allFields.get(f).isEmpty()) {
+                    return;
+                }
+
+                logger.info("The following fields are present but not used from: " + f);
+                logger.info(StringUtils.join(allFields.get(f), ", "));
+            });
+        }
 
         // Create our output renderer:
         logger.info("Creating output: " + getArguments().outputFile.toURI());
@@ -216,6 +246,8 @@ public class ExtendedFuncotator extends Funcotator {
         private final VariantContextWriter vcfWriter;
 
         private final List<VcfHeaderDescriptor> fieldsToOutput;
+
+        private final Set<String> keysEncountered = new HashSet<>();
 
         public ExtendedVcfOutputRenderer(final VariantContextWriter vcfWriter,
                                  final List<DataSourceFuncotationFactory> dataSources,
