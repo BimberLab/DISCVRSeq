@@ -66,7 +66,7 @@ public class ExtendedFuncotator extends Funcotator {
     @Argument(doc = "A TSV file specifying the Funcotator fields to extract, and their VCF INFO field annotation information.", fullName = "config-file", shortName = "cf", optional = false)
     public GATKPath configFile = null;
 
-    @Argument(doc = "If specified, a list of all fields present in the data sources but not included in the output will be printed.", fullName = "print-missing-fields", shortName = "pmf", optional = true)
+    @Argument(doc = "If specified, a list of all fields present in the data sources but not included in the output will be printed, and the tool will immediately exit.", fullName = "print-missing-fields", shortName = "pmf", optional = true)
     public boolean printMissingFields = false;
 
     @Override
@@ -158,8 +158,10 @@ public class ExtendedFuncotator extends Funcotator {
                 }
 
                 logger.info("The following fields are present but not used from: " + f);
-                logger.info(StringUtils.join(allFields.get(f), ", "));
+                allFields.forEach(logger::info);
             });
+
+            System.exit(0);
         }
 
         // Create our output renderer:
