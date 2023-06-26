@@ -114,12 +114,13 @@
 ##INFO=<ID=GRASP_PL,Number=1,Type=String,Description="GRASP platform on which the association test was based">
 ##INFO=<ID=GRASP_PMID,Number=1,Type=String,Description="GRASP PMID number">
 ##INFO=<ID=GRASP_RS,Number=1,Type=String,Description="GRASP rs number">
+##INFO=<ID=HIG,Number=A,Type=String,Description="A comma-separated list of any overlapping genes with high-impact effects on protein coding, identified by SnpEff">
 ##INFO=<ID=HRun,Number=1,Type=Integer,Description="Largest Contiguous Homopolymer Run of Variant Allele In Either Direction">
 ##INFO=<ID=HaplotypeScore,Number=1,Type=Float,Description="Consistency of the site with at most two segregating haplotypes">
 ##INFO=<ID=IEN,Number=.,Type=String,Description="Near-by indels in ESE">
 ##INFO=<ID=IEO,Number=.,Type=String,Description="ESE indel-count from non-TCGA">
 ##INFO=<ID=IET,Number=.,Type=String,Description="ESE indel-count from TCGA">
-##INFO=<ID=IMPACT,Number=1,Type=String,Description="The highest impact annotation provided by SnpEff, limited to protein_coding features">
+##INFO=<ID=IMPACT,Number=A,Type=String,Description="The highest impact annotation provided by SnpEff, limited to protein_coding features">
 ##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description="Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation">
 ##INFO=<ID=LF,Number=1,Type=String,Description="Could not be lifted to alternate genome">
 ##INFO=<ID=LOF,Number=.,Type=String,Description="Predicted loss of function effects for this variant. Format: 'Gene_Name | Gene_ID | Number_of_transcripts_in_gene | Percent_of_transcripts_affected'">
