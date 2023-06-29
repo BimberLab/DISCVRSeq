@@ -39,7 +39,7 @@ import java.util.*;
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
-        summary = "This is a fairly specialized tool designed to restore the original coorindate in a VCF after liftover (created using Picard LiftoverVcf), back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
+        summary = "This is a fairly specialized tool designed to restore the original coordinate in a VCF after liftover (created using Picard LiftoverVcf), back to the coordinates of the original genome.  It does this by reading the ORIGNAL_CONTIG, ORGINAL_START and ORIGINAL_ALLELE annotations left by Picard.",
         oneLineSummary = "Backport lifted VCF to the original coordinates",
         programGroup = DiscvrSeqInternalProgramGroup.class
 )
