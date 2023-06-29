@@ -1,0 +1,21 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=FLAG,Number=0,Type=Flag,Description="This is a flag">
+##INFO=<ID=G1_AF,Number=A,Type=Float,Description="The name of the contig/chromosome after liftover.">
+##INFO=<ID=G1_HET,Number=A,Type=Integer,Description="The start position of the variant on the lifted contig.">
+##INFO=<ID=G1_HOMREF,Number=A,Type=Integer,Description="The end position of the variant on the lifted contig.">
+##INFO=<ID=G1_HOMVAR,Number=A,Type=Integer,Description="The start position of the variant on the lifted contig.">
+##INFO=<ID=HaplotypeScore,Number=1,Type=Float,Description="Consistency of the site with at most two segregating haplotypes">
+##INFO=<ID=REFFIELD,Number=R,Type=String,Description="This is a REF field">
+##INFO=<ID=REF_AF,Number=A,Type=Float,Description="The name of the contig/chromosome after liftover.">
+##INFO=<ID=REF_HET,Number=A,Type=Integer,Description="The start position of the variant on the lifted contig.">
+##INFO=<ID=REF_HOMREF,Number=A,Type=Integer,Description="The end position of the variant on the lifted contig.">
+##INFO=<ID=REF_HOMVAR,Number=A,Type=Integer,Description="The start position of the variant on the lifted contig.">
+##INFO=<ID=UB,Number=.,Type=Float,Description="This is unbounded">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1	Sample2
+1	61	.	GT	G	724.43	PASS	AF=0.1;G1_AF=0.750;G1_HET=1;G1_HOMREF=0;G1_HOMVAR=1;HaplotypeScore=9.1318;REFFIELD=GT,G;UB=1.0,2.1	GT	0/1	1/1
+1	72	.	T	A	100	PASS	AF=0.5;G1_AF=0.500;G1_HET=0;G1_HOMREF=1;G1_HOMVAR=1;HaplotypeScore=2;REFFIELD=T,A	GT	0/0	1/1
+1	73	.	TT	AG	100	PASS	AF=0.1;FLAG;G1_AF=0.250;G1_HET=1;G1_HOMREF=1;G1_HOMVAR=0;HaplotypeScore=12;REFFIELD=TT,AG	GT	0/1	0/0
