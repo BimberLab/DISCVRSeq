@@ -62,6 +62,7 @@ import java.util.stream.IntStream;
  *     -V myVCF.vcf \
  *     -RV refVCF.vcf \
  *     -O output.vcf.gz \
+ *     -OT output.txt \
  *     -G1 'Sample1'
  *     -G1 'Sample2'
  *     -G1 'Sample3'
