@@ -1,6 +1,10 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.github.discvrseq.util.VariableOutputUtils;
+import com.opencsv.ICSVWriter;
+import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -18,14 +22,18 @@ import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
+import org.broadinstitute.hellbender.exceptions.UserException;
 import org.broadinstitute.hellbender.tools.walkers.ReferenceConfidenceVariantContextMerger;
+import org.broadinstitute.hellbender.tools.walkers.variantutils.SelectVariants;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
 import org.broadinstitute.hellbender.utils.variant.VariantContextGetters;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 /**
  * This tool is designed to assist with the generation of candidate variants, based on a given group of samples (e.g., list of samples with a phenotype of interest). It will
@@ -56,11 +64,20 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
+    @Argument(doc="File to which a table of high-impact variants should be written. This will only be used if one or more JEXL select expressions are provided.", fullName = "table-output", shortName = "OT", optional = true)
+    public GATKPath tableOutput = null;
+
     @Argument(doc="Group 1", fullName = "group1", shortName = "G1", optional = false)
     public Set<String> group1 = new LinkedHashSet<>(0);
 
     @Argument(doc="Group 2", fullName = "group2", shortName = "G2", optional = true)
     public Set<String> group2 = new LinkedHashSet<>(0);
+
+    @Argument(fullName= SelectVariants.SELECT_NAME, doc="A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output.", optional=true)
+    private ArrayList<String> selectExpressions = new ArrayList<>();
+
+    @Argument(fullName= "fields-to-output", shortName = "F", doc="The names of fields to include in the output table. These follow the same conventions as GATK VariantsToTable", optional=true)
+    private ArrayList<String> additionalFields = new ArrayList<>();
 
     private VCFHeader outputHeader;
 
@@ -81,12 +98,79 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     final Set<String> refSamplesToInclude = new LinkedHashSet<>();
 
     VariantContextWriter writer;
+    ICSVWriter csvWriter;
+
+    private List<VariantContextUtils.JexlVCMatchExp> infoJexls = null;
+
+    private List<String> getDefaultOutputFields() {
+        List<String> fields = new ArrayList<>(Arrays.asList(
+                "CHROM",
+                "POS",
+                "REF",
+                "ALT",
+                "IMPACT",
+                "G1_AF",
+                "G1_HOMREF",
+                "G1_HET",
+                "G1_HOMVAR"
+        ));
+
+        if (group2 != null && !group2.isEmpty()) {
+            fields.addAll(Arrays.asList(
+                    "G2_AF",
+                    "G2_HOMREF",
+                    "G2_HET",
+                    "G2_HOMVAR"
+            ));
+        }
+
+        if (getVariantConcordanceScoreArgumentCollection().referenceVariants != null) {
+            fields.addAll(Arrays.asList(
+                    "REF_AF",
+                    "REF_HOMREF",
+                    "REF_HET",
+                    "REF_HOMVAR"
+            ));
+        }
+
+        return fields;
+    }
+
+    private final List<String> fieldsForTable = new ArrayList<>();
+
+    private final List<String> asFieldsForTable = new ArrayList<>();
 
     @Override
     public void onTraversalStart() {
         Utils.nonNull(outFile);
 
+        infoJexls = VariantContextUtils.initializeMatchExps(IntStream.range(0, selectExpressions.size()).mapToObj(x -> "Select" + x).toList(), selectExpressions);
+
         prepareVcfHeader();
+
+        if (tableOutput != null) {
+            IOUtil.assertFileIsWritable(tableOutput.toPath().toFile());
+            List<String> fields = getDefaultOutputFields();
+            fields.addAll(additionalFields);
+            fields.forEach(f -> {
+                if (VariableOutputUtils.hasGetter(f)) {
+                    fieldsForTable.add(f);
+                }
+                else if (outputHeader.hasInfoLine(f)) {
+                    if (outputHeader.getInfoHeaderLine(f).getCountType() == VCFHeaderLineCount.A || outputHeader.getInfoHeaderLine(f).getCountType() == VCFHeaderLineCount.R) {
+                        asFieldsForTable.add(f);
+                    }
+                    else {
+                        fieldsForTable.add(f);
+                    }
+                }
+                else {
+                    logger.warn("Unknown field: " + f);
+                }
+            });
+
+            csvWriter = CsvUtils.getTsvWriter(tableOutput.toPath().toFile());
+        }
     }
 
     private void prepareVcfHeader(){
@@ -173,7 +257,28 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
             appendCounts(refVC, REF, vcb);
         }
 
-        writer.add(vcb.make());
+        VariantContext toWrite = vcb.make();
+        writer.add(toWrite);
+
+        if (passesJexlFilters(toWrite)) {
+            writeVariantToTable(toWrite);
+        }
+    }
+
+    private boolean hasWrittenHeader = false;
+
+    private void writeVariantToTable(VariantContext vc) {
+        if (!hasWrittenHeader) {
+            List<String> fields = new ArrayList<>(fieldsForTable);
+            fields.addAll(asFieldsForTable);
+            csvWriter.writeNext(fields.toArray(new String[0]));
+
+            hasWrittenHeader = true;
+        }
+
+        VariableOutputUtils.extractFields(vc, outputHeader, fieldsForTable, asFieldsForTable, false, true).forEach(line -> {
+            csvWriter.writeNext(line.toArray(new String[0]));
+        });
     }
 
     private void appendCounts(VariantContext subsetVC, String prefix, VariantContextBuilder vcb) {
@@ -207,6 +312,15 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     public Object onTraversalSuccess() {
         writer.close();
 
+        try {
+            if (csvWriter != null) {
+                csvWriter.close();
+            }
+        }
+        catch (IOException e) {
+            logger.error("Unable to close CSV Writer", e);
+        }
+
         return null;
     }
 
@@ -238,5 +352,24 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
 
             return ret;
         }
+    }
+
+    private boolean passesJexlFilters(final VariantContext vc){
+        if (infoJexls.isEmpty()){
+            return true;
+        }
+
+        try {
+            for (VariantContextUtils.JexlVCMatchExp jexl : infoJexls) {
+                if (VariantContextUtils.match(vc, jexl)){
+                    return true;
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            throw new UserException(e.getMessage() +
+                    "\nSee https://gatk.broadinstitute.org/hc/en-us/articles/360035891011-JEXL-filtering-expressions for documentation on using JEXL in GATK", e);
+        }
+
+        return false;
     }
 }

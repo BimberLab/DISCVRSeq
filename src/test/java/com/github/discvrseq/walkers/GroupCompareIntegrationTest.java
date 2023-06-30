@@ -46,6 +46,31 @@ public class GroupCompareIntegrationTest extends BaseIntegrationTest {
         spec.executeTest("doBasicTest", this);
     }
 
+    @Test
+    public void doBasicTestWithRefAndSelect() throws Exception {
+        File fasta = getHg19Micro();
+        ensureVcfIndex(getInputVcf());
+        ensureVcfIndex(getTestFile("groupCompareRef.vcf"));
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                " -R " + normalizePath(fasta) +
+                        " -V " + normalizePath(getInputVcf()) +
+                        " -RV " + normalizePath(getTestFile("groupCompareRef.vcf")) +
+                        " -G1 Sample1" +
+                        " -G1 Sample2" +
+                        " -O " + "%s" +
+                        " -OT " + "%s" +
+                        " -F REFFIELD" +
+                        " -select " + "'G1_AF - REF_AF > 0.2'" +
+                        " --tmp-dir " + getTmpDir(),
+                Arrays.asList(
+                        getTestFile("groupCompareOutputWithRef.vcf").getPath(),
+                        getTestFile("groupCompareOutputWithRef.txt").getPath()
+                ));
+
+        spec.executeTest("doBasicTest", this);
+    }
+
     private File getInputVcf() {
         return getTestFile("groupCompareInput1.vcf");
     }
