@@ -53,6 +53,25 @@ import java.util.stream.IntStream;
  *     -G2 'Sample4'
  *     -G2 'Sample5'
  * </pre>
+ *
+ * <h3>For more advanced usage, you can supply a set of JEXL expressions that will be used to write a subset of variants to a TSV file.</h3>
+ * <pre>
+ *  java -jar DISCVRseq.jar GroupCompare \
+ *     -R currentGenome.fasta \
+ *     -V myVCF.vcf \
+ *     -RV refVCF.vcf \
+ *     -O output.vcf.gz \
+ *     -G1 'Sample1'
+ *     -G1 'Sample2'
+ *     -G1 'Sample3'
+ *     -G2 'Sample4'
+ *     -G2 'Sample5'
+ *     -select 'G1_AF < 0.1 && G2_AF > 0.25'
+ *     -select 'IMPACT == "HIGH"'
+ *     -select 'CADD_PH > 25'
+ *     -F IMPACT
+ *     -F CADD_PH
+ * </pre>
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
