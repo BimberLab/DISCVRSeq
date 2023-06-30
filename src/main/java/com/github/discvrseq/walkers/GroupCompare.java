@@ -31,6 +31,7 @@ import org.broadinstitute.hellbender.utils.variant.VariantContextGetters;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.io.Serial;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -279,7 +280,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         VariantContext toWrite = vcb.make();
         writer.add(toWrite);
 
-        if (passesJexlFilters(toWrite)) {
+        if (csvWriter != null && passesJexlFilters(toWrite)) {
             writeVariantToTable(toWrite);
         }
     }
@@ -353,6 +354,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     }
 
     private static final class GroupCompareArgumentCollection extends MultiVariantInputArgumentCollection {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Argument(fullName = StandardArgumentDefinitions.VARIANT_LONG_NAME, shortName = StandardArgumentDefinitions.VARIANT_SHORT_NAME, doc = "A VCF file containing variants")
