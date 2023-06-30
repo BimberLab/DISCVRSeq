@@ -12,13 +12,13 @@ import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
+import org.broadinstitute.hellbender.cmdline.argumentcollections.MultiVariantInputArgumentCollection;
 import org.broadinstitute.hellbender.engine.FeatureInput;
 import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.engine.ReadsContext;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.tools.walkers.ReferenceConfidenceVariantContextMerger;
-import org.broadinstitute.hellbender.tools.walkers.annotator.ChromosomeCounts;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
 import org.broadinstitute.hellbender.utils.variant.VariantContextGetters;
@@ -56,9 +56,6 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
-    @Argument(doc="Reference Variants", fullName = "referenceVariants", shortName = "RV", optional = true)
-    public FeatureInput<VariantContext> referenceVariants = null;
-
     @Argument(doc="Group 1", fullName = "group1", shortName = "G1", optional = false)
     public Set<String> group1 = new LinkedHashSet<>(0);
 
@@ -81,6 +78,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     private final String REF = "REF";
 
     final Set<String> samplesToInclude = new LinkedHashSet<>();
+    final Set<String> refSamplesToInclude = new LinkedHashSet<>();
 
     VariantContextWriter writer;
 
@@ -92,14 +90,14 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     }
 
     private void prepareVcfHeader(){
-        VCFHeader header = getHeaderForVariants();
+        VCFHeader header = (VCFHeader)getHeaderForFeatures(getVariantConcordanceScoreArgumentCollection().inputVariants);
 
         Set<VCFHeaderLine> lines = new LinkedHashSet<>(header.getMetaDataInInputOrder());
         lines.addAll(getHeaderLines(GROUP1));
         if (group2 != null && !group2.isEmpty()) {
             lines.addAll(getHeaderLines(GROUP2));
         }
-        if (referenceVariants != null) {
+        if (getVariantConcordanceScoreArgumentCollection().referenceVariants != null) {
             lines.addAll(getHeaderLines(REF));
         }
 
@@ -116,14 +114,14 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
             samplesToInclude.addAll(group2);
         }
 
-        if (referenceVariants != null) {
-            VCFHeader refHeader = (VCFHeader) getHeaderForFeatures(referenceVariants);
-            List<String> rs = new ArrayList<>(refHeader.getGenotypeSamples());
-            rs.removeAll(samplesToInclude);
-            logger.info("A total of " + rs.size() + " samples will be selected from the reference VCF");
+        if (getVariantConcordanceScoreArgumentCollection().referenceVariants != null) {
+            VCFHeader refHeader = (VCFHeader) getHeaderForFeatures(getVariantConcordanceScoreArgumentCollection().referenceVariants);
+            refSamplesToInclude.addAll(refHeader.getGenotypeSamples());
+            refSamplesToInclude.removeAll(samplesToInclude);
+            logger.info("A total of " + refSamplesToInclude.size() + " samples will be selected from the reference VCF");
         }
 
-        List<String> missingSamples = samplesToInclude.stream().filter(Predicate.not(getHeaderForVariants().getGenotypeSamples()::contains)).toList();
+        List<String> missingSamples = samplesToInclude.stream().filter(Predicate.not(header.getGenotypeSamples()::contains)).toList();
         if (!missingSamples.isEmpty()) {
             throw new GATKException("The following samples were requested but not in the input VCF: " + StringUtils.join(missingSamples, ", "));
         }
@@ -137,18 +135,18 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         Map<FeatureInput<VariantContext>, List<VariantContext>> variants = groupVariantsByFeatureInput(variantContexts);
 
         VariantContext refVC = null;
-        if (variants.get(referenceVariants) != null) {
-            List<VariantContext> refVCs = variants.get(referenceVariants).stream().filter(Predicate.not(VariantContext::isFiltered)).map(x -> x.subContextFromSamples(samplesToInclude)).toList();
-            refVC = refVCs.size() == 1 ? refVCs.get(0) : GATKVariantContextUtils.simpleMerge(refVCs, Collections.singletonList(referenceVariants.getName()), 1, GATKVariantContextUtils.FilteredRecordMergeType.KEEP_IF_ANY_UNFILTERED, GATKVariantContextUtils.GenotypeMergeType.PRIORITIZE, true);
+        if (variants.get(getVariantConcordanceScoreArgumentCollection().referenceVariants) != null) {
+            List<VariantContext> refVCs = variants.get(getVariantConcordanceScoreArgumentCollection().referenceVariants).stream().filter(Predicate.not(VariantContext::isFiltered)).map(x -> x.subContextFromSamples(refSamplesToInclude)).toList();
+            refVC = refVCs.size() == 1 ? refVCs.get(0) : GATKVariantContextUtils.simpleMerge(refVCs, Collections.singletonList(getVariantConcordanceScoreArgumentCollection().referenceVariants.getName()), 1, GATKVariantContextUtils.FilteredRecordMergeType.KEEP_IF_ANY_UNFILTERED, GATKVariantContextUtils.GenotypeMergeType.PRIORITIZE, true);
 
-            variants.remove(referenceVariants);
+            variants.remove(getVariantConcordanceScoreArgumentCollection().referenceVariants);
         }
 
 
-        for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
+        for (FeatureInput<VariantContext> fi : variants.keySet()) {
             for (VariantContext vc : variants.get(fi)) {
                 VariantContext vc1 = vc.subContextFromSamples(samplesToInclude, true);
-                if (!vc1.isVariant()) {
+                if (!vc1.isVariant() || vc1.isFiltered()) {
                     continue;
                 }
 
@@ -210,5 +208,35 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         writer.close();
 
         return null;
+    }
+
+    @Override
+    protected GroupCompare.GroupCompareArgumentCollection getMultiVariantInputArgumentCollection() {
+        return new GroupCompare.GroupCompareArgumentCollection();
+    }
+
+    private GroupCompare.GroupCompareArgumentCollection getVariantConcordanceScoreArgumentCollection() {
+        return (GroupCompare.GroupCompareArgumentCollection)multiVariantInputArgumentCollection;
+    }
+
+    private static final class GroupCompareArgumentCollection extends MultiVariantInputArgumentCollection {
+        private static final long serialVersionUID = 1L;
+
+        @Argument(fullName = StandardArgumentDefinitions.VARIANT_LONG_NAME, shortName = StandardArgumentDefinitions.VARIANT_SHORT_NAME, doc = "A VCF file containing variants")
+        public FeatureInput<VariantContext> inputVariants;
+
+        @Argument(doc="Reference Variants", fullName = "referenceVariants", shortName = "RV", optional = true)
+        public FeatureInput<VariantContext> referenceVariants = null;
+
+        @Override
+        public List<GATKPath> getDrivingVariantPaths() {
+            List<GATKPath> ret = new ArrayList<>();
+            ret.add(inputVariants);
+            if (referenceVariants != null) {
+                ret.add(referenceVariants);
+            }
+
+            return ret;
+        }
     }
 }
