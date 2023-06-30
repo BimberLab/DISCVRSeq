@@ -1,0 +1,13 @@
+##fileformat=VCFv4.2
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=HaplotypeScore,Number=1,Type=Float,Description="Consistency of the site with at most two segregating haplotypes">
+##INFO=<ID=SHOULDNOTAPPEAR,Number=R,Type=String,Description="This is a REF field">
+##INFO=<ID=UB,Number=.,Type=Float,Description="This is unbounded">
+##INFO=<ID=FLAG,Number=0,Type=Flag,Description="This is a flag">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Ref1	Sample1	Ref2	Ref3	Ref4
+1	61	.	GT	G	724.43	PASS	AF=0.2;HaplotypeScore=9.1318;SHOULDNOTAPPEAR=GT,G;UB=1.0,2.1	GT	0/1	1/1	0/1	0/0	1/1
+1	72	.	T	A,C	100	PASS	AF=0.55,0.05;HaplotypeScore=2;SHOULDNOTAPPEAR=T,A,C	GT	0/0	1/1	0/0	1/1	0/0
+1	73	.	TT	AG,CC,GG	100	PASS	AF=0.13,0.17,0.18;HaplotypeScore=12;SHOULDNOTAPPEAR=TT,AG,CC,GG;FLAG	GT	0/1	0/0	1/1	0/0	0/0
