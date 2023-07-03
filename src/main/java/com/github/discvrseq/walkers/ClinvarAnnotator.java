@@ -67,18 +67,18 @@ public class ClinvarAnnotator extends VariantWalker {
             new VCFInfoHeaderLine("CLN_DNINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String, "For included Variant : ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB"),
             new VCFInfoHeaderLine("CLN_DISDB", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
             new VCFInfoHeaderLine("CLN_DISDBINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String,"For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
-            new VCFInfoHeaderLine("CLN_HGVS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"For included Variant: Tag-value pairs of disease database name and identifier, e.g. OMIM:NNNNNN"),
-            new VCFInfoHeaderLine("CLN_REVSTAT", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Top-level (primary assembly, alt, or patch) HGVS expression."),
+            new VCFInfoHeaderLine("CLN_HGVS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Top-level (primary assembly, alt, or patch) HGVS expression"),
+            new VCFInfoHeaderLine("CLN_REVSTAT", VCFHeaderLineCount.R, VCFHeaderLineType.String,"ClinVar's review status for the Variation ID"),
             new VCFInfoHeaderLine("CLN_SIG", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Clinical significance for this single variant"),
             new VCFInfoHeaderLine("CLN_SIGINCL", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Clinical significance for a haplotype or genotype that includes this variant. Reported as pairs of VariationID:clinical significance."),
             new VCFInfoHeaderLine("CLN_VC", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Variant type"),
             new VCFInfoHeaderLine("CLN_VCSO", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Sequence Ontology id for variant type"),
-            new VCFInfoHeaderLine("CLN_VI", VCFHeaderLineCount.R, VCFHeaderLineType.String,"the variant's clinical sources reported as tag-value pairs of database and variant identifier"),
+            new VCFInfoHeaderLine("CLN_VI", VCFHeaderLineCount.R, VCFHeaderLineType.String,"The variant's clinical sources reported as tag-value pairs of database and variant identifier"),
             new VCFInfoHeaderLine("CLN_DBVARID", VCFHeaderLineCount.R, VCFHeaderLineType.String, "nsv accessions from dbVar for the variant"),
             new VCFInfoHeaderLine("CLN_GENEINFO", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Gene(s) for the variant reported as gene symbol:gene id. The gene symbol and id are delimited by a colon (:) and each pair is delimited by a vertical bar (|)"),
             new VCFInfoHeaderLine("CLN_MC", VCFHeaderLineCount.R, VCFHeaderLineType.String,"comma separated list of molecular consequence in the form of Sequence Ontology ID|molecular_consequence"),
             new VCFInfoHeaderLine("CLN_ORIGIN", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Allele origin. One or more of the following values may be added: 0 - unknown; 1 - germline; 2 - somatic; 4 - inherited; 8 - paternal; 16 - maternal; 32 - de-novo; 64 - biparental; 128 - uniparental; 256 - not-tested; 512 - tested-inconclusive; 1073741824 - other"),
-            new VCFInfoHeaderLine("CLN_RS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"dbSNP ID (i.e. rs number)"),
+            new VCFInfoHeaderLine("CLN_RS", VCFHeaderLineCount.R, VCFHeaderLineType.String,"dbSNP ID (i.e. rs number) from dbSNP build 155"),
             new VCFInfoHeaderLine("CLN_SSR", VCFHeaderLineCount.R, VCFHeaderLineType.String,"Variant Suspect Reason Codes. One or more of the following values may be added: 0 - unspecified, 1 - Paralog, 2 - byEST, 4 - oldAlign, 8 - Para_EST, 16 - 1kg_failed, 1024 - other")
     );
 
