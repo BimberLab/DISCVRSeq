@@ -2,6 +2,7 @@ package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import com.github.discvrseq.walkers.annotator.Impact;
+import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
@@ -19,6 +20,7 @@ import org.broadinstitute.hellbender.utils.Utils;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and <a href="https://www.hgsc.bcm.edu/software/cassandra">Cassandra</a>,
@@ -567,7 +569,7 @@ public class MultiSourceAnnotator extends VariantWalker {
         
         //TODO: consider allele-specific annotations
         if (!source.getAlleles().equals(annotation.getAlleles())){
-            logger.warn("alleles do not match: " + source.getContig() + "/" + source.getStart() + " for source: " + annotation.getSource());
+            throw new GATKException("Alleles do not match: " + source.getContig() + "/" + source.getStart() + " for source: " + annotation.getSource() + ", source: " + source.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")) + ", annotation: " + annotation.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")));
         }
 
         return true;
