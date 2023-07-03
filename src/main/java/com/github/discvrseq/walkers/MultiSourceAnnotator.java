@@ -6,7 +6,6 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +43,9 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="File to which variants should be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public String outFile = null;
 
+    @Argument(doc="ClinVar Allowed INFO Fields", fullName = "clinvar-fields", shortName = "cvf", optional = true)
+    public List<String> clinvarFields = new ArrayList<>(CLINVAR_INFO);
+
     @Argument(doc="Clinvar Annotated VCF", fullName = "clinvar", shortName = "cv", optional = true)
     public FeatureInput<VariantContext> clinvarVariants = null;
 
@@ -53,15 +55,24 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="Cassandra Annotated VCF", fullName = "cassandra", shortName = "c", optional = true)
     public FeatureInput<VariantContext> cassandraVariants = null;
 
+    @Argument(doc="Cassandra Allowed INFO Fields", fullName = "cassandra-fields", shortName = "cf", optional = true)
+    public List<String> cassandraFields = new ArrayList<>(CASSANDRA_INFO);
+
     @Argument(doc="SnpSift Annotated VCF", fullName = "snpsift", shortName = "ss", optional = true)
     public FeatureInput<VariantContext> snpSiftVariants = null;
+
+    @Argument(doc="SnpSift Allowed INFO Fields", fullName = "snpsift-fields", shortName = "ssf", optional = true)
+    public List<String> snpSiftFields = new ArrayList<>(SNPSIFT_INFO);
 
     @Argument(doc="Funcotator Annotated VCF", fullName = "funcotator", shortName = "f", optional = true)
     public FeatureInput<VariantContext> funcotatorVariants = null;
 
+    @Argument(doc="Funcotator Allowed INFO Fields", fullName = "funcotator-fields", shortName = "ff", optional = true)
+    public List<String> funcotatorFields = new ArrayList<>(FUNCOTATOR_INFO);
+
     private VariantContextWriter writer;
 
-    private final List<String> CLINVAR_INFO = Arrays.asList(
+    private static final List<String> CLINVAR_INFO = Arrays.asList(
             "CLN_ALLELE",
             "CLN_ALLELEID",
             "CLN_DBVARID",
@@ -83,7 +94,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             "CLN_VI"
     );
 
-    private final List<String> FUNCOTATOR_INFO = Arrays.asList(
+    private static final List<String> FUNCOTATOR_INFO = Arrays.asList(
             "ACMG_Disease",
             "ACMGLMM_LOF",
             "ACMGLMM_MOI",
@@ -143,7 +154,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             "SVTYPE"
     );
 
-    private final List<String> SNPSIFT_INFO = Arrays.asList(
+    private static final List<String> SNPSIFT_INFO = Arrays.asList(
             "dbNSFP_VEP_canonical",
             "dbNSFP_SIFT_scr",
             "dbNSFP_SIFT_cnvtd_rnkscr",
@@ -267,7 +278,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             "dbNSFP_phastCons17way_primate_rnkscr"
         );
 
-    private final List<String> CASSENDRA_INFO = Arrays.asList(
+    private static final List<String> CASSANDRA_INFO = Arrays.asList(
             "RFG",
             "GI",
             "UCG",
@@ -402,7 +413,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         if (clinvarVariants != null) {
             VCFHeader clinvarHeader = (VCFHeader) getHeaderForFeatures(clinvarVariants);
-            for (String id : CLINVAR_INFO) {
+            for (String id : clinvarFields) {
                 VCFInfoHeaderLine line = clinvarHeader.getInfoHeaderLine(id);
                 if (line == null) {
                     throw new GATKException("Clinvar missing expected header line: " + id);
@@ -411,7 +422,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
 
             List<String> allKeys = new ArrayList<>(clinvarHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
-            allKeys.removeAll(CLINVAR_INFO);
+            allKeys.removeAll(clinvarFields);
             if (!allKeys.isEmpty()) {
                 logger.info("The following ClinVar fields will not be retained: " + StringUtils.join(allKeys, ", "));
             }
@@ -419,7 +430,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         if (cassandraVariants != null) {
             VCFHeader cassandraHeader = (VCFHeader) getHeaderForFeatures(cassandraVariants);
-            for (String id : CASSENDRA_INFO) {
+            for (String id : cassandraFields) {
                 VCFInfoHeaderLine line = cassandraHeader.getInfoHeaderLine(id);
                 if (line == null) {
                     logger.warn("Cassandra missing expected header line: " + id);
@@ -429,7 +440,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
 
             List<String> allKeys = new ArrayList<>(cassandraHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
-            allKeys.removeAll(CASSENDRA_INFO);
+            allKeys.removeAll(cassandraFields);
             if (!allKeys.isEmpty()) {
                 logger.info("The following Cassandra fields will not be retained: " + StringUtils.join(allKeys, ", "));
             }
@@ -437,7 +448,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         if (snpSiftVariants != null) {
             VCFHeader snpSiftHeader = (VCFHeader) getHeaderForFeatures(snpSiftVariants);
-            for (String id : SNPSIFT_INFO) {
+            for (String id : snpSiftFields) {
                 VCFInfoHeaderLine line = snpSiftHeader.getInfoHeaderLine(id);
                 if (line == null) {
                     logger.warn("SnpSift missing expected header line: " + id);
@@ -447,7 +458,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
 
             List<String> allKeys = new ArrayList<>(snpSiftHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
-            allKeys.removeAll(SNPSIFT_INFO);
+            allKeys.removeAll(snpSiftFields);
             if (!allKeys.isEmpty()) {
                 logger.info("The following SnpSift fields will not be retained: " + StringUtils.join(allKeys, ", "));
             }
@@ -455,7 +466,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         if (funcotatorVariants != null) {
             VCFHeader funcotatorHeader = (VCFHeader) getHeaderForFeatures(funcotatorVariants);
-            for (String id : FUNCOTATOR_INFO) {
+            for (String id : funcotatorFields) {
                 VCFInfoHeaderLine line = funcotatorHeader.getInfoHeaderLine(id);
                 if (line == null) {
                     logger.warn("Funcotator missing expected header line: " + id);
@@ -465,7 +476,7 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
 
             List<String> allKeys = new ArrayList<>(funcotatorHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
-            allKeys.removeAll(FUNCOTATOR_INFO);
+            allKeys.removeAll(funcotatorFields);
             if (!allKeys.isEmpty()) {
                 logger.info("The following Funcotator fields will not be retained: " + StringUtils.join(allKeys, ", "));
             }
@@ -487,7 +498,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 clinvar++;
-                transferInfoData(vcb, vc, CLINVAR_INFO);
+                transferInfoData(vcb, vc, clinvarFields);
             }
         }
 
@@ -498,7 +509,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 cassandra++;
-                transferInfoData(vcb, vc, CASSENDRA_INFO);
+                transferInfoData(vcb, vc, cassandraFields);
             }
         }
 
@@ -509,7 +520,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 snpSift++;
-                transferInfoData(vcb, vc, SNPSIFT_INFO);
+                transferInfoData(vcb, vc, snpSiftFields);
             }
         }
 
@@ -520,7 +531,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 funcotator++;
-                transferInfoData(vcb, vc, FUNCOTATOR_INFO);
+                transferInfoData(vcb, vc, funcotatorFields);
             }
         }
 
@@ -546,18 +557,18 @@ public class MultiSourceAnnotator extends VariantWalker {
     }
 
     private boolean matches(VariantContext source, VariantContext annotation){
-        if (!source.getContig().equals(annotation.getContig()) &&
+        if (!(source.getContig().equals(annotation.getContig()) &&
                 source.getStart() == annotation.getStart() &&
                 source.getEnd() == annotation.getEnd() &&
-                source.getReference().equals(annotation.getReference())){
+                source.getReference().equals(annotation.getReference()))){
             logger.info("not matching: " + source.getContig() + "/" + source.getStart());
             return false;
         }
-
+        
         //TODO: consider allele-specific annotations
-        //if (!source.getAlleles().equals(annotation.getAlleles())){
-        //    logger.warn("alleles do not match: " + source.getContig() + "/" + source.getStart());
-        //}
+        if (!source.getAlleles().equals(annotation.getAlleles())){
+            logger.warn("alleles do not match: " + source.getContig() + "/" + source.getStart() + " for source: " + annotation.getSource());
+        }
 
         return true;
     }
