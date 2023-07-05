@@ -117,7 +117,7 @@ public class ExtendedFuncotator extends Funcotator {
                     continue;
                 }
 
-                fields.add(new VcfHeaderDescriptor(line, header));
+                fields.add(new VcfHeaderDescriptor(line, header, dataSourceFuncotationFactories));
             }
         }
         catch (IOException | CsvValidationException e)
@@ -149,6 +149,10 @@ public class ExtendedFuncotator extends Funcotator {
                 }
 
                 String target = f.dataSource + "_" + f.sourceField;
+                if (!allFields.get(f.dataSource).contains(target)) {
+                    logger.warn("Requested field " + target + " does not exist in data source: " + f.dataSource);
+                }
+
                 allFields.get(f.dataSource).remove(target);
             });
 
@@ -158,7 +162,7 @@ public class ExtendedFuncotator extends Funcotator {
                 }
 
                 logger.info("The following fields are present but not used from: " + f);
-                allFields.forEach(logger::info);
+                allFields.get(f).forEach(logger::info);
             });
 
             System.exit(0);
@@ -188,7 +192,7 @@ public class ExtendedFuncotator extends Funcotator {
         final VCFHeaderLineType type;
         final String description;
 
-        public VcfHeaderDescriptor(String[] line, List<String> headerFields)
+        public VcfHeaderDescriptor(String[] line, List<String> headerFields, List<DataSourceFuncotationFactory> dataSourceFuncotationFactories)
         {
             dataSource = getField("DataSource", line, headerFields);
             sourceField = getField("SourceField", line, headerFields);
@@ -206,12 +210,22 @@ public class ExtendedFuncotator extends Funcotator {
             try {
                 type = VCFHeaderLineType.valueOf(typeString);
             }
-            catch (IllegalArgumentException e)
-            {
+            catch (IllegalArgumentException e) {
                 throw new GATKException("Unknown value for type: " + typeString);
             }
 
             description = getField("Description", line, headerFields);
+
+            try {
+                DataSourceFuncotationFactory source = dataSourceFuncotationFactories.stream().filter(x -> x.getName().equalsIgnoreCase(this.dataSource)).findFirst().orElseThrow();
+
+                if (!source.getSupportedFuncotationFields().contains(this.dataSource + "_" + this.sourceField)) {
+                    throw new GATKException("Unable to find field: " + this.sourceField + " in "+ this.dataSource);
+                }
+            }
+            catch (NoSuchElementException e) {
+                throw new GATKException("Unable to find data source: " + this.dataSource);
+            }
         }
 
         private String getField(String fieldName, String[] line, List<String> headerFields)
@@ -236,6 +250,7 @@ public class ExtendedFuncotator extends Funcotator {
         }
     }
 
+    @Override
     protected void enqueueAndHandleVariant(final VariantContext variant, final ReferenceContext referenceContext, final FeatureContext featureContext) {
 
         final FuncotationMap funcotationMap = funcotatorEngine.createFuncotationMapForVariant(variant, referenceContext, featureContext);

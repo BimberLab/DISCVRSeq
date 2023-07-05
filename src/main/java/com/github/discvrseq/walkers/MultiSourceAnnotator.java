@@ -559,14 +559,20 @@ public class MultiSourceAnnotator extends VariantWalker {
     }
 
     private boolean matches(VariantContext source, VariantContext annotation){
-        if (!(source.getContig().equals(annotation.getContig()) &&
-                source.getStart() == annotation.getStart() &&
-                source.getEnd() == annotation.getEnd() &&
-                source.getReference().equals(annotation.getReference()))){
-            logger.info("not matching: " + source.getContig() + "/" + source.getStart());
+        if (!(
+                source.getContig().equals(annotation.getContig()) &&
+                source.getStart() == annotation.getStart()
+            )){
+
+            // featureContext.getValues will return overlapping variants, which we do not want to consider here
             return false;
         }
-        
+
+        if (!source.getReference().equals(annotation.getReference())) {
+            logger.warn("Variant has the same start but mismatch REF. skipping: " + source.getContig() + "/" + source.getStart() + ": " + source.getReference().getDisplayString() + " -> " + annotation.getReference().getDisplayString());
+            return false;
+        }
+
         //TODO: consider allele-specific annotations
         if (!source.getAlleles().equals(annotation.getAlleles())){
             throw new GATKException("Alleles do not match: " + source.getContig() + "/" + source.getStart() + " for source: " + annotation.getSource() + ", source: " + source.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")) + ", annotation: " + annotation.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")));
