@@ -117,7 +117,7 @@ public class ExtendedFuncotator extends Funcotator {
                     continue;
                 }
 
-                fields.add(new VcfHeaderDescriptor(line, header));
+                fields.add(new VcfHeaderDescriptor(line, header, dataSourceFuncotationFactories));
             }
         }
         catch (IOException | CsvValidationException e)
@@ -192,7 +192,7 @@ public class ExtendedFuncotator extends Funcotator {
         final VCFHeaderLineType type;
         final String description;
 
-        public VcfHeaderDescriptor(String[] line, List<String> headerFields)
+        public VcfHeaderDescriptor(String[] line, List<String> headerFields, List<DataSourceFuncotationFactory> dataSourceFuncotationFactories)
         {
             dataSource = getField("DataSource", line, headerFields);
             sourceField = getField("SourceField", line, headerFields);
@@ -216,6 +216,18 @@ public class ExtendedFuncotator extends Funcotator {
             }
 
             description = getField("Description", line, headerFields);
+
+            try {
+                DataSourceFuncotationFactory source = dataSourceFuncotationFactories.stream().filter(x -> x.getName().equalsIgnoreCase(this.dataSource)).findFirst().orElseThrow();
+
+                if (!source.getSupportedFuncotationFields().contains(this.dataSource + "_" + this.sourceField)) {
+                    throw new GATKException("Unable to find field: " + this.sourceField + " in "+ this.dataSource);
+                }
+            }
+            catch (NoSuchElementException e) {
+                throw new GATKException("Unable to find data source: " + this.dataSource);
+            }
+
         }
 
         private String getField(String fieldName, String[] line, List<String> headerFields)
@@ -240,6 +252,7 @@ public class ExtendedFuncotator extends Funcotator {
         }
     }
 
+    @Override
     protected void enqueueAndHandleVariant(final VariantContext variant, final ReferenceContext referenceContext, final FeatureContext featureContext) {
 
         final FuncotationMap funcotationMap = funcotatorEngine.createFuncotationMapForVariant(variant, referenceContext, featureContext);
