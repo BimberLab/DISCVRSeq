@@ -210,8 +210,7 @@ public class ExtendedFuncotator extends Funcotator {
             try {
                 type = VCFHeaderLineType.valueOf(typeString);
             }
-            catch (IllegalArgumentException e)
-            {
+            catch (IllegalArgumentException e) {
                 throw new GATKException("Unknown value for type: " + typeString);
             }
 
@@ -227,7 +226,6 @@ public class ExtendedFuncotator extends Funcotator {
             catch (NoSuchElementException e) {
                 throw new GATKException("Unable to find data source: " + this.dataSource);
             }
-
         }
 
         private String getField(String fieldName, String[] line, List<String> headerFields)
