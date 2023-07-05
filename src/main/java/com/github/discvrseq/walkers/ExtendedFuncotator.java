@@ -158,7 +158,7 @@ public class ExtendedFuncotator extends Funcotator {
                 }
 
                 logger.info("The following fields are present but not used from: " + f);
-                allFields.forEach(logger::info);
+                allFields.get(f).forEach(logger::info);
             });
 
             System.exit(0);
