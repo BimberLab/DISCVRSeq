@@ -149,6 +149,10 @@ public class ExtendedFuncotator extends Funcotator {
                 }
 
                 String target = f.dataSource + "_" + f.sourceField;
+                if (!allFields.get(f.dataSource).contains(target)) {
+                    logger.warn("Requested field " + target + " does not exist in data source: " + f.dataSource);
+                }
+
                 allFields.get(f.dataSource).remove(target);
             });
 
