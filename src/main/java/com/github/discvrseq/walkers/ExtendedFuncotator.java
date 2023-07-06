@@ -264,8 +264,6 @@ public class ExtendedFuncotator extends Funcotator {
 
         private final List<VcfHeaderDescriptor> fieldsToOutput;
 
-        private final Set<String> keysEncountered = new HashSet<>();
-
         public ExtendedVcfOutputRenderer(final VariantContextWriter vcfWriter,
                                  final List<DataSourceFuncotationFactory> dataSources,
                                  final VCFHeader existingHeader,
@@ -341,6 +339,11 @@ public class ExtendedFuncotator extends Funcotator {
                         if (!toAdd.isEmpty() && !toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).allMatch(String::isEmpty)) {
                             String val = toAdd.stream().map(x -> x.isEmpty() ? "" : x.get(0)).collect(Collectors.joining(","));
                             if (!val.isEmpty()) {
+                                // VCF 4.2 does not all spaces:
+                                if (val.contains(" ")) {
+                                    val = val.replaceAll(" ", "_");
+                                }
+
                                 variantContextOutputBuilder.attribute(vd.id, val);
                             }
                         }
