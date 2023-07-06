@@ -220,7 +220,7 @@ public class ExtendedFuncotator extends Funcotator {
                 DataSourceFuncotationFactory source = dataSourceFuncotationFactories.stream().filter(x -> x.getName().equalsIgnoreCase(this.dataSource)).findFirst().orElseThrow();
 
                 if (!source.getSupportedFuncotationFields().contains(this.dataSource + "_" + this.sourceField)) {
-                    throw new GATKException("Unable to find field: " + this.sourceField + " in "+ this.dataSource);
+                    throw new GATKException("Unable to find field: " + this.sourceField + " in "+ this.dataSource + ". Known fields are: " + String.join(", ", source.getSupportedFuncotationFields()));
                 }
             }
             catch (NoSuchElementException e) {
