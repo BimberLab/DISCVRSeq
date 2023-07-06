@@ -390,7 +390,8 @@ public class MultiSourceAnnotator extends VariantWalker {
             "OMIMMUS",
             "LiftedContig",
             "LiftedStart",
-            "LiftedStop"
+            "LiftedStop",
+            "ReverseComplementedAlleles"
     );
 
     private long clinvar = 0L;
@@ -403,6 +404,8 @@ public class MultiSourceAnnotator extends VariantWalker {
 
     private final Impact IMPACT_ANNOTATION = new Impact();
 
+    private final List<String> allAnnotationKeys = new ArrayList<>();
+
     private final Collection<String> ALLOWABLE_FILTERS = Arrays.asList("ReverseComplementedIndel", "NoTarget", "MismatchedRefAllele", "IndelStraddlesMultipleIntevals");
 
     @Override
@@ -412,6 +415,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
         VCFHeader header = new VCFHeader(getHeaderForVariants());
         IMPACT_ANNOTATION.getDescriptions().forEach(header::addMetaDataLine);
+        IMPACT_ANNOTATION.getDescriptions().stream().map(VCFInfoHeaderLine.class::cast).map(VCFInfoHeaderLine::getID).forEach(allAnnotationKeys::add);
 
         if (clinvarVariants != null) {
             VCFHeader clinvarHeader = (VCFHeader) getHeaderForFeatures(clinvarVariants);
@@ -421,6 +425,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                     throw new GATKException("Clinvar missing expected header line: " + id);
                 }
                 header.addMetaDataLine(line);
+                allAnnotationKeys.add(id);
             }
 
             List<String> allKeys = new ArrayList<>(clinvarHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
@@ -439,6 +444,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                     continue;
                 }
                 header.addMetaDataLine(line);
+                allAnnotationKeys.add(id);
             }
 
             List<String> allKeys = new ArrayList<>(cassandraHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
@@ -457,6 +463,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                     continue;
                 }
                 header.addMetaDataLine(line);
+                allAnnotationKeys.add(id);
             }
 
             List<String> allKeys = new ArrayList<>(snpSiftHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
@@ -475,6 +482,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                     continue;
                 }
                 header.addMetaDataLine(line);
+                allAnnotationKeys.add(id);
             }
 
             List<String> allKeys = new ArrayList<>(funcotatorHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
@@ -485,6 +493,7 @@ public class MultiSourceAnnotator extends VariantWalker {
         }
 
         header.addMetaDataLine(UNABLE_TO_LIFT);
+        allAnnotationKeys.add(UNABLE_TO_LIFT.getID());
 
         writer.writeHeader(header);
     }
@@ -492,6 +501,8 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
+
+        vcb.rmAttributes(allAnnotationKeys);
 
         if (clinvarVariants != null) {
             for (VariantContext vc : featureContext.getValues(clinvarVariants)) {
