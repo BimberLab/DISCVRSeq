@@ -40,12 +40,14 @@ import java.util.stream.IntStream;
  * This tool is designed to assist with the generation of candidate variants, based on a given group of samples (e.g., list of samples with a phenotype of interest). It will
  * subset the input VCF to just sites variable in your group(s) of interest, creating a subset VCF with pruned alleles and annotations. Optionally, you can provide a reference
  * VCF (e.g., VCF with genotypes in a broader population). As part of the subsetting, the tool adds several additional INFO field annotations, including:
- *
- * - G1_AF: the allele frequency of each allele within the group 1 samples
- * - G1_HOMVAR: the number of G1 samples that are homozygous for the variant
- * - G1_HET: the number of G1 samples that are heterozygous
- * - G1_HOMREF the number of G1 samples that are homozygous ref
- *
+ * <p />
+ * <ul>
+ * <li>G1_AF: the allele frequency of each allele within the group 1 samples</li>
+ * <li>G1_HOMVAR: the number of G1 samples that are homozygous for the variant</li>
+ * <li>G1_HET: the number of G1 samples that are heterozygous</li>
+ * <li>G1_HOMREF the number of G1 samples that are homozygous ref</li>
+ * </ul>
+ * <p />
  * These are repeated for group 2 (i.e. G2_AF, G2_HOMVAR) if group 2 is provided. The same is true for the reference VCF, if provided (i.e., REF_AF, REF_HOMVAR).
  *
  * These fields are available for the optional JEXL-based filtering to create a TSV with a subset of high-interest variants.
