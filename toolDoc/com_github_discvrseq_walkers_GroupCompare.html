@@ -24,7 +24,16 @@
 		<h2>Overview</h2>
 		This tool is designed to assist with the generation of candidate variants, based on a given group of samples (e.g., list of samples with a phenotype of interest). It will
  subset the input VCF to just sites variable in your group(s) of interest, creating a subset VCF with pruned alleles and annotations. Optionally, you can provide a reference
- VCF (e.g., VCF with genotypes in a broader population). As part of the subsetting, the tool adds several additional INFO field annotations
+ VCF (e.g., VCF with genotypes in a broader population). As part of the subsetting, the tool adds several additional INFO field annotations, including:
+
+ - G1_AF: the allele frequency of each allele within the group 1 samples
+ - G1_HOMVAR: the number of G1 samples that are homozygous for the variant
+ - G1_HET: the number of G1 samples that are heterozygous
+ - G1_HOMREF the number of G1 samples that are homozygous ref
+
+ These are repeated for group 2 (i.e. G2_AF, G2_HOMVAR) if group 2 is provided. The same is true for the reference VCF, if provided (i.e., REF_AF, REF_HOMVAR).
+
+ These fields are available for the optional JEXL-based filtering to create a TSV with a subset of high-interest variants.
 
  <h3>Usage example:</h3>
  <pre>
@@ -1208,7 +1217,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.38 built at 06-07-2023 03:46:46.
+        <p class="version">DISCVR-Seq version 1.3.39 built at 07-07-2023 02:13:55.
         </p>
 
 </div></div>
