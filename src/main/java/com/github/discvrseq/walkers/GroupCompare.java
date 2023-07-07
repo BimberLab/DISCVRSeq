@@ -296,6 +296,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     }
 
     private boolean hasWrittenHeader = false;
+    private int variantsWrittenToTable = 0;
 
     private void writeVariantToTable(VariantContext vc) {
         if (!hasWrittenHeader) {
@@ -306,6 +307,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
             hasWrittenHeader = true;
         }
 
+        variantsWrittenToTable++;
         VariableOutputUtils.extractFields(vc, outputHeader, fieldsForTable, asFieldsForTable, false, true).forEach(line -> {
             csvWriter.writeNext(line.toArray(new String[0]));
         });
@@ -340,6 +342,13 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
 
     @Override
     public Object onTraversalSuccess() {
+        logger.info("Total variants written to TSV: " + variantsWrittenToTable);
+
+        return super.onTraversalSuccess();
+    }
+
+    @Override
+    public void closeTool() {
         writer.close();
 
         try {
@@ -350,8 +359,6 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         catch (IOException e) {
             logger.error("Unable to close CSV Writer", e);
         }
-
-        return null;
     }
 
     @Override
