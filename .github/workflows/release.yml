@@ -39,11 +39,10 @@ jobs:
           java -jar build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar -h
 
       - name: Upload Artifacts
-        uses: skx/github-action-publish-binaries@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          args: build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar
+          files: build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: GH Pages
         uses: peaceiris/actions-gh-pages@v3.9.3
