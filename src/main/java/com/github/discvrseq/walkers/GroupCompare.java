@@ -349,7 +349,9 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
 
     @Override
     public void closeTool() {
-        writer.close();
+        if (writer != null) {
+            writer.close();
+        }
 
         try {
             if (csvWriter != null) {

@@ -125,7 +125,13 @@ public class ExtendedFuncotator extends Funcotator {
             throw new GATKException("Unable to read config file", e);
         }
 
-        fields.forEach(x -> vcfHeader.addMetaDataLine(x.toInfoLine()));
+        List<String> keysToAdd = fields.stream().map(VcfHeaderDescriptor::getId).toList();
+        List<VCFInfoHeaderLine> existingLines = new ArrayList<>(vcfHeader.getInfoHeaderLines());
+        existingLines.removeIf(x -> keysToAdd.contains(x.getID()));
+        fields.forEach(x -> {
+            vcfHeader.addMetaDataLine(x.toInfoLine());
+        });
+
         List<VCFInfoHeaderLine> headerLines = new ArrayList<>(vcfHeader.getInfoHeaderLines());
 
         funcotatorEngine = new FuncotatorEngine(
@@ -191,6 +197,10 @@ public class ExtendedFuncotator extends Funcotator {
         final VCFHeaderLineCount count;
         final VCFHeaderLineType type;
         final String description;
+
+        public String getId() {
+            return id;
+        }
 
         public VcfHeaderDescriptor(String[] line, List<String> headerFields, List<DataSourceFuncotationFactory> dataSourceFuncotationFactories)
         {
@@ -263,6 +273,7 @@ public class ExtendedFuncotator extends Funcotator {
         private final VariantContextWriter vcfWriter;
 
         private final List<VcfHeaderDescriptor> fieldsToOutput;
+        private final List<String> keysToAdd;
 
         public ExtendedVcfOutputRenderer(final VariantContextWriter vcfWriter,
                                  final List<DataSourceFuncotationFactory> dataSources,
@@ -277,6 +288,8 @@ public class ExtendedFuncotator extends Funcotator {
             this.vcfWriter = vcfWriter;
 
             this.fieldsToOutput = fieldsToOutput;
+
+            keysToAdd = fieldsToOutput.stream().map(VcfHeaderDescriptor::getId).toList();
         }
 
         @Override
@@ -284,6 +297,9 @@ public class ExtendedFuncotator extends Funcotator {
 
             // Create a new variant context builder:
             final VariantContextBuilder variantContextOutputBuilder = new VariantContextBuilder(variant);
+
+            // Ensure we clear pre-existing attributes:
+            variantContextOutputBuilder.rmAttributes(keysToAdd);
 
             // Add our new annotations:
             for (VcfHeaderDescriptor vd : fieldsToOutput) {
