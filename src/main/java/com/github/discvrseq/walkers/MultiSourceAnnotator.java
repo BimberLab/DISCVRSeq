@@ -406,7 +406,7 @@ public class MultiSourceAnnotator extends VariantWalker {
 
     private final List<String> allAnnotationKeys = new ArrayList<>();
 
-    private final Collection<String> ALLOWABLE_FILTERS = Arrays.asList("ReverseComplementedIndel", "NoTarget", "MismatchedRefAllele", "IndelStraddlesMultipleIntevals");
+    private final Collection<String> ALLOWABLE_FILTERS = Arrays.asList("ReverseComplementedIndel", "NoTarget", "MismatchedRefAllele", "IndelStraddlesMultipleIntervals");
 
     @Override
     public void onTraversalStart() {
