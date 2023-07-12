@@ -6,10 +6,7 @@ import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
-import htsjdk.variant.vcf.VCFHeader;
-import htsjdk.variant.vcf.VCFHeaderLineCount;
-import htsjdk.variant.vcf.VCFHeaderLineType;
-import htsjdk.variant.vcf.VCFInfoHeaderLine;
+import htsjdk.variant.vcf.*;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -232,24 +229,22 @@ public class VcfToLuceneIndexer extends VariantWalker {
     private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
         values.forEach(value -> {
-            switch(variantHeaderLineType) {
-                case Character:
-                    doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
-                    break;
-                case Flag:
-                    doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
-                    break;
-                case Float:
+            if (value == null || "".equals(value) || VCFConstants.EMPTY_INFO_FIELD.equals(value)) {
+                return;
+            }
+
+            switch (variantHeaderLineType) {
+                case Character -> doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
+                case Flag -> doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
+                case Float -> {
                     doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
                     doc.add(new StoredField(key, Float.parseFloat(value.toString())));
-                    break;
-                case Integer:
+                }
+                case Integer -> {
                     doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
                     doc.add(new StoredField(key, Integer.parseInt(value.toString())));
-                    break;
-                case String:
-                    doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
-                    break;
+                }
+                case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
             }
         });
     }
