@@ -407,9 +407,9 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
                     return true;
                 }
             }
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | ClassCastException e) {
             throw new UserException(e.getMessage() +
-                    "\nSee https://gatk.broadinstitute.org/hc/en-us/articles/360035891011-JEXL-filtering-expressions for documentation on using JEXL in GATK", e);
+                    "\nSee https://gatk.broadinstitute.org/hc/en-us/articles/360035891011-JEXL-filtering-expressions for documentation on using JEXL in GATK. Variant: " + vc.toStringWithoutGenotypes(), e);
         }
 
         return false;
