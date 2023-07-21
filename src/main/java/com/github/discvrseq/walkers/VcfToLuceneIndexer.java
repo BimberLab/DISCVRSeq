@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -24,6 +25,7 @@ import org.broadinstitute.hellbender.exceptions.GATKException;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -60,6 +62,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(fullName = "threads", doc="The number of threads to use.", optional=true)
     public int threads = 1;
 
+    @Argument(fullName = "allow-missing-fields", doc="If true, the tool will warn, rather than fail, if a non-existent --info-field is requested.", optional=true)
+    public boolean allowMissingFields = false;
+
     private IndexWriter writer = null;
 
     private FSDirectory index = null;
@@ -94,10 +99,20 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         header = (VCFHeader) getHeaderForFeatures(getDrivingVariantsFeatureInput());
 
-        for(String field : infoFieldsToIndex) {
-           if(!header.hasInfoLine(field)) {
-                throw new GATKException("Non-existent INFO field key: " + field);
-           }
+        List<String> missing = new ArrayList<>();
+        for (String field : infoFieldsToIndex) {
+            if (!header.hasInfoLine(field)) {
+                if (allowMissingFields) {
+                    missing.add(field);
+                }
+                else {
+                    throw new GATKException("Non-existent INFO field key: " + field);
+                }
+            }
+        }
+
+        if (!missing.isEmpty()) {
+            logger.warn("The following fields were requested but not present: " + StringUtils.join(missing, ","));
         }
 
         dict = getBestAvailableSequenceDictionary();
