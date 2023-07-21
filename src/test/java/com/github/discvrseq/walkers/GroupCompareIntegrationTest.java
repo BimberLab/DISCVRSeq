@@ -61,7 +61,7 @@ public class GroupCompareIntegrationTest extends BaseIntegrationTest {
                         " -O " + "%s" +
                         " -OT " + "%s" +
                         " -F REFFIELD" +
-                        " -select " + "'G1_AF - REF_AF > 0.2'" +
+                        " -table-select " + "'G1_AF - REF_AF > 0.2'" +
                         " --tmp-dir " + getTmpDir(),
                 Arrays.asList(
                         getTestFile("groupCompareOutputWithRef.vcf").getPath(),

@@ -66,7 +66,9 @@ import java.util.stream.IntStream;
  *     -G2 'Sample5'
  * </pre>
  *
- * <h3>For more advanced usage, you can supply a set of JEXL expressions that will be used to write a subset of variants to a TSV file.</h3>
+ * <h3>More advanced usage, with JEXL</h3>
+ *
+ * You can supply a set of JEXL expressions that will be used to write a subset of variants to a TSV file. You can also supply separate select expressions to limit which variants are written to the output VCF.
  * <pre>
  *  java -jar DISCVRseq.jar GroupCompare \
  *     -R currentGenome.fasta \
@@ -80,8 +82,8 @@ import java.util.stream.IntStream;
  *     -G2 'Sample4'
  *     -G2 'Sample5'
  *     -select 'G1_AF < 0.1 && G2_AF > 0.25'
- *     -select 'IMPACT == "HIGH"'
- *     -select 'CADD_PH > 25'
+ *     -table-select 'IMPACT == "HIGH"'
+ *     -table-select 'CADD_PH > 25'
  *     -F IMPACT
  *     -F CADD_PH
  * </pre>
@@ -105,8 +107,11 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     @Argument(doc="Group 2", fullName = "group2", shortName = "G2", optional = true)
     public Set<String> group2 = new LinkedHashSet<>(0);
 
-    @Argument(fullName= SelectVariants.SELECT_NAME, doc="A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output.", optional=true)
+    @Argument(fullName= SelectVariants.SELECT_NAME, doc="A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, this variant will be output in the VCF. If the is omitted, all variants will be output to the VCF", optional=true)
     private ArrayList<String> selectExpressions = new ArrayList<>();
+
+    @Argument(fullName= "table-select", shortName = "table-select", doc="A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output. This does not impact the VCF output.", optional=true)
+    private ArrayList<String> tableSelectExpressions = new ArrayList<>();
 
     @Argument(fullName= "fields-to-output", shortName = "F", doc="The names of fields to include in the output table. These follow the same conventions as GATK VariantsToTable", optional=true)
     private ArrayList<String> additionalFields = new ArrayList<>();
@@ -132,7 +137,8 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     VariantContextWriter writer;
     ICSVWriter csvWriter;
 
-    private List<VariantContextUtils.JexlVCMatchExp> infoJexls = null;
+    private List<VariantContextUtils.JexlVCMatchExp> infoJexlsVcf = null;
+    private List<VariantContextUtils.JexlVCMatchExp> infoJexlsTable = null;
 
     private List<String> getDefaultOutputFields() {
         List<String> fields = new ArrayList<>(Arrays.asList(
@@ -176,7 +182,8 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
     public void onTraversalStart() {
         Utils.nonNull(outFile);
 
-        infoJexls = VariantContextUtils.initializeMatchExps(IntStream.range(0, selectExpressions.size()).mapToObj(x -> "Select" + x).toList(), selectExpressions);
+        infoJexlsVcf = VariantContextUtils.initializeMatchExps(IntStream.range(0, selectExpressions.size()).mapToObj(x -> "Select" + x).toList(), selectExpressions);
+        infoJexlsTable = VariantContextUtils.initializeMatchExps(IntStream.range(0, tableSelectExpressions.size()).mapToObj(x -> "Select" + x).toList(), tableSelectExpressions);
 
         prepareVcfHeader();
 
@@ -290,9 +297,11 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         }
 
         VariantContext toWrite = vcb.make();
-        writer.add(toWrite);
+        if (passesJexlFilters(toWrite, infoJexlsVcf)) {
+            writer.add(toWrite);
+        }
 
-        if (csvWriter != null && passesJexlFilters(toWrite)) {
+        if (csvWriter != null && infoJexlsTable != null && passesJexlFilters(toWrite, infoJexlsTable)) {
             writeVariantToTable(toWrite);
         }
     }
@@ -396,7 +405,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         }
     }
 
-    private boolean passesJexlFilters(final VariantContext vc){
+    private boolean passesJexlFilters(final VariantContext vc, List<VariantContextUtils.JexlVCMatchExp> infoJexls){
         if (infoJexls.isEmpty()){
             return true;
         }
