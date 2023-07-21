@@ -3,6 +3,7 @@ package com.github.discvrseq.walkers;
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.stream.Collectors;
 
 /**
  * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
@@ -65,13 +65,14 @@ public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(fullName = "allow-missing-fields", doc="If true, the tool will warn, rather than fail, if a non-existent --info-field is requested.", optional=true)
     public boolean allowMissingFields = false;
 
+    @Argument(fullName= "validation-stringency", doc = "The level of validation, either LENIENT or STRICT", common = true, optional = true)
+    protected ValidationStringency stringency = ValidationStringency.STRICT;
+
     private IndexWriter writer = null;
 
     private FSDirectory index = null;
 
     private StandardAnalyzer analyzer = null;
-
-    private VCFHeader header;
 
     @Override
     public boolean useVariantAnnotations() {
@@ -97,7 +98,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
             throw new GATKException(e.getMessage(), e);
         }
 
-        header = (VCFHeader) getHeaderForFeatures(getDrivingVariantsFeatureInput());
+        VCFHeader header = (VCFHeader) getHeaderForFeatures(getDrivingVariantsFeatureInput());
 
         List<String> missing = new ArrayList<>();
         for (String field : infoFieldsToIndex) {
@@ -185,7 +186,14 @@ public class VcfToLuceneIndexer extends VariantWalker {
                         if (line.getCountType() == VCFHeaderLineCount.A) {
                             List<Object> vals = variant.getAttributeAsList(infoField);
                             if (vals.size() != variant.getAlternateAlleles().size()) {
-                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Expected: " + variant.getAlternateAlleles().size() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                                String msg = "Incorrect number of annotations for " + infoField + ". Expected: " + variant.getAlternateAlleles().size() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes();
+                                if (stringency == ValidationStringency.STRICT) {
+                                    throw new GATKException(msg);
+                                }
+                                else {
+                                    logger.warn(msg + ", skipping");
+                                    continue;
+                                }
                             }
 
                             Object val = vals.get(altAlleleIndex);
@@ -196,7 +204,14 @@ public class VcfToLuceneIndexer extends VariantWalker {
                         else if (line.getCountType() == VCFHeaderLineCount.R) {
                             List<Object> vals = variant.getAttributeAsList(infoField);
                             if (vals.size() != variant.getNAlleles()) {
-                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Expected: " + variant.getNAlleles() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                                String msg = "Incorrect number of annotations for " + infoField + ". Expected: " + variant.getNAlleles() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes();
+                                if (stringency == ValidationStringency.STRICT) {
+                                    throw new GATKException(msg);
+                                }
+                                else {
+                                    logger.warn(msg + ", skipping");
+                                    continue;
+                                }
                             }
 
                             Object val = vals.get(alleleIdx);
