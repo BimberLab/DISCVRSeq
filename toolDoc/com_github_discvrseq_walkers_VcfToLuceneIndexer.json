@@ -34,6 +34,22 @@
       "options": []
     },
     {
+      "summary": "If true, the tool will warn, rather than fail, if a non-existent --info-field is requested.",
+      "name": "--allow-missing-fields",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "One or more specific annotations to add to variant calls",
       "name": "--annotation",
       "synonyms": "-A",

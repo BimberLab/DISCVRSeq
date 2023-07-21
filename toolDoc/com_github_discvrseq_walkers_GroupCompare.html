@@ -51,7 +51,9 @@
      -G2 'Sample5'
  </pre>
 
- <h3>For more advanced usage, you can supply a set of JEXL expressions that will be used to write a subset of variants to a TSV file.</h3>
+ <h3>More advanced usage, with JEXL</h3>
+
+ You can supply a set of JEXL expressions that will be used to write a subset of variants to a TSV file. You can also supply separate select expressions to limit which variants are written to the output VCF.
  <pre>
   java -jar DISCVRseq.jar GroupCompare \
      -R currentGenome.fasta \
@@ -65,8 +67,8 @@
      -G2 'Sample4'
      -G2 'Sample5'
      -select 'G1_AF < 0.1 && G2_AF > 0.25'
-     -select 'IMPACT == "HIGH"'
-     -select 'CADD_PH > 25'
+     -table-select 'IMPACT == "HIGH"'
+     -table-select 'CADD_PH > 25'
      -F IMPACT
      -F CADD_PH
  </pre>
@@ -238,7 +240,7 @@
 					</td>
 					<!--<td>ArrayList[String]</td> -->
 					<td>[]</td>
-					<td>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output.</td>
+					<td>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, this variant will be output in the VCF. If the is omitted, all variants will be output to the VCF</td>
 				</tr>
 				<tr>
 					<td><a href="#--sites-only-vcf-output">--sites-only-vcf-output</a><br />
@@ -254,6 +256,13 @@
 					<!--<td>GATKPath</td> -->
 					<td>null</td>
 					<td>File to which a table of high-impact variants should be written. This will only be used if one or more JEXL select expressions are provided.</td>
+				</tr>
+				<tr>
+					<td><a href="#--table-select">--table-select</a><br />
+					</td>
+					<!--<td>ArrayList[String]</td> -->
+					<td>[]</td>
+					<td>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output. This does not impact the VCF output.</td>
 				</tr>
 				<tr>
 					<td><a href="#--version">--version</a><br />
@@ -1068,7 +1077,7 @@
 			 / <small>NA</small>
 		</h3>
 		<p class="args">
-			<b>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output.</b><br />
+			<b>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, this variant will be output in the VCF. If the is omitted, all variants will be output to the VCF</b><br />
 			
 		</p>
 		<p>
@@ -1122,6 +1131,18 @@
 		<p>
 		<span class="label label-info ">GATKPath</span>
 			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--table-select">--table-select </a>
+			 / <small>-table-select</small>
+		</h3>
+		<p class="args">
+			<b>A filtering expression in terms of either INFO fields or the VariantContext object). If the expression evaluates to true for a variant, it will output in the tabular output. This does not impact the VCF output.</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">ArrayList[String]</span>
+			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
@@ -1219,7 +1240,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.44 built at 13-07-2023 03:49:56.
+        <p class="version">DISCVR-Seq version 1.3.45 built at 21-07-2023 01:54:32.
         </p>
 
 </div></div>
