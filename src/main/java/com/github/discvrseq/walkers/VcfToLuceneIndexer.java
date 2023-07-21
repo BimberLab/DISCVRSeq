@@ -185,7 +185,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                         if (line.getCountType() == VCFHeaderLineCount.A) {
                             List<Object> vals = variant.getAttributeAsList(infoField);
                             if (vals.size() != variant.getAlternateAlleles().size()) {
-                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Expected: " + variant.getAlternateAlleles().size() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
                             }
 
                             Object val = vals.get(altAlleleIndex);
@@ -196,7 +196,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                         else if (line.getCountType() == VCFHeaderLineCount.R) {
                             List<Object> vals = variant.getAttributeAsList(infoField);
                             if (vals.size() != variant.getNAlleles()) {
-                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Was: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
+                                throw new GATKException("Incorrect number of annotations for " + infoField + ". Expected: " + variant.getNAlleles() + ", found: " + vals.size() + ". Value: " + variant.getAttribute(infoField) + ", at " + variant.toStringWithoutGenotypes());
                             }
 
                             Object val = vals.get(alleleIdx);
