@@ -833,6 +833,35 @@
       "options": []
     },
     {
+      "summary": "The level of validation, either LENIENT or STRICT",
+      "name": "--validation-stringency",
+      "synonyms": "NA",
+      "type": "ValidationStringency",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "STRICT",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "",
+          "name": "STRICT"
+        },
+        {
+          "summary": "",
+          "name": "LENIENT"
+        },
+        {
+          "summary": "",
+          "name": "SILENT"
+        }
+      ]
+    },
+    {
       "summary": "A VCF file containing variants",
       "name": "--variant",
       "synonyms": "-V",
