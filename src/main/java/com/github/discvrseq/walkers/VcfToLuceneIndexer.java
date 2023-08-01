@@ -1,6 +1,9 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.ValidationStringency;
@@ -18,18 +21,12 @@ import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
-import org.broadinstitute.hellbender.engine.FeatureContext;
-import org.broadinstitute.hellbender.engine.ReadsContext;
-import org.broadinstitute.hellbender.engine.ReferenceContext;
-import org.broadinstitute.hellbender.engine.VariantWalker;
+import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -54,7 +51,10 @@ import java.util.concurrent.ScheduledExecutorService;
 )
 public class VcfToLuceneIndexer extends VariantWalker {
     @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", optional = true)
-    File outDir;
+    GATKPath outDir;
+
+    @Argument(fullName = "index-stats", doc = "A file where a TSV of summary information about each indexed field will be written, including min/max value and a list of unique values", optional = true)
+    GATKPath indexStatsPath;
 
     @Argument(doc="Info fields to index", fullName = "info-field", shortName = "IF", optional = true)
     List<String> infoFieldsToIndex;
@@ -69,6 +69,8 @@ public class VcfToLuceneIndexer extends VariantWalker {
     protected ValidationStringency stringency = ValidationStringency.STRICT;
 
     private IndexWriter writer = null;
+
+    private IndexStats stats = new IndexStats();
 
     private FSDirectory index = null;
 
@@ -109,6 +111,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 else {
                     throw new GATKException("Non-existent INFO field key: " + field);
                 }
+            }
+            else {
+                stats.addField(header.getInfoHeaderLine(field));
             }
         }
 
@@ -159,7 +164,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         sites++;
     }
 
-    private class ApplyRunner implements Callable<Boolean> {
+    public class ApplyRunner implements Callable<Boolean> {
         final VariantContext variant;
         final ReferenceContext referenceContext;
 
@@ -256,7 +261,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
     }
 
-    private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
+    synchronized private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
+        stats.inspectValue(key, fieldValue);
+
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
         values.forEach(value -> {
             if (value == null || "".equals(value) || VCFConstants.EMPTY_INFO_FIELD.equals(value)) {
@@ -287,6 +294,22 @@ public class VcfToLuceneIndexer extends VariantWalker {
             executor.shutdown();
         }
 
+        if (indexStatsPath != null) {
+            try (ICSVWriter csvWriter = CsvUtils.getTsvWriter(indexStatsPath.toPath())) {
+                csvWriter.writeNext(new String[]{"Key", "Type", "ContainedMultiValuedRow", "MinVal", "MaxVal", "DistinctValues"});
+
+                for (String key : stats.collectorMap.keySet()) {
+                    IndexStats.Collector c = stats.collectorMap.get(key);
+
+                    csvWriter.writeNext(c.getCsvRow(key));
+                }
+            }
+            catch (IOException e) {
+                throw new GATKException("Error generating index stats", e);
+            }
+
+        }
+
         return super.onTraversalSuccess();
     }
 
@@ -314,6 +337,86 @@ public class VcfToLuceneIndexer extends VariantWalker {
             }
         } catch (Throwable e) {
             logger.error("Unable to close analyzer", e);
+        }
+    }
+
+    public static class IndexStats
+    {
+        private final Map<String, Collector> collectorMap = new HashMap<>();
+
+        public void addField(VCFInfoHeaderLine line) {
+            switch (line.getType()) {
+                case Character, String, Flag -> collectorMap.put(line.getID(), new StringCollector());
+                case Integer, Float -> collectorMap.put(line.getID(), new NumericCollector());
+            }
+        }
+
+        public void inspectValue(String key, Object val) {
+            collectorMap.get(key).inspect(val);
+        }
+
+        public abstract static class Collector {
+            protected boolean containedMultiValue = false;
+
+            public void inspect(Object val) {
+                if (val == null || "".equals(val) || VCFConstants.EMPTY_INFO_FIELD.equals(val)) {
+                    return;
+                }
+
+                if (val instanceof Collection<?> valCollection) {
+                    containedMultiValue = true;
+                    valCollection.forEach(this::inspectValue);
+                }
+                else {
+                    inspectValue(val);
+                }
+            }
+
+            abstract protected void inspectValue(Object val);
+
+            abstract public String[] getCsvRow(String key);
+        }
+
+        private static class NumericCollector extends Collector {
+            Double minVal = null;
+            Double maxVal = null;
+
+            @Override
+            protected void inspectValue(Object val) {
+                if (val instanceof Number number) {
+                    double d = number.doubleValue();
+                    if (minVal == null || d < minVal) {
+                        minVal = d;
+                    }
+
+                    if (maxVal == null || d > maxVal) {
+                        maxVal = d;
+                    }
+                }
+            }
+
+            @Override
+            public String[] getCsvRow(String key) {
+                return new String[]{key, "Numeric", String.valueOf(containedMultiValue), minVal == null ? "" : String.valueOf(minVal), maxVal == null ? "" : String.valueOf(maxVal), ""};
+            }
+        }
+
+        private static class StringCollector extends Collector {
+            Set<Object> values = new HashSet<>();
+
+            @Override
+            protected void inspectValue(Object val) {
+                if (val == null || "".equals(val) || VCFConstants.EMPTY_INFO_FIELD.equals(val)) {
+                    return;
+                }
+
+                values.add(String.valueOf(val));
+            }
+
+            @Override
+            public String[] getCsvRow(String key) {
+                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", StringUtils.join(values, ", ")};
+            }
         }
     }
 }
