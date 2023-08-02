@@ -18,6 +18,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
+import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -146,6 +147,9 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         args.addRaw("-IF");
         args.addRaw("FLAG");
 
+        args.addRaw("--index-stats");
+        args.addRaw(new File(luceneOutDir.getPath() + ".stats.txt"));
+
         args.addRaw(" --tmp-dir");
         args.addRaw(getTmpDir());
 
@@ -166,6 +170,12 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
         File[] outputs = luceneOutDir.listFiles();
         Assert.assertEquals(5, outputs.length);
 
+        // Validate stats:
+        File expected = getTestFile("luceneOutDir.stats.txt");
+        File actual = new File(luceneOutDir.getPath() + ".stats.txt");
+        IntegrationTestSpec.assertEqualTextFiles(actual, expected);
+
+        // Validate index
         try (Directory indexDirectory = FSDirectory.open(luceneOutDir.toPath());
              IndexReader indexReader = DirectoryReader.open(indexDirectory)
         ) {
