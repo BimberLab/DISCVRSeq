@@ -418,6 +418,22 @@
       "options": []
     },
     {
+      "summary": "A file where a TSV of summary information about each indexed field will be written, including min/max value and a list of unique values",
+      "name": "--index-stats",
+      "synonyms": "NA",
+      "type": "GATKPath",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Info fields to index",
       "name": "--info-field",
       "synonyms": "-IF",
@@ -583,7 +599,7 @@
       "summary": "Output file (if not provided, defaults to STDOUT)",
       "name": "--output",
       "synonyms": "-O",
-      "type": "File",
+      "type": "GATKPath",
       "required": "no",
       "fulltext": "",
       "defaultValue": "null",
