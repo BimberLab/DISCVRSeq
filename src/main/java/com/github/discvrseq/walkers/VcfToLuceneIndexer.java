@@ -262,7 +262,12 @@ public class VcfToLuceneIndexer extends VariantWalker {
     }
 
     synchronized private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
-        stats.inspectValue(key, fieldValue);
+        try {
+            stats.inspectValue(key, fieldValue);
+        }
+        catch (GATKException e) {
+            logger.error("Unable to parse value for field: " + key + ", was: <" + fieldValue + ">. " + e.getMessage());
+        }
 
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
         values.forEach(value -> {
@@ -383,15 +388,25 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             @Override
             protected void inspectValue(Object val) {
+                Double d = null;
                 if (val instanceof Number number) {
-                    double d = number.doubleValue();
-                    if (minVal == null || d < minVal) {
-                        minVal = d;
+                    d = number.doubleValue();
+                }
+                else {
+                    try {
+                        d = Double.parseDouble(String.valueOf(val));
                     }
+                    catch (NumberFormatException e) {
+                        throw new GATKException("Value was not numeric: " + val);
+                    }
+                }
 
-                    if (maxVal == null || d > maxVal) {
-                        maxVal = d;
-                    }
+                if (minVal == null || d < minVal) {
+                    minVal = d;
+                }
+
+                if (maxVal == null || d > maxVal) {
+                    maxVal = d;
                 }
             }
 
