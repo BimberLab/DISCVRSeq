@@ -22,7 +22,7 @@ import java.util.Date;
  */
 public class HtmlGenerator {
     public static final String[] JS_SCRIPTS = new String[]{
-            "templates/assets/js/packages/jquery-3.1.1.min.js",
+            "templates/assets/js/packages/jquery-3.7.0.min.js",
             "templates/assets/js/packages/jquery-ui.min.js",
             "templates/assets/js/packages/numeral.min.js",
             //"https://cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js",
