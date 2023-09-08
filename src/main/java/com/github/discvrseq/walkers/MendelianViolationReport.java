@@ -57,6 +57,9 @@ public class MendelianViolationReport extends VariantWalker {
     @Argument(fullName = "pedigreeValidationType", shortName = "pedValidationType", doc="The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT", optional=true)
     private PedigreeValidationType pedigreeValidationType = PedigreeValidationType.STRICT;
 
+    @Argument(fullName="mendelian-violation-qual-threshold", doc="Minimum GQ score for each trio member to accept a site as a violation. Use -1.0 to allow all called genotypes.", optional=true)
+    public double minGenotypeQuality = -1.0;
+
     private Map<String, MVSummary> sampleMap;
     private SampleDB sampleDB = null;
 
@@ -139,7 +142,7 @@ public class MendelianViolationReport extends VariantWalker {
             if (g != null){
                 Sample s = sampleDB.getSample(g.getSampleName());
                 if (s != null){
-                    MendelianViolationCount.MV mv = MendelianViolationCount.getMendelianViolation(s, vc, -1.0);
+                    MendelianViolationCount.MV mv = MendelianViolationCount.getMendelianViolation(s, vc, minGenotypeQuality);
                     sampleMap.get(sample).addMV(mv, g);
                 }
             }
