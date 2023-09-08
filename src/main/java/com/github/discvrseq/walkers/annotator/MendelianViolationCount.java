@@ -52,7 +52,7 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     @Override
     public void setArgumentCollection(MendelianViolationArgumentCollection args) {
         this.args = args;
-        sampleDB = args.getSampleDB(getPedigreeFile());;
+        sampleDB = args.getSampleDB(getPedigreeFile());
     }
 
     @Override
@@ -98,7 +98,7 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
         }
 
         //Count lowQual. Note that if min quality is set to 0, even values with no quality associated are returned
-        if (minGenotypeQuality > -1 && gChild.getGQ() < minGenotypeQuality) {
+        if (minGenotypeQuality > -1 && gChild.getGQ() != -1 && gChild.getGQ() < minGenotypeQuality) {
             return null; //cannot make determination
         }
 
