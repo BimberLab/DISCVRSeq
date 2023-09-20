@@ -74,7 +74,7 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
             writer.writeNext(new String[]{outputVcf2.getPath(), "Sample3"});
         }
 
-        args.add("sampleMappingFile", normalizePath(sampleMappingFile));
+        args.add("sample-mapping-file", normalizePath(sampleMappingFile));
 
         runCommandLine(args);
 

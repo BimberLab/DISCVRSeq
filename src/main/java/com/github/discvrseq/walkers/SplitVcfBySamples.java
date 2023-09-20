@@ -66,7 +66,7 @@ public class SplitVcfBySamples extends VariantWalker {
             doc="Remove alternate alleles not present in any genotypes", optional=true)
     public boolean removeUnusedAlternates = false;
 
-    @Argument(doc="This is a TSV file with two columns and no header, where column 1 is the filepath for an output VCF. Column 2 is a sample ID to write to this file. The file can contain multiple rows per output file. The purpose is to supply a list of samples->file, such that this tool can read the input VCF once, and write multiple output VCFs at the same time.", fullName = "sampleMappingFile", optional = true)
+    @Argument(doc="This is a TSV file with two columns and no header, where column 1 is the filepath for an output VCF. Column 2 is a sample ID to write to this file. The file can contain multiple rows per output file. The purpose is to supply a list of samples->file, such that this tool can read the input VCF once, and write multiple output VCFs at the same time.", fullName = "sample-mapping-file", optional = true)
     public GATKPath sampleMappingFile = null;
 
     List<List<String>> batches = new ArrayList<>();
@@ -182,7 +182,7 @@ public class SplitVcfBySamples extends VariantWalker {
                 if (sub.getCalledChrCount() == 0) {
                     continue;
                 }
-                else if (sub.getGenotypes().stream().noneMatch(g -> !g.isFiltered() && !g.isHomRef())) {
+                else if (sub.getGenotypes().stream().noneMatch(g -> !g.isFiltered() && g.isCalled() && !g.isHomRef())) {
                     continue;
                 }
             }
