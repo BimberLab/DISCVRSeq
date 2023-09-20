@@ -593,18 +593,34 @@
       "options": []
     },
     {
-      "summary": "The max number of samples to write per VCF",
-      "name": "--samplesPerVcf",
+      "summary": "This is a TSV file with two columns and no header, where column 1 is the filepath for an output VCF. Column 2 is a sample ID to write to this file. The file can contain multiple rows per output file. The purpose is to supply a list of samples-\u003efile, such that this tool can read the input VCF once, and write multiple output VCFs at the same time.",
+      "name": "--sample-mapping-file",
       "synonyms": "NA",
-      "type": "Integer",
-      "required": "yes",
+      "type": "GATKPath",
+      "required": "no",
       "fulltext": "",
       "defaultValue": "null",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
       "maxRecValue": "NA",
-      "kind": "required",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "The max number of samples to write per VCF",
+      "name": "--samplesPerVcf",
+      "synonyms": "NA",
+      "type": "Integer",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
       "deprecated": false,
       "options": []
     },
@@ -786,7 +802,7 @@
       "options": []
     }
   ],
-  "description": "This takes an input VCF and subsets it into new VCFs where each contains a subset of the original samples.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar SplitVcfBySample \\\n     -V myVCF.vcf \\\n     -O /outputFolder \\\n     -samplesPerVcf 100 \\\n     -minAllowableInFinalVcf 20\n \u003c/pre\u003e",
+  "description": "This takes an input VCF and subsets it into new VCFs where each contains a subset of the original samples. You can either provide samplesPerVcf, in which case it will be subset based on # of samples, or you can provide a\n TSV file listing the output VCF and sample(s) to add to each.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar SplitVcfBySample \\\n     -V myVCF.vcf \\\n     -O /outputFolder \\\n     -samplesPerVcf 100 \\\n     -minAllowableInFinalVcf 20\n \u003c/pre\u003e",
   "name": "SplitVcfBySamples",
   "group": "Public/Stable Tools",
   "beta": false,
