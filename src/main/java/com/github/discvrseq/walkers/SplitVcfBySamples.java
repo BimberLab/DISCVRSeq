@@ -1,13 +1,17 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
+import com.github.discvrseq.util.CsvUtils;
 import com.google.common.collect.Lists;
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvValidationException;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFHeader;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -17,12 +21,12 @@ import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.Utils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.io.IOException;
+import java.util.*;
 
 /**
- * This takes an input VCF and subsets it into new VCFs where each contains a subset of the original samples.
+ * This takes an input VCF and subsets it into new VCFs where each contains a subset of the original samples. You can either provide samplesPerVcf, in which case it will be subset based on # of samples, or you can provide a
+ * TSV file listing the output VCF and sample(s) to add to each.
  *
  * <h3>Usage example:</h3>
  * <pre>
@@ -43,7 +47,7 @@ public class SplitVcfBySamples extends VariantWalker {
     @Argument(doc="The output directory where VCFs will be written", fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, optional = false)
     public GATKPath outFile = null;
 
-    @Argument(doc="The max number of samples to write per VCF", fullName = "samplesPerVcf", optional = false)
+    @Argument(doc="The max number of samples to write per VCF", fullName = "samplesPerVcf", optional = true)
     public Integer samplesPerVcf = null;
 
     @Argument(doc="If the final VCF in the split has fewer than this number of samples, it will be merged with the second to last VCF", fullName = "minAllowableInFinalVcf", optional = true)
@@ -62,7 +66,10 @@ public class SplitVcfBySamples extends VariantWalker {
             doc="Remove alternate alleles not present in any genotypes", optional=true)
     public boolean removeUnusedAlternates = false;
 
-    List<List<String>> batches;
+    @Argument(doc="This is a TSV file with two columns and no header, where column 1 is the filepath for an output VCF. Column 2 is a sample ID to write to this file. The file can contain multiple rows per output file. The purpose is to supply a list of samples->file, such that this tool can read the input VCF once, and write multiple output VCFs at the same time.", fullName = "sampleMappingFile", optional = true)
+    public GATKPath sampleMappingFile = null;
+
+    List<List<String>> batches = new ArrayList<>();
     List<VariantContextWriter> writers = new ArrayList<>();
 
     @Override
@@ -70,10 +77,66 @@ public class SplitVcfBySamples extends VariantWalker {
         Utils.nonNull(outFile);
         IOUtil.assertDirectoryIsWritable(outFile.toPath());
 
+        if (samplesPerVcf == null && sampleMappingFile == null) {
+            throw new GATKException("Must provide either samplesPerVcf or sampleMappingFile");
+        }
+
         VCFHeader header = getHeaderForVariants();
         List<String> samples = header.getSampleNamesInOrder();
 
-        batches = new ArrayList<>(Lists.partition(new ArrayList<>(samples), samplesPerVcf));
+        if (sampleMappingFile != null)
+        {
+            prepareOutputsForSampleFile(samples, header);
+        }
+        else
+        {
+            prepareOutputsForBatches(samples, header);
+        }
+    }
+
+    private void prepareOutputsForSampleFile(List<String> samples, VCFHeader header) {
+        IOUtil.assertFileIsReadable(sampleMappingFile.toPath());
+
+        Map<File, Set<String>> fileToSamples = new HashMap<>();
+        RFC4180Parser rfc4180Parser = new RFC4180ParserBuilder().withSeparator('\t').build();
+        try (CSVReader reader = new CSVReaderBuilder(IOUtil.openFileForBufferedUtf8Reading(sampleMappingFile.toPath().toFile())).withCSVParser(rfc4180Parser).build()) {
+            String[] line;
+            while ((line = reader.readNext()) != null) {
+                if (line.length != 2) {
+                    throw new GATKException("Each sampleMapping file line should only have two elements, found: " + StringUtils.join(line, "/"));
+                }
+
+                File f = new File(line[0]);
+                IOUtil.assertFileIsWritable(f);
+
+                if (!fileToSamples.containsKey(f)) {
+                    fileToSamples.put(f, new TreeSet<>());
+                }
+
+                if (!samples.contains(line[1])) {
+                    throw new GATKException("Unknown sample: " + line[1]);
+                }
+
+                fileToSamples.get(f).add(line[1]);
+
+            }
+        }
+        catch (IOException | CsvValidationException e) {
+            throw new GATKException("Unable to parse sampleMappingFile", e);
+        }
+
+        for (File outputFile : fileToSamples.keySet()) {
+            VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputFile).setReferenceDictionary(getReferenceDictionary()).build();
+            writers.add(writer);
+            batches.add(new ArrayList<>(fileToSamples.get(outputFile)));
+
+            VCFHeader outputHeader = new VCFHeader(header.getMetaDataInInputOrder(), fileToSamples.get(outputFile));
+            writer.writeHeader(outputHeader);
+        }
+    }
+
+    private void prepareOutputsForBatches(List<String> samples, VCFHeader header) {
+        batches.addAll(Lists.partition(new ArrayList<>(samples), samplesPerVcf));
         if (batches.size() == 1) {
             throw new GATKException("This split would result in one output VCF, aborting");
         }

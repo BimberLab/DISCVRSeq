@@ -1,11 +1,15 @@
 package com.github.discvrseq.walkers;
 
+import com.github.discvrseq.util.CsvUtils;
+import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
 import org.broadinstitute.hellbender.utils.Utils;
 import org.broadinstitute.hellbender.utils.io.IOUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
@@ -55,7 +59,39 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
         Assert.assertEquals(actualMD5, expectedMD5);
     }
 
+    @Test
+    public void testSampleCsv() throws Exception {
+        final File outDir = IOUtils.createTempDir("sampleCsv.");
+        ArgumentsBuilder args = getBaseArgs(outDir, 0);
+
+        File sampleMappingFile = new File(outDir, "sampleMappingFile.txt");
+        File outputVcf1 = new File(outDir, "outputVcf1.vcf");
+        File outputVcf2 = new File(outDir, "outputVcf2.vcf");;
+
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(sampleMappingFile)) {
+            writer.writeNext(new String[]{outputVcf1.getPath(), "Sample1"});
+            writer.writeNext(new String[]{outputVcf2.getPath(), "Sample1"});
+            writer.writeNext(new String[]{outputVcf2.getPath(), "Sample3"});
+        }
+
+        args.add("sampleMappingFile", normalizePath(sampleMappingFile));
+
+        runCommandLine(args);
+
+        String actualMD5 = Utils.calculateFileMD5(outputVcf1);
+        String expectedMD5 = Utils.calculateFileMD5(getTestFile(outputVcf1.getName()));
+        Assert.assertEquals(actualMD5, expectedMD5);
+
+        actualMD5 = Utils.calculateFileMD5(outputVcf2);
+        expectedMD5 = Utils.calculateFileMD5(getTestFile(outputVcf2.getName()));
+        Assert.assertEquals(actualMD5, expectedMD5);
+    }
+
     private ArgumentsBuilder getBaseArgs(File outDir) {
+        return getBaseArgs(outDir, 1);
+    }
+
+    private ArgumentsBuilder getBaseArgs(File outDir, @Nullable Integer samplesPerVcf) {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         args.addRaw("--variant");
@@ -65,7 +101,9 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
 
         args.add("R", normalizePath(getHg19Micro()));
 
-        args.add("samplesPerVcf", 1);
+        if (samplesPerVcf != null) {
+            args.add("samplesPerVcf", samplesPerVcf);
+        }
 
         args.addRaw("-O");
         args.addRaw(normalizePath(outDir));
