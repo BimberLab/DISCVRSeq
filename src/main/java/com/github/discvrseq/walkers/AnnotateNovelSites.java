@@ -127,10 +127,10 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
             // Site is novel:
             if (refVariants == null || refVariants.isEmpty()) {
                 vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
+                novelSites++;
                 writer.add(vcb.make());
 
                 if (novelSitesWriter != null) {
-                    novelSites++;
                     novelSitesWriter.add(vcb.genotypes().make());
                 }
             }
@@ -162,13 +162,13 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
                 if (!foundMatchingRef) {
                     vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
                     isNovel = true;
+                    novelSites++;
                 }
 
                 vc = vcb.make();
                 writer.add(vc);
 
                 if (isNovel && novelSitesWriter != null) {
-                    novelSites++;
                     novelSitesWriter.add(vcb.genotypes().make());
                 }
             }
