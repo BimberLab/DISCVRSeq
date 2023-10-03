@@ -738,7 +738,7 @@
       "options": []
     }
   ],
-  "description": "This tool compares an input VCF to the provided \u003ca href\u003dhttps://www.ncbi.nlm.nih.gov/clinvar/\u003eClinVar\u003c/a\u003e VCF and adds annotations to\n any variant overlapping with a variant from ClinVar (matching both site and allele). Note, this requires the VCF to use ClinVar\u0027s 2.0 VCF format.\n The ClinVar VCFs can be foind here: \u003ca href\u003d\"https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/\"\u003ehttps://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/\u003c/a\u003e\n \u003cp/\u003e\n\n \u003ch3\u003eUsage example\u003c/h3\u003e\n \u003cpre\u003e\n   java -jar DISCVRSeq.jar ClinvarAnnotator \\\n     -variant input.vcf \\\n     -clinvar clinvar_v2.vcf \\\n     -O output.vcf\n \u003c/pre\u003e",
+  "description": "This tool compares an input VCF to the provided \u003ca href\u003dhttps://www.ncbi.nlm.nih.gov/clinvar/\u003eClinVar\u003c/a\u003e VCF and adds annotations to\n any variant overlapping with a variant from ClinVar (matching both site and allele). Note, this requires the VCF to use ClinVar\u0027s 2.0 VCF format.\n The ClinVar VCFs can be found here: \u003ca href\u003d\"https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/\"\u003ehttps://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/\u003c/a\u003e\n \u003cp/\u003e\n\n \u003ch3\u003eUsage example\u003c/h3\u003e\n \u003cpre\u003e\n   java -jar DISCVRSeq.jar ClinvarAnnotator \\\n     -variant input.vcf \\\n     -clinvar clinvar_v2.vcf \\\n     -O output.vcf\n \u003c/pre\u003e",
   "name": "ClinvarAnnotator",
   "group": "Specialized/Internal Tools",
   "beta": false,

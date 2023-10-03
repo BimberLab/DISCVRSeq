@@ -657,6 +657,22 @@
       "options": []
     },
     {
+      "summary": "Renamed SnpSift INFO Fields. If provided, this must be of equal length as snpsift-fields. Each source snpsift-field will be transferred to an annotation of this name",
+      "name": "--renamed-snpsift-fields",
+      "synonyms": "-rssf",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Output traversal statistics every time this many seconds elapse",
       "name": "--seconds-between-progress-updates",
       "synonyms": "-seconds-between-progress-updates",
