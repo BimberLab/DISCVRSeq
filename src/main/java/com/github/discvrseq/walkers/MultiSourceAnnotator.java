@@ -18,9 +18,11 @@ import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 import org.broadinstitute.hellbender.utils.Utils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * This is a fairly specialized tool, designed to take the VCFs annotated with ClinvarAnnotator (from DISCVR-seq Toolkit) and <a href="https://www.hgsc.bcm.edu/software/cassandra">Cassandra</a>,
@@ -65,6 +67,11 @@ public class MultiSourceAnnotator extends VariantWalker {
 
     @Argument(doc="SnpSift Allowed INFO Fields", fullName = "snpsift-fields", shortName = "ssf", optional = true)
     public List<String> snpSiftFields = new ArrayList<>(SNPSIFT_INFO);
+
+    @Argument(doc="Renamed SnpSift INFO Fields. If provided, this must be of equal length as snpsift-fields. Each source snpsift-field will be transferred to an annotation of this name", fullName = "renamed-snpsift-fields", shortName = "rssf", optional = true)
+    public List<String> renamedSnpSiftFields = new ArrayList<>();
+
+    final Map<String, String> snpSiftFieldMapping = new HashMap<>();
 
     @Argument(doc="Funcotator Annotated VCF", fullName = "funcotator", shortName = "f", optional = true)
     public FeatureInput<VariantContext> funcotatorVariants = null;
@@ -466,6 +473,14 @@ public class MultiSourceAnnotator extends VariantWalker {
                 allAnnotationKeys.add(id);
             }
 
+            if (renamedSnpSiftFields != null && !renamedSnpSiftFields.isEmpty()) {
+                if (renamedSnpSiftFields.size() != snpSiftFields.size()) {
+                    throw new GATKException("--renamed-snpsift-fields must be the same length as --snpsift-fields");
+                }
+
+                IntStream.range(0, renamedSnpSiftFields.size()).forEach(j -> snpSiftFieldMapping.put(snpSiftFields.get(j), renamedSnpSiftFields.get(j)));
+            }
+
             List<String> allKeys = new ArrayList<>(snpSiftHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
             allKeys.removeAll(snpSiftFields);
             if (!allKeys.isEmpty()) {
@@ -533,7 +548,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 snpSift++;
-                transferInfoData(vcb, vc, snpSiftFields);
+                transferInfoData(vcb, vc, snpSiftFields, snpSiftFieldMapping);
             }
         }
 
@@ -593,9 +608,18 @@ public class MultiSourceAnnotator extends VariantWalker {
     }
 
     private void transferInfoData(VariantContextBuilder vcb, VariantContext source, List<String> ids){
+        transferInfoData(vcb, source, ids, null);
+    }
+
+    private void transferInfoData(VariantContextBuilder vcb, VariantContext source, List<String> ids, @Nullable Map<String, String> oldKeyToNewKey){
         for (String id : ids){
             if (source.hasAttribute(id) && source.getAttribute(id) != null){
-                vcb.attribute(id, source.getAttribute(id));
+                if (oldKeyToNewKey != null) {
+                    vcb.attribute(oldKeyToNewKey.getOrDefault(id, id), source.getAttribute(id));
+                }
+                else {
+                    vcb.attribute(id, source.getAttribute(id));
+                }
             }
         }
     }

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 /**
  * This tool compares an input VCF to the provided <a href=https://www.ncbi.nlm.nih.gov/clinvar/>ClinVar</a> VCF and adds annotations to
  * any variant overlapping with a variant from ClinVar (matching both site and allele). Note, this requires the VCF to use ClinVar's 2.0 VCF format.
- * The ClinVar VCFs can be foind here: <a href="https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/">https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/</a>
+ * The ClinVar VCFs can be found here: <a href="https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/">https://www.ncbi.nlm.nih.gov/variation/docs/ClinVar_vcf_files/</a>
  * <p/>
  *
  * <h3>Usage example</h3>
@@ -60,7 +60,7 @@ public class ClinvarAnnotator extends VariantWalker {
     /**
      * INFO header fields in the new VCF for ClinVar annotations.
      */
-    private List<VCFInfoHeaderLine> HEADER_LINES = Arrays.asList(
+    private final List<VCFInfoHeaderLine> HEADER_LINES = Arrays.asList(
             new VCFInfoHeaderLine("CLN_ALLELE", VCFHeaderLineCount.R, VCFHeaderLineType.Character, "Alternate alleles from Clinvar"),
             new VCFInfoHeaderLine("CLN_ALLELEID", VCFHeaderLineCount.R, VCFHeaderLineType.Integer, "the ClinVar Allele ID"),
             new VCFInfoHeaderLine("CLN_DN", VCFHeaderLineCount.R, VCFHeaderLineType.String, "ClinVar's preferred disease name for the concept specified by disease identifiers in CLNDISDB"),
@@ -120,7 +120,7 @@ public class ClinvarAnnotator extends VariantWalker {
                 if (cvAllele.equals(alt)){
                     //gather annotations, add to map by allele
                     foundHit = true;
-                    annotationMap.put(alt, transferAnnotations(vc, alt, vcb));
+                    annotationMap.put(alt, transferAnnotations(vc, alt));
                 }
             }
         }
@@ -148,7 +148,7 @@ public class ClinvarAnnotator extends VariantWalker {
             if (nonNull > 0){
                 if (!sb.isEmpty()){
                     hasAnnotation = true;
-                    vcb.attribute(line.getID(), sb.stream().collect(Collectors.joining(",")));
+                    vcb.attribute(line.getID(), String.join(",", sb));
                 }
             }
         }
@@ -187,11 +187,10 @@ public class ClinvarAnnotator extends VariantWalker {
      * </p>
      *
      * @param source    ClinVar VCF
-     * @param alt   alternate allele from ClinVar
-     * @param vcb   new VCF to annotate
+     * @param alt   alternate allele from ClinVar*
      * @return  a map which maps ClinVar alleles with their corresponding ClinVar annotations
      */
-    private Map<String, String> transferAnnotations (VariantContext source, Allele alt, VariantContextBuilder vcb){
+    private Map<String, String> transferAnnotations(VariantContext source, Allele alt){
         Map<String, String> annotations = new HashMap<>();
 
         annotations.put("CLN_ALLELE", alt.getDisplayString());
@@ -229,7 +228,6 @@ public class ClinvarAnnotator extends VariantWalker {
      *
      * @param source    ClinVar VCF
      * @param ID   ClinVar VCF Annotation ID
-     * @return
      */
     private String annotateValue(VariantContext source, String ID){
         if (source.getAttribute(ID) == null){
