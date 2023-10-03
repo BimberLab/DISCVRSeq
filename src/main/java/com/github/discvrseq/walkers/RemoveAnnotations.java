@@ -97,6 +97,8 @@ public class RemoveAnnotations extends VariantWalker {
         for (VCFInfoHeaderLine line : initialHeader.getInfoHeaderLines()) {
             skippedHeaderLines += inspectAnnotation(headerLines, line, annotationToKeep, annotationsToExclude);
         }
+        logger.info("total INFO header lines skipped: " + skippedHeaderLines);
+        skippedHeaderLines = 0;
 
         //strip format fields
         for (VCFFormatHeaderLine line : initialHeader.getFormatHeaderLines()) {
@@ -108,6 +110,8 @@ public class RemoveAnnotations extends VariantWalker {
 
             skippedHeaderLines += inspectAnnotation(headerLines, line, genotypeAnnotationToKeep, genotypeAnnotationsToExclude);
         }
+        logger.info("total FORMAT header lines skipped: " + skippedHeaderLines);
+        skippedHeaderLines = 0;
 
         //strip filters, if selected
         if (!excludeFiltered){
@@ -121,10 +125,11 @@ public class RemoveAnnotations extends VariantWalker {
         else {
             skippedHeaderLines += initialHeader.getOtherHeaderLines().size();
         }
+        logger.info("total Other header lines skipped: " + skippedHeaderLines);
+        skippedHeaderLines = 0;
+
 
         headerLines.addAll(initialHeader.getContigLines());
-
-        logger.info("total header lines skipped: " + skippedHeaderLines);
 
         VCFHeader header = new VCFHeader(headerLines, (sitesOnly ? Collections.emptyList() : initialHeader.getGenotypeSamples()));
 
