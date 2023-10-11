@@ -56,7 +56,8 @@ public class Impact implements InfoFieldAnnotation, StandardAnnotation {
         Map<Allele, String> effectMap = new HashMap<>();
 
         for (Allele a : vc.getAlternateAlleles()) {
-            if (!annByAllele.containsKey(a.getBaseString())) {
+            // Note: use displayString to handle symbolic alleles
+            if (!annByAllele.containsKey(a.getDisplayString())) {
                 continue;
             }
 
@@ -64,7 +65,7 @@ public class Impact implements InfoFieldAnnotation, StandardAnnotation {
             Set<String> hig = new HashSet<>();
             Set<String> og = new HashSet<>();
             Set<String> effects = new HashSet<>();
-            for (String[] split : annByAllele.get(a.getBaseString())) {
+            for (String[] split : annByAllele.get(a.getDisplayString())) {
                 if (split.length > 7 && "protein_coding".equals(split[7])) {
                     impacts.add(split[2]);
 
