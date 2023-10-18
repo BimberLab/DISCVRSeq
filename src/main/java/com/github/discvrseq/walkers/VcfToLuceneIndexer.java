@@ -2,7 +2,6 @@ package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
-import com.opencsv.CSVWriter;
 import com.opencsv.ICSVWriter;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -24,7 +23,6 @@ import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -70,7 +68,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     private IndexWriter writer = null;
 
-    private IndexStats stats = new IndexStats();
+    private final IndexStats stats = new IndexStats();
 
     private FSDirectory index = null;
 
@@ -275,18 +273,28 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 return;
             }
 
-            switch (variantHeaderLineType) {
-                case Character -> doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
-                case Flag -> doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
-                case Float -> {
-                    doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
-                    doc.add(new StoredField(key, Float.parseFloat(value.toString())));
+            try {
+                switch (variantHeaderLineType) {
+                    case Character -> doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
+                    case Flag -> doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
+                    case Float -> {
+                        doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
+                        doc.add(new StoredField(key, Float.parseFloat(value.toString())));
+                    }
+                    case Integer -> {
+                        doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
+                        doc.add(new StoredField(key, Integer.parseInt(value.toString())));
+                    }
+                    case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
                 }
-                case Integer -> {
-                    doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
-                    doc.add(new StoredField(key, Integer.parseInt(value.toString())));
+            }
+            catch (Exception e) {
+                if (stringency == ValidationStringency.STRICT) {
+                    throw e;
                 }
-                case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                else {
+                    logger.warn("Error parsing value: " + value + ", for key: " + key);
+                }
             }
         });
     }
@@ -388,7 +396,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             @Override
             protected void inspectValue(Object val) {
-                Double d = null;
+                double d;
                 if (val instanceof Number number) {
                     d = number.doubleValue();
                 }
