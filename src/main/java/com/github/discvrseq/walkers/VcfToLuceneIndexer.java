@@ -11,6 +11,7 @@ import htsjdk.variant.variantcontext.Genotype;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.vcf.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -23,11 +24,13 @@ import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
 
 /**
  * This tool accepts a VCF, iterates the variants and writes the results to a lucene search index.
@@ -259,12 +262,70 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
     }
 
+    private <T> @Nullable Collection<T> attemptToFixNumericValue(String key, Object value, Class<T> clazz) {
+        // NOTE: there are situations where a numeric value can have duplicate values for a given variant/allele
+        // This is sort of a hack, but in this situation we will just double-index them:
+        String valueStr = value.toString();
+        if (!NumberUtils.isCreatable(valueStr)) {
+            if (valueStr.contains("|")) {
+                try {
+                    if (clazz == Double.class) {
+                        return Arrays.stream(valueStr.split("\\|")).map(Double::parseDouble).map(clazz::cast).collect(Collectors.toSet());
+                    } else if (clazz == Integer.class) {
+                        return Arrays.stream(valueStr.split("\\|")).map(Integer::parseInt).map(clazz::cast).collect(Collectors.toSet());
+                    }
+
+                    // should never reach this
+                    throw new GATKException("Attempted to parse a numeric value into something other than Double/Integer. This should never occur.");
+                } catch (Exception e) {
+                    possiblyReportBadValue(key, valueStr);
+                    return null;
+                }
+            }
+            else {
+                possiblyReportBadValue(key, valueStr);
+                return null;
+            }
+        }
+        else {
+            try {
+                if (clazz == Double.class) {
+                    return Collections.singleton(clazz.cast(Double.parseDouble(valueStr)));
+                }
+                else if (clazz == Integer.class) {
+                    return Collections.singleton(clazz.cast(Integer.parseInt(valueStr)));
+                }
+
+                throw new GATKException("Attempted to parse a numeric value into something other than Double/Integer. This should never occur.");
+            }
+            catch (Exception e) {
+                possiblyReportBadValue(key, valueStr);
+                return null;
+            }
+        }
+    }
+
+    private final Set<String> keysWithErrors = new HashSet<>();
+
+    private void possiblyReportBadValue(String key, Object fieldValue) {
+        String message = "Unable to parse numeric value for field: " + key + ", was: <" + fieldValue + ">";
+        if (stringency == ValidationStringency.STRICT) {
+            throw new GATKException(message);
+        }
+        else {
+            if (!keysWithErrors.contains(key)) {
+                keysWithErrors.add(key);
+                logger.warn(message);
+            }
+        }
+    }
+
     synchronized private void addFieldToDocument(Document doc, VCFHeaderLineType variantHeaderLineType, String key, Object fieldValue) {
         try {
             stats.inspectValue(key, fieldValue);
         }
         catch (GATKException e) {
-            logger.error("Unable to parse value for field: " + key + ", was: <" + fieldValue + ">. " + e.getMessage());
+            possiblyReportBadValue(key, fieldValue);
         }
 
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
@@ -278,12 +339,22 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     case Character -> doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
                     case Flag -> doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
                     case Float -> {
-                        doc.add(new DoublePoint(key, Float.parseFloat(value.toString())));
-                        doc.add(new StoredField(key, Float.parseFloat(value.toString())));
+                        Collection<Double> parsedVals = attemptToFixNumericValue(key, value, Double.class);
+                        if (parsedVals != null) {
+                            parsedVals.forEach(x -> {
+                                doc.add(new DoublePoint(key, x));
+                                doc.add(new StoredField(key, x));
+                            });
+                        }
                     }
                     case Integer -> {
-                        doc.add(new IntPoint(key, Integer.parseInt(value.toString())));
-                        doc.add(new StoredField(key, Integer.parseInt(value.toString())));
+                        Collection<Integer> parsedVals = attemptToFixNumericValue(key, value, Integer.class);
+                        if (parsedVals != null) {
+                            parsedVals.forEach(x -> {
+                                doc.add(new IntPoint(key, x));
+                                doc.add(new StoredField(key, x));
+                            });
+                        }
                     }
                     case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
                 }
@@ -404,8 +475,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     try {
                         d = Double.parseDouble(String.valueOf(val));
                     }
-                    catch (NumberFormatException e) {
-                        throw new GATKException("Value was not numeric: " + val);
+                    catch (Exception e) {
+                        // Ignore, let reporting upstream handle this
+                        return;
                     }
                 }
 

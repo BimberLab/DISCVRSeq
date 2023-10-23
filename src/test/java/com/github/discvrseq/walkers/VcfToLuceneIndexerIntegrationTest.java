@@ -461,6 +461,10 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
                 Assert.assertTrue(!variableSamples.contains("Sample1") || !variableSamples.contains("Sample3") || !variableSamples.contains("Sample2"));
             }
+
+            // Documents where HaplotypeScore == 0.12, with query syntax.
+            topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[0.12 TO 0.12]", ""), 10);
+            Assert.assertEquals(topDocs.totalHits.value, 1L);
         }
     }
 }
