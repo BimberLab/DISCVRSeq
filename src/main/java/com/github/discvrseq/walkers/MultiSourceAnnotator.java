@@ -499,7 +499,7 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 if (snpSiftFieldMapping.containsKey(line.getID())) {
-                    line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCount(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
+                    line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCountType(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
                 }
 
                 header.addMetaDataLine(line);
