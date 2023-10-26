@@ -769,6 +769,22 @@
       "options": []
     },
     {
+      "summary": "Exit if any of the expected INFO fields are missing",
+      "name": "--throw-on-missing-fields",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Temp directory to use.",
       "name": "--tmp-dir",
       "synonyms": "NA",

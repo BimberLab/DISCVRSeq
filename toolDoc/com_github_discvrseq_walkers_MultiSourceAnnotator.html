@@ -252,6 +252,13 @@
 					<td>SnpSift Allowed INFO Fields</td>
 				</tr>
 				<tr>
+					<td><a href="#--throw-on-missing-fields">--throw-on-missing-fields</a><br />
+					</td>
+					<!--<td>boolean</td> -->
+					<td>false</td>
+					<td>Exit if any of the expected INFO fields are missing</td>
+				</tr>
+				<tr>
 					<td><a href="#--version">--version</a><br />
 					</td>
 					<!--<td>boolean</td> -->
@@ -1084,6 +1091,18 @@
 			&nbsp;<span class="label">[dbNSFP_VEP_canonical, dbNSFP_SIFT_scr, dbNSFP_SIFT_cnvtd_rnkscr, dbNSFP_SIFT_pred, dbNSFP_SIFT4G_scr, dbNSFP_SIFT4G_cnvtd_rnkscr, dbNSFP_SIFT4G_pred, dbNSFP_Polyphen2_HDIV_scr, dbNSFP_Polyphen2_HDIV_rnkscr, dbNSFP_Polyphen2_HDIV_pred, dbNSFP_Polyphen2_HVAR_scr, dbNSFP_Polyphen2_HVAR_rnkscr, dbNSFP_Polyphen2_HVAR_pred, dbNSFP_LRT_scr, dbNSFP_LRT_cnvtd_rnkscr, dbNSFP_LRT_pred, dbNSFP_LRT_Omega, dbNSFP_MutationTaster_scr, dbNSFP_MutationTaster_cnvtd_rnkscr, dbNSFP_MutationTaster_pred, dbNSFP_MutationTaster_model, dbNSFP_MutationTaster_AAE, dbNSFP_MutationAssessor_scr, dbNSFP_MutationAssessor_rnkscr, dbNSFP_MutationAssessor_pred, dbNSFP_FATHMM_scr, dbNSFP_FATHMM_cnvtd_rnkscr, dbNSFP_FATHMM_pred, dbNSFP_PROVEAN_scr, dbNSFP_PROVEAN_cnvtd_rnkscr, dbNSFP_PROVEAN_pred, dbNSFP_VEST4_scr, dbNSFP_VEST4_rnkscr, dbNSFP_MetaSVM_scr, dbNSFP_MetaSVM_rnkscr, dbNSFP_MetaSVM_pred, dbNSFP_MetaLR_scr, dbNSFP_MetaLR_rnkscr, dbNSFP_MetaLR_pred, dbNSFP_Reliability_index, dbNSFP_M-CAP_scr, dbNSFP_M-CAP_rnkscr, dbNSFP_M-CAP_pred, dbNSFP_REVEL_scr, dbNSFP_REVEL_rnkscr, dbNSFP_MutPred_scr, dbNSFP_MutPred_rnkscr, dbNSFP_MutPred_protID, dbNSFP_MutPred_AAchange, dbNSFP_MutPred_Top5features, dbNSFP_MVP_scr, dbNSFP_MVP_rnkscr, dbNSFP_MPC_scr, dbNSFP_MPC_rnkscr, dbNSFP_PrimateAI_scr, dbNSFP_PrimateAI_rnkscr, dbNSFP_PrimateAI_pred, dbNSFP_DEOGEN2_scr, dbNSFP_DEOGEN2_rnkscr, dbNSFP_DEOGEN2_pred, dbNSFP_BayesDel_addAF_scr, dbNSFP_BayesDel_addAF_rnkscr, dbNSFP_BayesDel_addAF_pred, dbNSFP_BayesDel_noAF_scr, dbNSFP_BayesDel_noAF_rnkscr, dbNSFP_BayesDel_noAF_pred, dbNSFP_LIST-S2_scr, dbNSFP_LIST-S2_rnkscr, dbNSFP_LIST-S2_pred, dbNSFP_Aloft_Fraction_transcripts_affected, dbNSFP_Aloft_prob_Tolerant, dbNSFP_Aloft_prob_Rec, dbNSFP_Aloft_prob_Dom, dbNSFP_Aloft_pred, dbNSFP_Aloft_Confidence, dbNSFP_DANN_scr, dbNSFP_DANN_rnkscr, dbNSFP_fathmm-MKL_coding_scr, dbNSFP_fathmm-MKL_coding_rnkscr, dbNSFP_fathmm-MKL_coding_pred, dbNSFP_fathmm-MKL_coding_group, dbNSFP_fathmm-XF_coding_scr, dbNSFP_fathmm-XF_coding_rnkscr, dbNSFP_fathmm-XF_coding_pred, dbNSFP_Eigen-raw_coding, dbNSFP_Eigen-raw_coding_rnkscr, dbNSFP_Eigen-phred_coding, dbNSFP_Eigen-PC-raw_coding, dbNSFP_Eigen-PC-raw_coding_rnkscr, dbNSFP_Eigen-PC-phred_coding, dbNSFP_GenoCanyon_scr, dbNSFP_GenoCanyon_rnkscr, dbNSFP_integrated_fitCons_scr, dbNSFP_integrated_fitCons_rnkscr, dbNSFP_integrated_confidence_value, dbNSFP_GM12878_fitCons_scr, dbNSFP_GM12878_fitCons_rnkscr, dbNSFP_GM12878_confidence_value, dbNSFP_H1-hESC_fitCons_scr, dbNSFP_H1-hESC_fitCons_rnkscr, dbNSFP_H1-hESC_confidence_value, dbNSFP_HUVEC_fitCons_scr, dbNSFP_HUVEC_fitCons_rnkscr, dbNSFP_HUVEC_confidence_value, dbNSFP_LINSIGHT, dbNSFP_LINSIGHT_rnkscr, dbNSFP_GERP___NR, dbNSFP_GERP___RS, dbNSFP_GERP___RS_rnkscr, dbNSFP_phyloP100way_vertebrate, dbNSFP_phyloP100way_vertebrate_rnkscr, dbNSFP_phyloP30way_mammalian, dbNSFP_phyloP30way_mammalian_rnkscr, dbNSFP_phyloP17way_primate, dbNSFP_phyloP17way_primate_rnkscr, dbNSFP_phastCons100way_vertebrate, dbNSFP_phastCons100way_vertebrate_rnkscr, dbNSFP_phastCons30way_mammalian, dbNSFP_phastCons30way_mammalian_rnkscr, dbNSFP_phastCons17way_primate, dbNSFP_phastCons17way_primate_rnkscr]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--throw-on-missing-fields">--throw-on-missing-fields </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Exit if any of the expected INFO fields are missing</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">boolean</span>
+			&nbsp;<span class="label">false</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--tmp-dir">--tmp-dir </a>
 			 / <small>NA</small>
 		</h3>
@@ -1179,7 +1198,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.55 built at 23-10-2023 09:06:38.
+        <p class="version">DISCVR-Seq version 1.3.56 built at 26-10-2023 03:57:41.
         </p>
 
 </div></div>
