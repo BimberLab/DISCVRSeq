@@ -475,6 +475,15 @@ public class MultiSourceAnnotator extends VariantWalker {
             }
         }
 
+        // NOTE: run this before generating the header to ensure to translate IDs correctly:
+        if (renamedSnpSiftFields != null && !renamedSnpSiftFields.isEmpty()) {
+            if (renamedSnpSiftFields.size() != snpSiftFields.size()) {
+                throw new GATKException("--renamed-snpsift-fields must be the same length as --snpsift-fields");
+            }
+
+            IntStream.range(0, renamedSnpSiftFields.size()).forEach(j -> snpSiftFieldMapping.put(snpSiftFields.get(j), renamedSnpSiftFields.get(j)));
+        }
+
         if (snpSiftVariants != null) {
             VCFHeader snpSiftHeader = (VCFHeader) getHeaderForFeatures(snpSiftVariants);
             for (String id : snpSiftFields) {
@@ -488,16 +497,13 @@ public class MultiSourceAnnotator extends VariantWalker {
                         continue;
                     }
                 }
-                header.addMetaDataLine(line);
-                allAnnotationKeys.add(id);
-            }
 
-            if (renamedSnpSiftFields != null && !renamedSnpSiftFields.isEmpty()) {
-                if (renamedSnpSiftFields.size() != snpSiftFields.size()) {
-                    throw new GATKException("--renamed-snpsift-fields must be the same length as --snpsift-fields");
+                if (snpSiftFieldMapping.containsKey(line.getID())) {
+                    line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCount(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
                 }
 
-                IntStream.range(0, renamedSnpSiftFields.size()).forEach(j -> snpSiftFieldMapping.put(snpSiftFields.get(j), renamedSnpSiftFields.get(j)));
+                header.addMetaDataLine(line);
+                allAnnotationKeys.add(id);
             }
 
             List<String> allKeys = new ArrayList<>(snpSiftHeader.getInfoHeaderLines().stream().map(VCFInfoHeaderLine::getID).toList());
