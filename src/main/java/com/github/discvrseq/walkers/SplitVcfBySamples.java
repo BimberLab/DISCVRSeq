@@ -1,9 +1,11 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.github.discvrseq.util.CsvUtils;
 import com.google.common.collect.Lists;
-import com.opencsv.*;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.variant.variantcontext.VariantContext;

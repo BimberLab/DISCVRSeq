@@ -63,15 +63,18 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
     public void testSampleCsv() throws Exception {
         final File outDir = IOUtils.createTempDir("sampleCsv.");
         ArgumentsBuilder args = getBaseArgs(outDir, 0);
+        args.addFlag("discardNonVariantSites");
 
         File sampleMappingFile = new File(outDir, "sampleMappingFile.txt");
         File outputVcf1 = new File(outDir, "outputVcf1.vcf");
-        File outputVcf2 = new File(outDir, "outputVcf2.vcf");;
+        File outputVcf2 = new File(outDir, "outputVcf2.vcf");
+        File outputVcf3 = new File(outDir, "outputVcf3.vcf");
 
         try (ICSVWriter writer = CsvUtils.getTsvWriter(sampleMappingFile)) {
             writer.writeNext(new String[]{outputVcf1.getPath(), "Sample1"});
             writer.writeNext(new String[]{outputVcf2.getPath(), "Sample1"});
             writer.writeNext(new String[]{outputVcf2.getPath(), "Sample3"});
+            writer.writeNext(new String[]{outputVcf3.getPath(), "Sample3"});
         }
 
         args.add("sample-mapping-file", normalizePath(sampleMappingFile));
@@ -84,6 +87,10 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
 
         actualMD5 = Utils.calculateFileMD5(outputVcf2);
         expectedMD5 = Utils.calculateFileMD5(getTestFile(outputVcf2.getName()));
+        Assert.assertEquals(actualMD5, expectedMD5);
+
+        actualMD5 = Utils.calculateFileMD5(outputVcf3);
+        expectedMD5 = Utils.calculateFileMD5(getTestFile(outputVcf3.getName()));
         Assert.assertEquals(actualMD5, expectedMD5);
     }
 
