@@ -79,6 +79,9 @@ public class MultiSourceAnnotator extends VariantWalker {
     @Argument(doc="Funcotator Allowed INFO Fields", fullName = "funcotator-fields", shortName = "ff", optional = true)
     public List<String> funcotatorFields = new ArrayList<>(FUNCOTATOR_INFO);
 
+    @Argument(doc="Exit if any of the expected INFO fields are missing", fullName = "throw-on-missing-fields", optional = true)
+    public boolean throwOnMissingFields = false;
+
     private VariantContextWriter writer;
 
     private static final List<String> CLINVAR_INFO = Arrays.asList(
@@ -429,7 +432,13 @@ public class MultiSourceAnnotator extends VariantWalker {
             for (String id : clinvarFields) {
                 VCFInfoHeaderLine line = clinvarHeader.getInfoHeaderLine(id);
                 if (line == null) {
-                    throw new GATKException("Clinvar missing expected header line: " + id);
+                    if (throwOnMissingFields) {
+                        throw new GATKException("Clinvar missing expected header line: " + id);
+                    }
+                    else {
+                        logger.warn("Clinvar missing expected header line: " + id);
+                        continue;
+                    }
                 }
                 header.addMetaDataLine(line);
                 allAnnotationKeys.add(id);
@@ -447,8 +456,13 @@ public class MultiSourceAnnotator extends VariantWalker {
             for (String id : cassandraFields) {
                 VCFInfoHeaderLine line = cassandraHeader.getInfoHeaderLine(id);
                 if (line == null) {
-                    logger.warn("Cassandra missing expected header line: " + id);
-                    continue;
+                    if (throwOnMissingFields) {
+                        throw new GATKException("Cassandra missing expected header line: " + id);
+                    }
+                    else {
+                        logger.warn("Cassandra missing expected header line: " + id);
+                        continue;
+                    }
                 }
                 header.addMetaDataLine(line);
                 allAnnotationKeys.add(id);
@@ -466,8 +480,13 @@ public class MultiSourceAnnotator extends VariantWalker {
             for (String id : snpSiftFields) {
                 VCFInfoHeaderLine line = snpSiftHeader.getInfoHeaderLine(id);
                 if (line == null) {
-                    logger.warn("SnpSift missing expected header line: " + id);
-                    continue;
+                    if (throwOnMissingFields) {
+                        throw new GATKException("SnpSift missing expected header line: " + id);
+                    }
+                    else {
+                        logger.warn("SnpSift missing expected header line: " + id);
+                        continue;
+                    }
                 }
                 header.addMetaDataLine(line);
                 allAnnotationKeys.add(id);
@@ -493,8 +512,13 @@ public class MultiSourceAnnotator extends VariantWalker {
             for (String id : funcotatorFields) {
                 VCFInfoHeaderLine line = funcotatorHeader.getInfoHeaderLine(id);
                 if (line == null) {
-                    logger.warn("Funcotator missing expected header line: " + id);
-                    continue;
+                    if (throwOnMissingFields) {
+                        throw new GATKException("Funcotator missing expected header line: " + id);
+                    }
+                    else {
+                        logger.warn("Funcotator missing expected header line: " + id);
+                        continue;
+                    }
                 }
                 header.addMetaDataLine(line);
                 allAnnotationKeys.add(id);
