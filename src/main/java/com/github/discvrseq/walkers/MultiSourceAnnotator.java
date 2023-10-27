@@ -7,6 +7,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
 import htsjdk.variant.vcf.VCFHeaderLineType;
 import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.apache.commons.lang3.StringUtils;
@@ -499,7 +500,12 @@ public class MultiSourceAnnotator extends VariantWalker {
                 }
 
                 if (snpSiftFieldMapping.containsKey(line.getID())) {
-                    line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCountType(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
+                    if (line.getCountType() == VCFHeaderLineCount.INTEGER) {
+                        line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCount(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
+                    }
+                    else {
+                        line = new VCFInfoHeaderLine(snpSiftFieldMapping.get(line.getID()), line.getCountType(), line.getType(), line.getDescription(), line.getSource(), line.getVersion());
+                    }
                 }
 
                 header.addMetaDataLine(line);
