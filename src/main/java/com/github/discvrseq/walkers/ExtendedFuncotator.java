@@ -81,7 +81,7 @@ public class ExtendedFuncotator extends Funcotator {
         final LinkedHashMap<String, String> annotationOverridesMap = FuncotatorEngine.splitAnnotationArgsIntoMap(getArguments().annotationOverrides);
 
         // Get the header for our variants:
-        final VCFHeader vcfHeader = getHeaderForVariants();
+        VCFHeader vcfHeader = getHeaderForVariants();
 
         final Set<String> finalUserTranscriptIdSet = FuncotatorEngine.processTranscriptList(getArguments().userTranscriptIdSet);
         final Map<Path, Properties> configData = DataSourceUtils.getAndValidateDataSourcesFromPaths( getArguments().referenceVersion,  getArguments().dataSourceDirectories);
@@ -126,27 +126,23 @@ public class ExtendedFuncotator extends Funcotator {
         }
 
         List<String> keysToAdd = fields.stream().map(VcfHeaderDescriptor::getId).toList();
-        List<VCFInfoHeaderLine> existingLines = new ArrayList<>(vcfHeader.getInfoHeaderLines());
-        existingLines.removeIf(x -> keysToAdd.contains(x.getID()));
-        fields.forEach(x -> {
-            vcfHeader.addMetaDataLine(x.toInfoLine());
-        });
+        Set<VCFHeaderLine> headerLines = new LinkedHashSet<>(vcfHeader.getMetaDataInInputOrder());
+        headerLines.removeIf(x -> x instanceof VCFInfoHeaderLine vhl && keysToAdd.contains(vhl.getID()));
+        fields.forEach(x -> headerLines.add(x.toInfoLine()));
 
-        List<VCFInfoHeaderLine> headerLines = new ArrayList<>(vcfHeader.getInfoHeaderLines());
+        vcfHeader = new VCFHeader(headerLines, vcfHeader.getSampleNamesInOrder());
 
         funcotatorEngine = new FuncotatorEngine(
                 getArguments(),
                 getSequenceDictionaryForDrivingVariants(),
-                VcfFuncotationMetadata.create(headerLines),
+                VcfFuncotationMetadata.create(new ArrayList<>(vcfHeader.getInfoHeaderLines())),
                 dataSourceFuncotationFactories
         );
 
         if (printMissingFields) {
             Map<String, List<String>> allFields = new HashMap<>();
 
-            dataSourceFuncotationFactories.stream().forEach(f -> {
-                allFields.put(f.getName(), new ArrayList<>(f.getSupportedFuncotationFields()));
-            });
+            dataSourceFuncotationFactories.forEach(f -> allFields.put(f.getName(), new ArrayList<>(f.getSupportedFuncotationFields())));
 
             fields.forEach(f -> {
                 if (!allFields.containsKey(f.dataSource)) {
