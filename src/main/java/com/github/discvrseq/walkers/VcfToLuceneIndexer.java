@@ -270,9 +270,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
             if (valueStr.contains("|")) {
                 try {
                     if (clazz == Double.class) {
-                        return Arrays.stream(valueStr.split("\\|")).map(Double::parseDouble).map(clazz::cast).collect(Collectors.toSet());
+                        return Arrays.stream(valueStr.split("\\|")).filter(x -> !x.isEmpty()).map(Double::parseDouble).map(clazz::cast).collect(Collectors.toSet());
                     } else if (clazz == Integer.class) {
-                        return Arrays.stream(valueStr.split("\\|")).map(Integer::parseInt).map(clazz::cast).collect(Collectors.toSet());
+                        return Arrays.stream(valueStr.split("\\|")).filter(x -> !x.isEmpty()).map(Integer::parseInt).map(clazz::cast).collect(Collectors.toSet());
                     }
 
                     // should never reach this
