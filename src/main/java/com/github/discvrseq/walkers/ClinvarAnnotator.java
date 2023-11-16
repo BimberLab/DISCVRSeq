@@ -1,6 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
+import htsjdk.tribble.TribbleException;
 import htsjdk.variant.variantcontext.Allele;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
@@ -98,7 +99,17 @@ public class ClinvarAnnotator extends VariantWalker {
         VariantContextBuilder vcb = new VariantContextBuilder(variant);
 
         Map<Allele, Map<String, String>> annotationMap = new HashMap<>();
-        List<VariantContext> matches = featureContext.getValues(clinvarVariants);
+        List<VariantContext> matches;
+        try
+        {
+           matches = featureContext.getValues(clinvarVariants);
+        }
+        catch (TribbleException e)
+        {
+            logger.warn("Unable to parse ClinVar VCF at position: " + variant.getContig() + ":" + variant.getStart() + ", " + e.getMessage());
+            return;
+        }
+
         if (matches.isEmpty()){
             return;
         }
