@@ -510,7 +510,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             @Override
             public String[] getCsvRow(String key) {
-                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", StringUtils.join(values, ", ")};
+                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", values.size() > 50 ? "Too many: " + values.size() : StringUtils.join(values, ", ")};
             }
         }
     }
