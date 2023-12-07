@@ -96,4 +96,32 @@ public class DiscvrVariantAnnotatorIntegrationTest extends BaseIntegrationTest {
             throw e;
         }
     }
+
+    @Test
+    public void basicTestWithRefAlleleFrequency() throws Exception {
+        ArgumentsBuilder args = new ArgumentsBuilder();
+
+        File input = new File(testBaseDir, "variantConcordanceRef1.vcf");
+        ensureVcfIndex(input);
+        args.add("V", normalizePath(input));
+
+        args.add("A", "RefAlleleFrequency");
+        args.add("target-info-field-key", "AF.2");
+
+        args.addRaw("--af-source-vcf");
+        File input2 = new File(testBaseDir, "variantConcordanceRef2.vcf");
+        ensureVcfIndex(input2);
+        args.addRaw(normalizePath(input2));
+
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Arrays.asList(normalizePath(getTestFile("/basicTestWithRefAlleleFrequency.vcf"))));
+
+        spec.executeTest("basicTestWithRefAlleleFrequency", this);
+    }
 }

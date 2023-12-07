@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class VcfToLuceneIndexer extends VariantWalker {
+    public static final int MAX_VALUES_TO_PRINT = 200;
+
     @Argument(fullName = StandardArgumentDefinitions.OUTPUT_LONG_NAME, shortName = StandardArgumentDefinitions.OUTPUT_SHORT_NAME, doc = "Output file (if not provided, defaults to STDOUT)", optional = true)
     GATKPath outDir;
 
@@ -510,7 +512,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             @Override
             public String[] getCsvRow(String key) {
-                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", values.size() > 50 ? "Too many: " + values.size() : StringUtils.join(values, ", ")};
+                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", values.size() > MAX_VALUES_TO_PRINT ? "Too many: " + values.size() : StringUtils.join(values, ", ")};
             }
         }
     }

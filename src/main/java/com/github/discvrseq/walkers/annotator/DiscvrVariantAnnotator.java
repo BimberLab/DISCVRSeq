@@ -58,6 +58,7 @@ import java.util.*;
  * - GenotypeConcordanceBySite: Annotate the number of discordant genotypes per site, relative to a reference VCF
  * - MendelianViolationCount: Uses a more extensive check for MVs than default GATK. This annotates the number of MVs and IDs of samples with MVs for each site.
  * - MendelianViolationCountBySample: This is a genotype-level annotation that flags the number of MVs detected per sample.
+ * - RefAlleleFrequency:
  *
  */
 @CommandLineProgramProperties(summary="Tool for adding annotations to VCF files",
@@ -79,6 +80,7 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
         ret.addAll(annotationPlugin.getResolvedInstances());
 
         annotationPlugin.genotypeConcordanceArgumentCollection.featureManager = this.features;
+        annotationPlugin.refAlleleFrequencyArgumentCollection.featureManager = this.features;
 
         return ret;
     }
@@ -92,6 +94,9 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
 
         @ArgumentCollection
         public MendelianViolationArgumentCollection mendelianViolationArgumentCollection = new MendelianViolationArgumentCollection();
+
+        @ArgumentCollection
+        public RefAlleleFrequencyArgumentCollection refAlleleFrequencyArgumentCollection = new RefAlleleFrequencyArgumentCollection();
 
         public DiscvrAnnotationPluginDescriptor()
         {
@@ -124,6 +129,14 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
                     .forEach(a -> {
                         a.setArgumentCollection(mendelianViolationArgumentCollection);
                         mendelianViolationArgumentCollection.validateArguments();
+                    });
+
+            getResolvedInstances().stream()
+                    .filter(RefAlleleFrequencyArgumentCollection.UsesRefAlleleFrequencyArgumentCollection.class::isInstance)
+                    .map(a -> (RefAlleleFrequencyArgumentCollection.UsesRefAlleleFrequencyArgumentCollection) a)
+                    .forEach(a -> {
+                        a.setArgumentCollection(refAlleleFrequencyArgumentCollection);
+                        refAlleleFrequencyArgumentCollection.validateArguments();
                     });
         }
     }
