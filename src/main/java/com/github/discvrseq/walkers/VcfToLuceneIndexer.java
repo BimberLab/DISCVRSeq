@@ -251,6 +251,24 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
                 if (variant.hasGenotypes()) {
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
+
+                    long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
+                    doc.add(new IntPoint("nHet", (int)nHet));
+                    doc.add(new StoredField("nHet", (int)nHet));
+
+                    long nHomVar = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).count();
+                    doc.add(new IntPoint("nHomVar", (int)nHomVar));
+                    doc.add(new StoredField("nHomVar", (int)nHomVar));
+
+                    long nCalled = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall()).count();
+                    doc.add(new IntPoint("nCalled", (int)nCalled));
+                    doc.add(new StoredField("nCalled", (int)nCalled));
+
+                    float fractionHet = (float) nHet / (float) nCalled;
+                    doc.add(new FloatPoint("fractionHet", fractionHet));
+                    doc.add(new StoredField("fractionHet", fractionHet));
+
+                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
                 }
 
                 try {
