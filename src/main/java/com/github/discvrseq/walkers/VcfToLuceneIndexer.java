@@ -264,7 +264,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     doc.add(new IntPoint("nCalled", (int)nCalled));
                     doc.add(new StoredField("nCalled", (int)nCalled));
 
-                    float fractionHet = (float) nHet / (float) nCalled;
+                    float fractionHet = (float) nHet / (float) (nHet + nHomVar);
                     doc.add(new FloatPoint("fractionHet", fractionHet));
                     doc.add(new StoredField("fractionHet", fractionHet));
 
