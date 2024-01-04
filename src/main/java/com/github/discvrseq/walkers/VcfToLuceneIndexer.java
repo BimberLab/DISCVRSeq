@@ -298,12 +298,12 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     // should never reach this
                     throw new GATKException("Attempted to parse a numeric value into something other than Double/Integer. This should never occur.");
                 } catch (Exception e) {
-                    possiblyReportBadValue(key, valueStr);
+                    possiblyReportBadValue(e, key, valueStr);
                     return null;
                 }
             }
             else {
-                possiblyReportBadValue(key, valueStr);
+                possiblyReportBadValue(null, key, valueStr);
                 return null;
             }
         }
@@ -319,7 +319,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 throw new GATKException("Attempted to parse a numeric value into something other than Double/Integer. This should never occur.");
             }
             catch (Exception e) {
-                possiblyReportBadValue(key, valueStr);
+                possiblyReportBadValue(e, key, valueStr);
                 return null;
             }
         }
@@ -327,8 +327,8 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     private final Set<String> keysWithErrors = new HashSet<>();
 
-    private void possiblyReportBadValue(String key, Object fieldValue) {
-        String message = "Unable to parse numeric value for field: " + key + ", was: <" + fieldValue + ">";
+    private void possiblyReportBadValue(@Nullable Exception e, String key, Object fieldValue) {
+        String message = "Unable to parse field: " + key + ", was: <" + fieldValue + ">. " + (e == null ? "" : e.getMessage());
         if (stringency == ValidationStringency.STRICT) {
             throw new GATKException(message);
         }
@@ -345,7 +345,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
             stats.inspectValue(key, fieldValue);
         }
         catch (GATKException e) {
-            possiblyReportBadValue(key, fieldValue);
+            possiblyReportBadValue(e, key, fieldValue);
         }
 
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
@@ -377,6 +377,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                         }
                     }
                     case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                    default -> possiblyReportBadValue(new Exception("VCF header type was not expected: " + variantHeaderLineType.name()), key, value);
                 }
             }
             catch (Exception e) {
