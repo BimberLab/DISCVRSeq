@@ -401,7 +401,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         if (indexStatsPath != null) {
             try (ICSVWriter csvWriter = CsvUtils.getTsvWriter(indexStatsPath.toPath())) {
-                csvWriter.writeNext(new String[]{"Key", "Type", "ContainedMultiValuedRow", "MinVal", "MaxVal", "DistinctValues"});
+                csvWriter.writeNext(new String[]{"Key", "Type", "TotalIndexed", "ContainedMultiValuedRow", "MinVal", "MaxVal", "DistinctValues"});
 
                 for (String key : stats.collectorMap.keySet()) {
                     IndexStats.Collector c = stats.collectorMap.get(key);
@@ -462,6 +462,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         public abstract static class Collector {
             protected boolean containedMultiValue = false;
+            protected long totalIndexed = 0L;
 
             public void inspect(Object val) {
                 if (val == null || "".equals(val) || VCFConstants.EMPTY_INFO_FIELD.equals(val)) {
@@ -502,6 +503,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     }
                 }
 
+                totalIndexed++;
                 if (minVal == null || d < minVal) {
                     minVal = d;
                 }
@@ -513,7 +515,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             @Override
             public String[] getCsvRow(String key) {
-                return new String[]{key, "Numeric", String.valueOf(containedMultiValue), minVal == null ? "" : String.valueOf(minVal), maxVal == null ? "" : String.valueOf(maxVal), ""};
+                return new String[]{key, "Numeric", String.valueOf(totalIndexed), String.valueOf(containedMultiValue), minVal == null ? "" : String.valueOf(minVal), maxVal == null ? "" : String.valueOf(maxVal), ""};
             }
         }
 
@@ -526,12 +528,13 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     return;
                 }
 
+                totalIndexed++;
                 values.add(String.valueOf(val));
             }
 
             @Override
             public String[] getCsvRow(String key) {
-                return new String[]{key, "String", String.valueOf(containedMultiValue), "", "", values.size() > MAX_VALUES_TO_PRINT ? "Too many: " + values.size() : StringUtils.join(values, ", ")};
+                return new String[]{key, "String", String.valueOf(totalIndexed), String.valueOf(containedMultiValue), "", "", values.size() > MAX_VALUES_TO_PRINT ? "Too many: " + values.size() : StringUtils.join(values, ", ")};
             }
         }
     }
