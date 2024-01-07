@@ -1,6 +1,6 @@
-Key	Type	ContainedMultiValuedRow	MinVal	MaxVal	DistinctValues
-AF	Numeric	false	0.05	0.5	
-HaplotypeScore	Numeric	false	2.0	12.0	
-REFFIELD	String	false			CC, GG, A, C, AG, G
-FLAG	String	false			true
-UB	Numeric	true	1.0	2.1	
+Key	Type	TotalIndexed	ContainedMultiValuedRow	MinVal	MaxVal	DistinctValues
+AF	Numeric	6	false	0.05	0.5
+HaplotypeScore	Numeric	5	false	2.0	12.0
+REFFIELD	String	6	false			CC, GG, A, C, AG, G
+FLAG	String	3	false			true
+UB	Numeric	2	true	1.0	2.1
