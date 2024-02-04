@@ -18,6 +18,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -98,7 +99,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setIndexSort(new Sort(new SortField("genomicPosition", SortField.Type.INT, false)));
+        config.setIndexSort(new Sort(new SortedNumericSortField("genomicPosition", SortField.Type.INT, false)));
 
         try {
             writer = new IndexWriter(index, config);
