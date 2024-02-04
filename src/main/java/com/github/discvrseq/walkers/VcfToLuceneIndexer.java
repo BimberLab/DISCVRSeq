@@ -248,6 +248,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("genomicPosition", genomicPosition));
                 doc.add(new StoredField("genomicPosition", genomicPosition));
+                doc.add(new SortedNumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
