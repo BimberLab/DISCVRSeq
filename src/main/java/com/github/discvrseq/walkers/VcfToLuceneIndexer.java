@@ -16,6 +16,9 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
@@ -96,6 +99,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
+        config.setIndexSort(new Sort(new SortedNumericSortField("genomicPosition", SortField.Type.INT, false)));
 
         try {
             writer = new IndexWriter(index, config);
@@ -248,6 +252,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("genomicPosition", genomicPosition));
                 doc.add(new StoredField("genomicPosition", genomicPosition));
+                doc.add(new SortedNumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
