@@ -256,6 +256,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
                 if (variant.hasGenotypes()) {
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
+                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("homozygousVarSamples", sample, Field.Store.YES)));
 
                     long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
                     doc.add(new IntPoint("nHet", (int)nHet));
@@ -272,8 +273,6 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     float fractionHet = (float) nHet / (float) (nHet + nHomVar);
                     doc.add(new FloatPoint("fractionHet", fractionHet));
                     doc.add(new StoredField("fractionHet", fractionHet));
-
-                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
                 }
 
                 try {
