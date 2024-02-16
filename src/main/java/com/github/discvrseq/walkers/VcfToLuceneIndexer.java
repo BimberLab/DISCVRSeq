@@ -20,6 +20,7 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.BytesRef;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -240,14 +241,21 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
                 // Add standard fields
                 doc.add(new TextField("contig", variant.getContig(), Field.Store.YES));
+                doc.add(new SortedDocValuesField("contig", new BytesRef(variant.getContig())));
+
                 doc.add(new TextField("ref", variant.getReference().getDisplayString(), Field.Store.YES));
+                doc.add(new SortedDocValuesField("ref", new BytesRef(variant.getReference().getDisplayString())));
+
                 doc.add(new TextField("alt", alt.getDisplayString(), Field.Store.YES));
+                doc.add(new SortedDocValuesField("alt", new BytesRef(alt.getDisplayString())));
 
                 doc.add(new IntPoint("start", variant.getStart()));
                 doc.add(new StoredField("start", variant.getStart()));
+                doc.add(new SortedNumericDocValuesField("start", variant.getStart()));
 
                 doc.add(new IntPoint("end", variant.getEnd()));
                 doc.add(new StoredField("end", variant.getEnd()));
+                doc.add(new SortedNumericDocValuesField("end", variant.getEnd()));
 
                 final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("genomicPosition", genomicPosition));
@@ -255,24 +263,34 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new SortedNumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
-                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("variableSamples", sample, Field.Store.YES)));
-                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).map(Genotype::getSampleName).sorted().forEach(sample -> doc.add(new TextField("homozygousVarSamples", sample, Field.Store.YES)));
+                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> {
+                        doc.add(new TextField("variableSamples", sample, Field.Store.YES));
+                        doc.add(new SortedDocValuesField("variableSamples", new BytesRef(sample)));
+                    });
+                    variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).map(Genotype::getSampleName).sorted().forEach(sample -> {
+                        doc.add(new TextField("homozygousVarSamples", sample, Field.Store.YES));
+                        doc.add(new SortedDocValuesField("homozygousVarSamples", new BytesRef(sample)));
+                    });
 
                     long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
                     doc.add(new IntPoint("nHet", (int)nHet));
                     doc.add(new StoredField("nHet", (int)nHet));
+                    doc.add(new SortedNumericDocValuesField("nHet", (int)nHet));
 
                     long nHomVar = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).count();
                     doc.add(new IntPoint("nHomVar", (int)nHomVar));
                     doc.add(new StoredField("nHomVar", (int)nHomVar));
+                    doc.add(new SortedNumericDocValuesField("nHomVar", (int)nHomVar));
 
                     long nCalled = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall()).count();
                     doc.add(new IntPoint("nCalled", (int)nCalled));
                     doc.add(new StoredField("nCalled", (int)nCalled));
+                    doc.add(new SortedNumericDocValuesField("nCalled", (int)nCalled));
 
                     float fractionHet = (float) nHet / (float) (nHet + nHomVar);
                     doc.add(new FloatPoint("fractionHet", fractionHet));
                     doc.add(new StoredField("fractionHet", fractionHet));
+                    doc.add(new SortedNumericDocValuesField("fractionHet", (int)fractionHet));
                 }
 
                 try {
@@ -360,14 +378,22 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
             try {
                 switch (variantHeaderLineType) {
-                    case Character -> doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
-                    case Flag -> doc.add(new IntPoint(key, Boolean.parseBoolean(value.toString()) ? 1 : 0));
+                    case Character -> {
+                        doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
+                        doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+                    }
+                    case Flag -> {
+                        int x = Boolean.parseBoolean(value.toString()) ? 1 : 0;
+                        doc.add(new IntPoint(key, x));
+                        doc.add(new NumericDocValuesField(key, x));
+                    }
                     case Float -> {
                         Collection<Double> parsedVals = attemptToFixNumericValue(key, value, Double.class);
                         if (parsedVals != null) {
                             parsedVals.forEach(x -> {
                                 doc.add(new DoublePoint(key, x));
                                 doc.add(new StoredField(key, x));
+                                doc.add(new DoubleDocValuesField(key, x));
                             });
                         }
                     }
@@ -377,10 +403,14 @@ public class VcfToLuceneIndexer extends VariantWalker {
                             parsedVals.forEach(x -> {
                                 doc.add(new IntPoint(key, x));
                                 doc.add(new StoredField(key, x));
+                                doc.add(new NumericDocValuesField(key, x));
                             });
                         }
                     }
-                    case String -> doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                    case String -> {
+                        doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
+                        doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+                    }
                     default -> possiblyReportBadValue(new Exception("VCF header type was not expected: " + variantHeaderLineType.name()), key, value);
                 }
             }
