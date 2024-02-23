@@ -21,6 +21,7 @@ import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.NumericUtils;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -100,7 +101,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setIndexSort(new Sort(new SortedNumericSortField("genomicPosition", SortField.Type.INT, false)));
+        config.setIndexSort(new Sort(new SortField("genomicPosition", SortField.Type.INT, false)));
 
         try {
             writer = new IndexWriter(index, config);
@@ -251,16 +252,16 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
                 doc.add(new IntPoint("start", variant.getStart()));
                 doc.add(new StoredField("start", variant.getStart()));
-                doc.add(new SortedNumericDocValuesField("start", variant.getStart()));
+                doc.add(new NumericDocValuesField("start", variant.getStart()));
 
                 doc.add(new IntPoint("end", variant.getEnd()));
                 doc.add(new StoredField("end", variant.getEnd()));
-                doc.add(new SortedNumericDocValuesField("end", variant.getEnd()));
+                doc.add(new NumericDocValuesField("end", variant.getEnd()));
 
                 final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("genomicPosition", genomicPosition));
                 doc.add(new StoredField("genomicPosition", genomicPosition));
-                doc.add(new SortedNumericDocValuesField("genomicPosition", genomicPosition));
+                doc.add(new NumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> {
@@ -275,22 +276,22 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
                     doc.add(new IntPoint("nHet", (int)nHet));
                     doc.add(new StoredField("nHet", (int)nHet));
-                    doc.add(new SortedNumericDocValuesField("nHet", (int)nHet));
+                    doc.add(new NumericDocValuesField("nHet", (int)nHet));
 
                     long nHomVar = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).count();
                     doc.add(new IntPoint("nHomVar", (int)nHomVar));
                     doc.add(new StoredField("nHomVar", (int)nHomVar));
-                    doc.add(new SortedNumericDocValuesField("nHomVar", (int)nHomVar));
+                    doc.add(new NumericDocValuesField("nHomVar", (int)nHomVar));
 
                     long nCalled = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall()).count();
                     doc.add(new IntPoint("nCalled", (int)nCalled));
                     doc.add(new StoredField("nCalled", (int)nCalled));
-                    doc.add(new SortedNumericDocValuesField("nCalled", (int)nCalled));
+                    doc.add(new NumericDocValuesField("nCalled", (int)nCalled));
 
                     float fractionHet = (float) nHet / (float) (nHet + nHomVar);
-                    doc.add(new FloatPoint("fractionHet", fractionHet));
+                    doc.add(new DoublePoint("fractionHet", fractionHet));
                     doc.add(new StoredField("fractionHet", fractionHet));
-                    doc.add(new SortedNumericDocValuesField("fractionHet", (int)fractionHet));
+                    doc.add(new NumericDocValuesField("fractionHet", NumericUtils.doubleToSortableLong(fractionHet)));
                 }
 
                 try {
@@ -393,7 +394,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                             parsedVals.forEach(x -> {
                                 doc.add(new DoublePoint(key, x));
                                 doc.add(new StoredField(key, x));
-                                doc.add(new DoubleDocValuesField(key, x));
+                                doc.add(new NumericDocValuesField(key, NumericUtils.doubleToSortableLong(x)));
                             });
                         }
                     }
