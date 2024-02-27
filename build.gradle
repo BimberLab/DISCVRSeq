@@ -62,7 +62,7 @@ final log4j2Version = System.getProperty('log4j2Version', '2.17.1')
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         // force the htsjdk version so we don't get a different one transitively or GATK
         force 'com.github.samtools:htsjdk:' + htsjdkVersion
@@ -76,6 +76,9 @@ configurations.all {
         // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
         // via Picard, etc.
         force googleCloudNioDependency
+
+        // Added to avoid GATK forcing commons-text 1.10, and opencsv forcing 1.11
+        force 'org.apache.commons:commons-text:1.11.0'
     }
 }
 
@@ -102,7 +105,7 @@ dependencies {
 
     implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.8'
+    implementation 'com.opencsv:opencsv:5.9'
 
     implementation 'org.apache.commons:commons-lang3:3.14.0'
 
@@ -189,7 +192,7 @@ final testAddOpens = [
         'java.prefs/java.util.prefs=ALL-UNNAMED' // required for jacoco tasks
 ]
 
-tasks.withType(Jar) {
+tasks.withType(Jar).configureEach {
     // transform the list of --add-opens directives into manifest format, which requires only the source
     // package (unlike the command line equivalent, in the manifest the "ALL-UNNAMED" target is implied
     // and can't be included in the manifest entry syntax)
@@ -207,7 +210,7 @@ tasks.withType(Jar) {
     }
 }
 
-tasks.withType(ShadowJar) {
+tasks.withType(ShadowJar).configureEach {
     from(project.sourceSets.main.output)
     archiveBaseName = project.name
     mergeServiceFiles()
@@ -232,14 +235,14 @@ shadowJar {
     dependsOn(distTar, distZip, startScripts)
 }
 
-task localJar{ dependsOn shadowJar }
+tasks.register('localJar') { dependsOn shadowJar }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from sourceSets.main.allSource
     archiveClassifier = 'sources'
 }
 
-task copyShadowJar(type: Copy) {
+tasks.register('copyShadowJar', Copy) {
     dependsOn shadowJar
 
     from(shadowJar.archivePath)
@@ -250,7 +253,7 @@ task copyShadowJar(type: Copy) {
     }
 }
 
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     // do this for all javadoc tasks, including toolDoc
     options.addStringOption('Xdoclint:none')
     outputs.upToDateWhen { false }
@@ -265,7 +268,8 @@ javadoc {
 }
 
 // Generate Online Doc
-task toolDoc(type: Javadoc, dependsOn: classes ) {
+tasks.register('toolDoc', Javadoc) {
+    dependsOn classes
     final File baseDocDir = new File("$buildDir/docs")
     final File toolDocDir = new File("$buildDir/docs/toolDoc")
     doFirst {
