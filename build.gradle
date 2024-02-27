@@ -14,6 +14,8 @@ plugins {
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+import java.util.stream.Collectors
+
 apply plugin: 'java'
 
 repositories {
@@ -102,14 +104,14 @@ dependencies {
 
     implementation 'com.opencsv:opencsv:5.8'
 
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
 
-    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
 
     // compilation for testing
     testImplementation 'org.testng:testng:' + testNGVersion
 
-    implementation 'org.biojava:biojava-core:6.0.5'
+    implementation 'org.biojava:biojava-core:7.1.0'
 
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
@@ -193,7 +195,7 @@ tasks.withType(Jar) {
     // and can't be included in the manifest entry syntax)
     final manifestAddOpens = runtimeAddOpens.stream()
             .map(o -> o.substring(0, (o.length() - "ALL-UNNAMED".length()) - 1))
-            .collect(java.util.stream.Collectors.joining(' '))
+            .collect(Collectors.joining(' '))
     manifest {
         attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
                 'Implementation-Version': archiveVersion,
@@ -320,7 +322,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
 test {
     // transform the list test configuration --add-opens (which must include both the runtime and test args) into
     // command line argument format
-    final testJVMAddOpens = new ArrayList<>();
+    final testJVMAddOpens = new ArrayList<String>();
     testJVMAddOpens.addAll(runtimeAddOpens);
     testJVMAddOpens.addAll(testAddOpens);
     final testConfigurationJVMArgs = testJVMAddOpens.stream()
