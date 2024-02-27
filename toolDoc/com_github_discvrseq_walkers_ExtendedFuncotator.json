@@ -846,6 +846,22 @@
       "options": []
     },
     {
+      "summary": "Number of bases on either side of a splice site for a variant to be classified as a SPLICE_SITE variant (default: 2).",
+      "name": "--splice-site-window-size",
+      "synonyms": "NA",
+      "type": "int",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "2",
+      "minValue": "0.0",
+      "maxValue": "Infinity",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Variants within this many bases of the 3\u0027 end of a transcript (and not overlapping any part of the transcript itself) will be annotated as being in the 3\u0027 flanking region of that transcript",
       "name": "--three-prime-flank-size",
       "synonyms": "NA",
