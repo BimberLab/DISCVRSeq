@@ -100,7 +100,7 @@ dependencies {
 
     implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.7.1'
+    implementation 'com.opencsv:opencsv:5.9'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
@@ -127,7 +127,7 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = '7.3.2'
+    gradleVersion = '8.2.1'
 }
 
 final runtimeAddOpens = [
