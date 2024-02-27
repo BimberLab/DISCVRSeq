@@ -100,7 +100,7 @@ dependencies {
 
     implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'com.opencsv:opencsv:5.8'
 
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 
@@ -108,9 +108,6 @@ dependencies {
 
     // compilation for testing
     testImplementation 'org.testng:testng:' + testNGVersion
-
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
 
     implementation 'org.biojava:biojava-core:6.0.5'
 
