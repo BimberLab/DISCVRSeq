@@ -39,7 +39,7 @@ jobs:
           java -jar build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar -h
 
       - name: Upload Artifacts
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: build/libs/DISCVRSeq-${{ env.GITHUB_REF_SLUG }}.jar
           token: ${{ secrets.GITHUB_TOKEN }}
