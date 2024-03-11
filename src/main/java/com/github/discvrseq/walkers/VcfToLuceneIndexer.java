@@ -16,6 +16,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.SortedNumericSortField;
@@ -264,14 +265,33 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new NumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
+                    final String[] docValue = { null };
+
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> {
                         doc.add(new TextField("variableSamples", sample, Field.Store.YES));
-                        doc.add(new SortedDocValuesField("variableSamples", new BytesRef(sample)));
+
+                        if (docValue[0] == null) {
+                            docValue[0] = sample;
+                        }
                     });
+
+                    if (!(docValue[0] == null)) {
+                        doc.add(new SortedDocValuesField("variableSamples", new BytesRef(docValue[0])));
+                        docValue[0] = null;
+                    }
+
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).map(Genotype::getSampleName).sorted().forEach(sample -> {
                         doc.add(new TextField("homozygousVarSamples", sample, Field.Store.YES));
-                        doc.add(new SortedDocValuesField("homozygousVarSamples", new BytesRef(sample)));
+
+                        if (docValue[0] == null) {
+                            docValue[0] = sample;
+                        }
                     });
+
+                    if (!(docValue[0] == null)) {
+                        doc.add(new SortedDocValuesField("homozygousVarSamples", new BytesRef(docValue[0])));
+                        docValue[0] = null;
+                    }
 
                     long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
                     doc.add(new IntPoint("nHet", (int)nHet));
@@ -372,6 +392,9 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
 
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
+
+        final boolean[] indexDocValue = { true };
+
         values.forEach(value -> {
             if (value == null || "".equals(value) || VCFConstants.EMPTY_INFO_FIELD.equals(value)) {
                 return;
@@ -381,36 +404,68 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 switch (variantHeaderLineType) {
                     case Character -> {
                         doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
-                        doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+
+                        if (indexDocValue[0]) {
+                            doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+                            indexDocValue[0] = false;
+                        }
                     }
                     case Flag -> {
                         int x = Boolean.parseBoolean(value.toString()) ? 1 : 0;
                         doc.add(new IntPoint(key, x));
-                        doc.add(new NumericDocValuesField(key, x));
+
+                        if (indexDocValue[0]) {
+                            doc.add(new NumericDocValuesField(key, x));
+                            indexDocValue[0] = false;
+                        }
                     }
                     case Float -> {
                         Collection<Double> parsedVals = attemptToFixNumericValue(key, value, Double.class);
                         if (parsedVals != null) {
+                            final Double[] docValue = { null };
+
                             parsedVals.forEach(x -> {
                                 doc.add(new DoublePoint(key, x));
                                 doc.add(new StoredField(key, x));
-                                doc.add(new NumericDocValuesField(key, NumericUtils.doubleToSortableLong(x)));
+
+                                if (docValue[0] == null) {
+                                    docValue[0] = x;
+                                }
                             });
+
+                            if (!(docValue[0] == null) && indexDocValue[0]) {
+                                doc.add(new NumericDocValuesField(key, NumericUtils.doubleToSortableLong(docValue[0])));
+                                indexDocValue[0] = false;
+                            }
                         }
                     }
                     case Integer -> {
                         Collection<Integer> parsedVals = attemptToFixNumericValue(key, value, Integer.class);
                         if (parsedVals != null) {
+                            final Integer[] docValue = { null };
+
                             parsedVals.forEach(x -> {
                                 doc.add(new IntPoint(key, x));
                                 doc.add(new StoredField(key, x));
-                                doc.add(new NumericDocValuesField(key, x));
+
+                                if (docValue[0] == null) {
+                                    docValue[0] = x;
+                                }
                             });
+
+                            if (!(docValue[0] == null) && indexDocValue[0]) {
+                                doc.add(new NumericDocValuesField(key, docValue[0]));
+                                indexDocValue[0] = false;
+                            }
                         }
                     }
                     case String -> {
                         doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
-                        doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+
+                        if (indexDocValue[0]) {
+                            doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
+                            indexDocValue[0] = false;
+                        }
                     }
                     default -> possiblyReportBadValue(new Exception("VCF header type was not expected: " + variantHeaderLineType.name()), key, value);
                 }
