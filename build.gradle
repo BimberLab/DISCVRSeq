@@ -8,11 +8,13 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.github.johnrengelman.shadow" version "7.1.1"    //used to build the shadow and sparkJars
+    id "com.github.johnrengelman.shadow" version "8.1.1"    //used to build the shadow and sparkJars
     id 'com.palantir.git-version' version '0.5.1' //version helper
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+import java.util.stream.Collectors
 
 apply plugin: 'java'
 
@@ -49,18 +51,18 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.4.0.0'
-final htsjdkVersion = System.getProperty('htsjdk.version','3.0.5')
+final gatkVersion = '4.5.0.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','4.1.0')
 final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','9.3.0')
 final testNGVersion = '7.0.0'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.123.25'
+final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.127.8'
 final log4j2Version = System.getProperty('log4j2Version', '2.17.1')
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
 
-configurations.all {
+configurations.configureEach {
     resolutionStrategy {
         // force the htsjdk version so we don't get a different one transitively or GATK
         force 'com.github.samtools:htsjdk:' + htsjdkVersion
@@ -74,6 +76,9 @@ configurations.all {
         // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
         // via Picard, etc.
         force googleCloudNioDependency
+
+        // Added to avoid GATK forcing commons-text 1.10, and opencsv forcing 1.11
+        force 'org.apache.commons:commons-text:1.11.0'
     }
 }
 
@@ -100,19 +105,16 @@ dependencies {
 
     implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.7.1'
+    implementation 'com.opencsv:opencsv:5.9'
 
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'org.apache.commons:commons-lang3:3.14.0'
 
-    implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
 
     // compilation for testing
     testImplementation 'org.testng:testng:' + testNGVersion
 
-    // https://mvnrepository.com/artifact/org.apache.commons/commons-text
-    implementation group: 'org.apache.commons', name: 'commons-text', version: '1.10.0'
-
-    implementation 'org.biojava:biojava-core:6.0.5'
+    implementation 'org.biojava:biojava-core:7.1.0'
 
     implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
 
@@ -127,7 +129,7 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = '7.3.2'
+    gradleVersion = '8.2.1'
 }
 
 final runtimeAddOpens = [
@@ -190,13 +192,13 @@ final testAddOpens = [
         'java.prefs/java.util.prefs=ALL-UNNAMED' // required for jacoco tasks
 ]
 
-tasks.withType(Jar) {
+tasks.withType(Jar).configureEach {
     // transform the list of --add-opens directives into manifest format, which requires only the source
     // package (unlike the command line equivalent, in the manifest the "ALL-UNNAMED" target is implied
     // and can't be included in the manifest entry syntax)
     final manifestAddOpens = runtimeAddOpens.stream()
             .map(o -> o.substring(0, (o.length() - "ALL-UNNAMED".length()) - 1))
-            .collect(java.util.stream.Collectors.joining(' '))
+            .collect(Collectors.joining(' '))
     manifest {
         attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
                 'Implementation-Version': archiveVersion,
@@ -208,7 +210,7 @@ tasks.withType(Jar) {
     }
 }
 
-tasks.withType(ShadowJar) {
+tasks.withType(ShadowJar).configureEach {
     from(project.sourceSets.main.output)
     archiveBaseName = project.name
     mergeServiceFiles()
@@ -233,14 +235,14 @@ shadowJar {
     dependsOn(distTar, distZip, startScripts)
 }
 
-task localJar{ dependsOn shadowJar }
+tasks.register('localJar') { dependsOn shadowJar }
 
-task sourcesJar(type: Jar) {
+tasks.register('sourcesJar', Jar) {
     from sourceSets.main.allSource
     archiveClassifier = 'sources'
 }
 
-task copyShadowJar(type: Copy) {
+tasks.register('copyShadowJar', Copy) {
     dependsOn shadowJar
 
     from(shadowJar.archivePath)
@@ -251,7 +253,7 @@ task copyShadowJar(type: Copy) {
     }
 }
 
-tasks.withType(Javadoc) {
+tasks.withType(Javadoc).configureEach {
     // do this for all javadoc tasks, including toolDoc
     options.addStringOption('Xdoclint:none')
     outputs.upToDateWhen { false }
@@ -266,7 +268,8 @@ javadoc {
 }
 
 // Generate Online Doc
-task toolDoc(type: Javadoc, dependsOn: classes ) {
+tasks.register('toolDoc', Javadoc) {
+    dependsOn classes
     final File baseDocDir = new File("$buildDir/docs")
     final File toolDocDir = new File("$buildDir/docs/toolDoc")
     doFirst {
@@ -323,7 +326,7 @@ task toolDoc(type: Javadoc, dependsOn: classes ) {
 test {
     // transform the list test configuration --add-opens (which must include both the runtime and test args) into
     // command line argument format
-    final testJVMAddOpens = new ArrayList<>();
+    final testJVMAddOpens = new ArrayList<String>();
     testJVMAddOpens.addAll(runtimeAddOpens);
     testJVMAddOpens.addAll(testAddOpens);
     final testConfigurationJVMArgs = testJVMAddOpens.stream()

@@ -451,6 +451,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
                                 if (docValue[0] == null) {
                                     docValue[0] = x;
                                 }
+
                             });
 
                             if (!(docValue[0] == null) && indexDocValue[0]) {

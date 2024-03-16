@@ -30,6 +30,8 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.broadinstitute.hellbender.tools.funcotator.FuncotatorUtils.DEFAULT_SPLICE_SITE_WINDOW_SIZE;
+
 /**
  * This is an extension of the GATK Funcotator tool. The primary purpose of this tool is to produce a VCF output where specific fields from Funcotator are output
  * as discrete INFO field annotations, rather than Funcotator's default, which involves a single INFO field where the annotations are concatenated together.
@@ -95,7 +97,8 @@ public class ExtendedFuncotator extends Funcotator {
                 getArguments().lookaheadFeatureCachingInBp,
                 new FlankSettings(getArguments().fivePrimeFlankSize, getArguments().threePrimeFlankSize),
                 false,
-                getArguments().minNumBasesForValidSegment
+                getArguments().minNumBasesForValidSegment,
+                DEFAULT_SPLICE_SITE_WINDOW_SIZE
         );
 
 

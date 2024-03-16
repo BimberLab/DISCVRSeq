@@ -12,6 +12,7 @@ import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
@@ -153,6 +154,7 @@ public class SplitVcfBySamples extends VariantWalker {
 
         int idx = 0;
         File inputFile = getDrivingVariantsFeatureInput().toPath().toFile();
+        final Set<VCFHeaderLine> headerLines = new LinkedHashSet<>(header.getMetaDataInInputOrder());
         for (List<String> batch : batches) {
             idx++;
             String name = inputFile.getName();
@@ -167,7 +169,7 @@ public class SplitVcfBySamples extends VariantWalker {
             VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(output).setReferenceDictionary(getReferenceDictionary()).build();
             writers.add(writer);
 
-            VCFHeader outputHeader = new VCFHeader(header.getMetaDataInInputOrder(), batch);
+            VCFHeader outputHeader = new VCFHeader(headerLines, new ArrayList<>(batch));
             writer.writeHeader(outputHeader);
         }
     }
