@@ -151,7 +151,10 @@ public class SplitVcfBySamples extends VariantWalker {
         if (minAllowableInFinalVcf != null) {
             int lastIdx = batches.size() - 1;
             if (batches.get(lastIdx).size() < minAllowableInFinalVcf) {
-                batches.get(lastIdx - 1).addAll(batches.get(lastIdx));
+                List<String> toUpdate = new ArrayList<>(batches.get(lastIdx - 1));
+                toUpdate.addAll(batches.get(lastIdx));
+
+                batches.set(lastIdx - 1, new UnmodifiableList<>(toUpdate));
                 batches.remove(lastIdx);
             }
         }
