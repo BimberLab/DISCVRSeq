@@ -13,6 +13,7 @@ import htsjdk.variant.variantcontext.writer.VariantContextWriter;
 import htsjdk.variant.variantcontext.writer.VariantContextWriterBuilder;
 import htsjdk.variant.vcf.VCFHeader;
 import htsjdk.variant.vcf.VCFHeaderLine;
+import org.apache.commons.collections4.list.UnmodifiableList;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.broadinstitute.barclay.argparser.Argument;
@@ -131,7 +132,7 @@ public class SplitVcfBySamples extends VariantWalker {
         for (File outputFile : fileToSamples.keySet()) {
             VariantContextWriter writer = new VariantContextWriterBuilder().setOutputFile(outputFile).setReferenceDictionary(getReferenceDictionary()).build();
             writers.add(writer);
-            batches.add(new ArrayList<>(fileToSamples.get(outputFile)));
+            batches.add(new UnmodifiableList<>(fileToSamples.get(outputFile).stream().toList()));
 
             VCFHeader outputHeader = new VCFHeader(header.getMetaDataInInputOrder(), fileToSamples.get(outputFile));
             writer.writeHeader(outputHeader);
@@ -139,7 +140,10 @@ public class SplitVcfBySamples extends VariantWalker {
     }
 
     private void prepareOutputsForBatches(List<String> samples, VCFHeader header) {
-        batches.addAll(Lists.partition(new ArrayList<>(samples), samplesPerVcf));
+        Lists.partition(new ArrayList<>(samples), samplesPerVcf).forEach(l -> {
+            batches.add(List.copyOf(l));  // this returns an unmodifiable list
+        });
+
         if (batches.size() == 1) {
             throw new GATKException("This split would result in one output VCF, aborting");
         }
