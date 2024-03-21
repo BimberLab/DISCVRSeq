@@ -36,6 +36,8 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -265,32 +267,32 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new NumericDocValuesField("genomicPosition", genomicPosition));
 
                 if (variant.hasGenotypes()) {
-                    final String[] docValue = { null };
+                    AtomicReference<String> docValue = new AtomicReference<>(null);
 
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt)).map(Genotype::getSampleName).sorted().forEach(sample -> {
                         doc.add(new TextField("variableSamples", sample, Field.Store.YES));
 
-                        if (docValue[0] == null) {
-                            docValue[0] = sample;
+                        if (docValue.get() == null) {
+                            docValue.set(sample);
                         }
                     });
 
-                    if (!(docValue[0] == null)) {
-                        doc.add(new SortedDocValuesField("variableSamples", new BytesRef(docValue[0])));
-                        docValue[0] = null;
+                    if (docValue.get() != null) {
+                        doc.add(new SortedDocValuesField("variableSamples", new BytesRef(docValue.get())));
+                        docValue.set(null);
                     }
 
                     variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHomVar()).map(Genotype::getSampleName).sorted().forEach(sample -> {
                         doc.add(new TextField("homozygousVarSamples", sample, Field.Store.YES));
 
-                        if (docValue[0] == null) {
-                            docValue[0] = sample;
+                        if (docValue.get() == null) {
+                            docValue.set(sample);
                         }
                     });
 
-                    if (!(docValue[0] == null)) {
-                        doc.add(new SortedDocValuesField("homozygousVarSamples", new BytesRef(docValue[0])));
-                        docValue[0] = null;
+                    if (docValue.get() != null) {
+                        doc.add(new SortedDocValuesField("homozygousVarSamples", new BytesRef(docValue.get())));
+                        docValue.set(null);
                     }
 
                     long nHet = variant.getGenotypes().stream().filter(g -> !g.isFiltered() && !g.isNoCall() && g.getAlleles().contains(alt) && g.isHet()).count();
@@ -393,7 +395,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
         Collection<?> values = fieldValue instanceof Collection ? (Collection<?>) fieldValue : Collections.singleton(fieldValue);
 
-        final boolean[] indexDocValue = { true };
+        AtomicBoolean indexDocValue = new AtomicBoolean(true);
 
         values.forEach(value -> {
             if (value == null || "".equals(value) || VCFConstants.EMPTY_INFO_FIELD.equals(value)) {
@@ -405,67 +407,65 @@ public class VcfToLuceneIndexer extends VariantWalker {
                     case Character -> {
                         doc.add(new StringField(key, String.valueOf(value), Field.Store.YES));
 
-                        if (indexDocValue[0]) {
+                        if (indexDocValue.get()) {
                             doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
-                            indexDocValue[0] = false;
+                            indexDocValue.set(false);
                         }
                     }
                     case Flag -> {
                         int x = Boolean.parseBoolean(value.toString()) ? 1 : 0;
                         doc.add(new IntPoint(key, x));
 
-                        if (indexDocValue[0]) {
+                        if (indexDocValue.get()) {
                             doc.add(new NumericDocValuesField(key, x));
-                            indexDocValue[0] = false;
+                            indexDocValue.set(false);
                         }
                     }
                     case Float -> {
                         Collection<Double> parsedVals = attemptToFixNumericValue(key, value, Double.class);
                         if (parsedVals != null) {
-                            final Double[] docValue = { null };
+                            AtomicReference<Double> docValue = new AtomicReference<>(null);
 
                             parsedVals.forEach(x -> {
                                 doc.add(new DoublePoint(key, x));
                                 doc.add(new StoredField(key, x));
 
-                                if (docValue[0] == null) {
-                                    docValue[0] = x;
+                                if (docValue.get() == null) {
+                                    docValue.set(x);
                                 }
                             });
 
-                            if (!(docValue[0] == null) && indexDocValue[0]) {
-                                doc.add(new NumericDocValuesField(key, NumericUtils.doubleToSortableLong(docValue[0])));
-                                indexDocValue[0] = false;
+                            if (docValue.get() != null && indexDocValue.get()) {
+                                doc.add(new NumericDocValuesField(key, NumericUtils.doubleToSortableLong(docValue.get())));
+                                indexDocValue.set(false);
                             }
                         }
                     }
                     case Integer -> {
                         Collection<Integer> parsedVals = attemptToFixNumericValue(key, value, Integer.class);
                         if (parsedVals != null) {
-                            final Integer[] docValue = { null };
-
+                            AtomicReference<Integer> docValue = new AtomicReference<>(null);
                             parsedVals.forEach(x -> {
                                 doc.add(new IntPoint(key, x));
                                 doc.add(new StoredField(key, x));
 
-                                if (docValue[0] == null) {
-                                    docValue[0] = x;
+                                if (docValue.get() == null) {
+                                    docValue.set(x);
                                 }
-
                             });
 
-                            if (!(docValue[0] == null) && indexDocValue[0]) {
-                                doc.add(new NumericDocValuesField(key, docValue[0]));
-                                indexDocValue[0] = false;
+                            if (docValue.get() != null && indexDocValue.get()) {
+                                doc.add(new NumericDocValuesField(key, docValue.get()));
+                                indexDocValue.set(false);
                             }
                         }
                     }
                     case String -> {
                         doc.add(new TextField(key, String.valueOf(value), Field.Store.YES));
 
-                        if (indexDocValue[0]) {
+                        if (indexDocValue.get()) {
                             doc.add(new SortedDocValuesField(key, new BytesRef(String.valueOf(value))));
-                            indexDocValue[0] = false;
+                            indexDocValue.set(false);
                         }
                     }
                     default -> possiblyReportBadValue(new Exception("VCF header type was not expected: " + variantHeaderLineType.name()), key, value);

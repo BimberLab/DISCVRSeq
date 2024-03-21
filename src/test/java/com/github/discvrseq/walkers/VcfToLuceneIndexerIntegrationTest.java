@@ -516,7 +516,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             }
 
             // Results are sorted by genomicPosition
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6);
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, Sort.INDEXORDER);
             Assert.assertTrue(topDocs.scoreDocs.length > 0);
 
             lastGenomicPosition = -1;
