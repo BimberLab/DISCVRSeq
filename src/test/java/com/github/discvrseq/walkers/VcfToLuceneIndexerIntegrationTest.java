@@ -11,10 +11,7 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 import org.apache.lucene.queryparser.flexible.standard.config.PointsConfig;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.broadinstitute.hellbender.testutils.ArgumentsBuilder;
@@ -465,6 +462,72 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             // Documents where HaplotypeScore == 0.12, with query syntax.
             topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[0.12 TO 0.12]", ""), 10);
             Assert.assertEquals(topDocs.totalHits.value, 1L);
+
+            // Top 50 hits are sorted by genomicPosition
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("genomicPosition", SortField.Type.INT)));
+            Assert.assertEquals(6, topDocs.scoreDocs.length);
+
+            int lastGenomicPosition = -1;
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = indexSearcher.doc(scoreDoc.doc);
+                int currentGenomicPosition = Integer.parseInt(document.get("genomicPosition"));
+                if (lastGenomicPosition != -1) {
+                    Assert.assertTrue(lastGenomicPosition <= currentGenomicPosition);
+                }
+                lastGenomicPosition = currentGenomicPosition;
+            }
+
+            // Results are sorted by REFFIELD
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("REFFIELD", SortField.Type.STRING)));
+            Assert.assertEquals(6, topDocs.scoreDocs.length);
+
+            String lastRefField = null;
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = indexSearcher.doc(scoreDoc.doc);
+                String currentRefField = document.get("REFFIELD");
+                if (lastRefField != null) {
+                    Assert.assertTrue(lastRefField.compareTo(currentRefField) <= 0);
+                }
+                lastRefField = currentRefField;
+            }
+
+            // Results are sorted by start
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("start", SortField.Type.INT)));
+            Assert.assertEquals(6, topDocs.scoreDocs.length);
+
+            int lastStart = -1;
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = indexSearcher.doc(scoreDoc.doc);
+                int currentStart = Integer.parseInt(document.get("start"));
+                Assert.assertTrue(lastStart <= currentStart);
+                lastStart = currentStart;
+            }
+
+            // Results are sorted by HaplotypeScore
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("HaplotypeScore", SortField.Type.DOUBLE)));
+            Assert.assertEquals(6, topDocs.scoreDocs.length);
+
+            float lastHaplotypeScore = -1.0f;
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = indexSearcher.doc(scoreDoc.doc);
+                float currentHaplotypeScore = Float.parseFloat(document.get("HaplotypeScore"));
+                Assert.assertTrue(lastHaplotypeScore <= currentHaplotypeScore);
+                lastHaplotypeScore = currentHaplotypeScore;
+            }
+
+            // Results are sorted by genomicPosition
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, Sort.INDEXORDER);
+            Assert.assertTrue(topDocs.scoreDocs.length > 0);
+
+            lastGenomicPosition = -1;
+            for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
+                Document document = indexSearcher.doc(scoreDoc.doc);
+                int currentGenomicPosition = Integer.parseInt(document.get("genomicPosition"));
+                if (lastGenomicPosition != -1) {
+                    Assert.assertTrue(lastGenomicPosition <= currentGenomicPosition);
+                }
+                lastGenomicPosition = currentGenomicPosition;
+            }
         }
     }
 }
