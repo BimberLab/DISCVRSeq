@@ -196,7 +196,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 String fieldValue = document.get("contig");
 
                 Assert.assertEquals("1", fieldValue);
@@ -209,7 +209,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 String fieldValue = document.get("REFFIELD");
 
                 Assert.assertEquals("G", fieldValue);
@@ -222,7 +222,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 int fieldValue = Integer.parseInt(document.get("start"));
 
                 Assert.assertTrue(fieldValue >= 0);
@@ -236,7 +236,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 float fieldValue = Float.parseFloat(document.get("HaplotypeScore"));
 
                 Assert.assertEquals(12.0, fieldValue);
@@ -249,7 +249,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 Float fieldValue = Float.parseFloat(document.get("HaplotypeScore"));
 
                 Assert.assertTrue(fieldValue <= 10.0);
@@ -262,7 +262,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 String fieldValue = document.get("ref");
 
                 Assert.assertEquals("T", fieldValue);
@@ -275,7 +275,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 float fieldValue = Float.parseFloat(document.get("UB"));
 
                 Assert.assertEquals(1.0, fieldValue);
@@ -288,7 +288,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 float fieldValue = Float.parseFloat(document.get("UB"));
 
                 Assert.assertTrue(fieldValue >= 1.0);
@@ -301,7 +301,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 float fieldValue = Float.parseFloat(document.get("UB"));
 
                 Assert.assertTrue(fieldValue > 1.0  || fieldValue == 1.0);
@@ -322,7 +322,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 float fieldValue = Float.parseFloat(document.get("UB"));
 
                 Assert.assertTrue(fieldValue < 0.99 || fieldValue == 1.0);
@@ -335,7 +335,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample2"));
@@ -348,7 +348,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(!variableSamples.contains("Sample2"));
@@ -361,7 +361,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample1") && variableSamples.contains("Sample3"));
@@ -374,7 +374,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample2") && variableSamples.contains("Sample3"));
@@ -387,7 +387,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample2") || variableSamples.contains("Sample3"));
@@ -401,7 +401,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample1") && variableSamples.contains("Sample3") && !variableSamples.contains("Sample2"));
@@ -414,7 +414,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample1") && variableSamples.contains("Sample3") && !variableSamples.contains("Sample2"));
@@ -427,7 +427,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(variableSamples.contains("Sample1") || variableSamples.contains("Sample3") || variableSamples.contains("Sample2"));
@@ -440,7 +440,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(!variableSamples.contains("Sample1") && !variableSamples.contains("Sample3") && !variableSamples.contains("Sample2"));
@@ -453,7 +453,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
                 int docId = scoreDoc.doc;
-                Document document = indexSearcher.doc(docId);
+                Document document = indexSearcher.storedFields().document(docId);
                 List<String> variableSamples = Arrays.asList(document.getValues("variableSamples"));
 
                 Assert.assertTrue(!variableSamples.contains("Sample1") || !variableSamples.contains("Sample3") || !variableSamples.contains("Sample2"));
@@ -469,7 +469,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             int lastGenomicPosition = -1;
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document document = indexSearcher.doc(scoreDoc.doc);
+                Document document = indexSearcher.storedFields().document(scoreDoc.doc);
                 int currentGenomicPosition = Integer.parseInt(document.get("genomicPosition"));
                 if (lastGenomicPosition != -1) {
                     Assert.assertTrue(lastGenomicPosition <= currentGenomicPosition);
@@ -483,7 +483,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             String lastRefField = null;
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document document = indexSearcher.doc(scoreDoc.doc);
+                Document document = indexSearcher.storedFields().document(scoreDoc.doc);
                 String currentRefField = document.get("REFFIELD");
                 if (lastRefField != null) {
                     Assert.assertTrue(lastRefField.compareTo(currentRefField) <= 0);
@@ -497,7 +497,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             int lastStart = -1;
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document document = indexSearcher.doc(scoreDoc.doc);
+                Document document = indexSearcher.storedFields().document(scoreDoc.doc);
                 int currentStart = Integer.parseInt(document.get("start"));
                 Assert.assertTrue(lastStart <= currentStart);
                 lastStart = currentStart;
@@ -509,7 +509,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             float lastHaplotypeScore = -1.0f;
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document document = indexSearcher.doc(scoreDoc.doc);
+                Document document = indexSearcher.storedFields().document(scoreDoc.doc);
                 float currentHaplotypeScore = Float.parseFloat(document.get("HaplotypeScore"));
                 Assert.assertTrue(lastHaplotypeScore <= currentHaplotypeScore);
                 lastHaplotypeScore = currentHaplotypeScore;
@@ -521,7 +521,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             lastGenomicPosition = -1;
             for (ScoreDoc scoreDoc : topDocs.scoreDocs) {
-                Document document = indexSearcher.doc(scoreDoc.doc);
+                Document document = indexSearcher.storedFields().document(scoreDoc.doc);
                 int currentGenomicPosition = Integer.parseInt(document.get("genomicPosition"));
                 if (lastGenomicPosition != -1) {
                     Assert.assertTrue(lastGenomicPosition <= currentGenomicPosition);
