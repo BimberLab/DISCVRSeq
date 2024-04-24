@@ -1,6 +1,13 @@
 package com.github.discvrseq.walkers;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
@@ -19,8 +26,8 @@ import org.broadinstitute.hellbender.testutils.IntegrationTestSpec;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URI;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -529,5 +536,70 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
                 lastGenomicPosition = currentGenomicPosition;
             }
         }
+    }
+
+    @Test
+    public void validateLuceneVersions() throws Exception
+    {
+        // One of the main use cases of lucene is to build VCF indexes read by LabKey's code. This check tries to ensure
+        // the lucene versions are in sync between the two
+        String discvrVersion = null;
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File("build.gradle")))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.contains("lucene.version")) {
+                    discvrVersion = line.split("'")[3];
+                    break;
+                }
+            }
+        }
+
+        Assert.assertNotNull(discvrVersion, "Unable to find labkey lucene version");
+
+        String branch;
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet post = new HttpGet(URI.create("https://api.github.com/repos/bimberlab/DiscvrLabKeyModules"));
+            post.setHeader("Accept", "application/vnd.github+json");
+            post.setHeader("X-GitHub-Api-Version", "2022-11-28");
+            post.setHeader("Content-type", "application/json");
+
+            HttpResponse response = httpClient.execute(post);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
+                JsonElement json = JsonParser.parseReader(reader);
+                JsonObject obj = json.getAsJsonObject();
+                branch = obj.get("default_branch").getAsString();
+                branch = branch.replaceAll("discvr-", "release") + "-SNAPSHOT";
+            }
+        }
+        catch (IOException e) {
+            throw e;
+        }
+
+        Assert.assertNotNull(branch, "Missing branch");
+
+        String labkeyLucene = null;
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpGet post = new HttpGet(URI.create("https://raw.githubusercontent.com/labkey/server/" + branch + "/gradle.properties"));
+            post.setHeader("Accept", "application/vnd.github+json");
+            post.setHeader("X-GitHub-Api-Version", "2022-11-28");
+            post.setHeader("Content-type", "application/json");
+
+            HttpResponse response = httpClient.execute(post);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("luceneVersion")) {
+                        labkeyLucene = line.split("=")[1];
+                        break;
+                    }
+                }
+            }
+        }
+        catch (IOException e) {
+            throw e;
+        }
+
+        Assert.assertNotNull(labkeyLucene, "Unable to find labkey lucene version");
+        Assert.assertEquals(discvrVersion, labkeyLucene, "DISCVR-seq and LabKey Lucene versions are not equal");
     }
 }
