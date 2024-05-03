@@ -16,10 +16,8 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.SortedNumericSortField;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.NumericUtils;
@@ -253,18 +251,19 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new TextField("alt", alt.getDisplayString(), Field.Store.YES));
                 doc.add(new SortedDocValuesField("alt_sort", new BytesRef(alt.getDisplayString())));
 
+                final int genomicPositionStart = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("start", variant.getStart()));
                 doc.add(new StoredField("start", variant.getStart()));
-                doc.add(new NumericDocValuesField("start_sort", variant.getStart()));
+                doc.add(new NumericDocValuesField("start_sort", genomicPositionStart));
 
+                final int genomicPositionEnd = getGenomicPosition(variant.getContig(), variant.getEnd());
                 doc.add(new IntPoint("end", variant.getEnd()));
                 doc.add(new StoredField("end", variant.getEnd()));
-                doc.add(new NumericDocValuesField("end_sort", variant.getEnd()));
+                doc.add(new NumericDocValuesField("end_sort", genomicPositionEnd));
 
-                final int genomicPosition = getGenomicPosition(variant.getContig(), variant.getStart());
-                doc.add(new IntPoint("genomicPosition", genomicPosition));
-                doc.add(new StoredField("genomicPosition", genomicPosition));
-                doc.add(new NumericDocValuesField("genomicPosition_sort", genomicPosition));
+                doc.add(new IntPoint("genomicPosition", genomicPositionStart));
+                doc.add(new StoredField("genomicPosition", genomicPositionStart));
+                doc.add(new NumericDocValuesField("genomicPosition_sort", genomicPositionStart));
 
                 if (variant.hasGenotypes()) {
                     AtomicReference<String> docValue = new AtomicReference<>(null);
