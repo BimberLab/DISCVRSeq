@@ -1,7 +1,6 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
-import com.google.common.annotations.VisibleForTesting;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.util.IOUtil;
@@ -23,7 +22,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -134,11 +132,6 @@ public class IdentifySoftClippedLoci extends LocusWalker {
                 continue;
             }
 
-            if (alignmentContext.getStart() == 132589351)
-            {
-                int y = 4;
-            }
-
             AtomicInteger beforeSoftClip = new AtomicInteger();
             AtomicInteger afterSoftClip = new AtomicInteger();
             pileup.iterator().forEachRemaining(x -> {
@@ -149,10 +142,6 @@ public class IdentifySoftClippedLoci extends LocusWalker {
                     beforeSoftClip.getAndIncrement();
                 }
             });
-
-            if (alignmentContext.getStart() == 132589351) {
-                int y= 1;
-            }
 
             double beforePct = beforeSoftClip.get() / (double)pileup.size();
             if (beforePct > minFraction) {
@@ -173,7 +162,7 @@ public class IdentifySoftClippedLoci extends LocusWalker {
             return new StringBuilder().append(vc.getID()).append("|").append(vc.getContig()).append("|").append(vc.getStart()).append("|").append(vc.getStructuralVariantType() == null ? vc.getType() : vc.getStructuralVariantType());
         }).collect(Collectors.joining(","));
 
-        outputStream.println(String.format("%s\t%d\t%d\t%s\t%s\t%s\t%f\t%d\t%d\t%s", alignmentContext.getContig(), alignmentContext.getStart()-1, alignmentContext.getEnd(), reason.name(), "+", sample, pct, depth, totalReads, vcs));
+        outputStream.printf("%s\t%d\t%d\t%s\t%s\t%s\t%f\t%d\t%d\t%s%n", alignmentContext.getContig(), alignmentContext.getStart()-1, alignmentContext.getEnd(), reason.name(), "+", sample, pct, depth, totalReads, vcs);
     }
 
     @Override
