@@ -46,16 +46,16 @@ import java.util.stream.Collectors;
  * Or you can provide a list of reference SVs. In this case, only sites that overlap the start/end of these SVs will be reported.
  * <pre>
  *  java -jar DISCVRseq.jar IdentifySoftClippedLoci \
- *     -R reference.fasta \
  *     -I bams.list \
+ *     -rv reference.vcf.gz \
  *     -O output.bed
  * </pre>
  * <p></p>
  * Would produce a BED file that looks like:
  * <p></p>
  * <pre>
- *     chr20 10000000 10000001 BeforeSoftClip 2   +   Sample1 0.5 100 200
- *     chr20 10000865 10000866 AfterSoftClip 1   +   Sample1 0.25 50 200
+ *     chr20 10000000 10000001 BeforeSoftClip   +   Sample1 0.5 100 200
+ *     chr20 10000865 10000866 AfterSoftClip    +   Sample1 0.25 50 200    2-DEL-pbsv.DEL.10391.clr|2|132589349|INDEL
  * </pre>
  *
  * Where the columns are:
@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
  * 7) The percent of reads representing the start/end of the soft clip
  * 8) Total reads representing the start/end of the soft clip
  * 9) Total number of QC passing reads
- *
+ * 10) If a reference VCF is provided, and variants that overlap with this site, within --maxVariantDistance, will be reported
  */
 @DocumentedFeature
 @CommandLineProgramProperties(
