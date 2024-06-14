@@ -102,7 +102,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         }
 
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
-        config.setIndexSort(new Sort(new SortField("genomicPosition_sort", SortField.Type.INT, false)));
+        config.setIndexSort(new Sort(new SortField("genomicPosition_sort", SortField.Type.LONG, false)));
 
         try {
             writer = new IndexWriter(index, config);
@@ -144,8 +144,8 @@ public class VcfToLuceneIndexer extends VariantWalker {
 
     private long sites = 0;
 
-    private int getGenomicPosition(String contig, int start){
-        int pos = start;
+    private long getGenomicPosition(String contig, int start){
+        long pos = start;
 
         // Add the length of each prior contig:
         for (SAMSequenceRecord sr : dict.getSequences()) {
@@ -251,17 +251,17 @@ public class VcfToLuceneIndexer extends VariantWalker {
                 doc.add(new TextField("alt", alt.getDisplayString(), Field.Store.YES));
                 doc.add(new SortedDocValuesField("alt_sort", new BytesRef(alt.getDisplayString())));
 
-                final int genomicPositionStart = getGenomicPosition(variant.getContig(), variant.getStart());
+                final long genomicPositionStart = getGenomicPosition(variant.getContig(), variant.getStart());
                 doc.add(new IntPoint("start", variant.getStart()));
                 doc.add(new StoredField("start", variant.getStart()));
                 doc.add(new NumericDocValuesField("start_sort", genomicPositionStart));
 
-                final int genomicPositionEnd = getGenomicPosition(variant.getContig(), variant.getEnd());
+                final long genomicPositionEnd = getGenomicPosition(variant.getContig(), variant.getEnd());
                 doc.add(new IntPoint("end", variant.getEnd()));
                 doc.add(new StoredField("end", variant.getEnd()));
                 doc.add(new NumericDocValuesField("end_sort", genomicPositionEnd));
 
-                doc.add(new IntPoint("genomicPosition", genomicPositionStart));
+                doc.add(new LongPoint("genomicPosition", genomicPositionStart));
                 doc.add(new StoredField("genomicPosition", genomicPositionStart));
                 doc.add(new NumericDocValuesField("genomicPosition_sort", genomicPositionStart));
 
