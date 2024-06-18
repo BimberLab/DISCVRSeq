@@ -166,11 +166,11 @@ public class VcfComparison extends ExtendedMultiVariantWalkerGroupedOnStart {
 
 
         if (sampleVariants.size() > 1) {
-            logger.warn("More than one sample VCF record found for site: " + sampleVariants.get(0).getContig() + " " + sampleVariants.get(0).getStart());
+            logger.warn("More than one sample VCF record found for site: " + sampleVariants.get(0).getContig() + " " + sampleVariants.get(0).getStart() + ", found: " + sampleVariants.stream().map(VariantContext::toStringWithoutGenotypes).collect(Collectors.joining(";")));
         }
 
         if (refVariants.size() > 1) {
-            logger.warn("More than one reference VCF record found for site: " + refVariants.get(0).getContig() + " " + refVariants.get(0).getStart());
+            logger.warn("More than one reference VCF record found for site: " + refVariants.get(0).getContig() + " " + refVariants.get(0).getStart()  + ", found: " + refVariants.stream().map(VariantContext::toStringWithoutGenotypes).collect(Collectors.joining(";")));
         }
 
         boolean refIsFiltered = refVariants.stream().filter(variantContext -> !variantContext.isFiltered()).count() == 0;
