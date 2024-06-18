@@ -11,6 +11,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
@@ -119,7 +120,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 3000), 10);
             Assert.assertEquals(topDocs.totalHits.value, 10L);
 
-            topDocs = indexSearcher.search(IntPoint.newRangeQuery("genomicPosition", 0, 3000), 10);
+            topDocs = indexSearcher.search(LongPoint.newRangeQuery("genomicPosition", 0, 3000), 10);
             Assert.assertEquals(topDocs.totalHits.value, 10L);
         }
     }
@@ -471,7 +472,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             Assert.assertEquals(topDocs.totalHits.value, 1L);
 
             // Top 50 hits are sorted by genomicPosition
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("genomicPosition_sort", SortField.Type.INT)));
+            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("genomicPosition_sort", SortField.Type.LONG)));
             Assert.assertEquals(6, topDocs.scoreDocs.length);
 
             int lastGenomicPosition = -1;
