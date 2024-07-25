@@ -19,6 +19,7 @@ import org.broadinstitute.hellbender.utils.samples.SampleDB;
 import org.broadinstitute.hellbender.utils.samples.Sex;
 
 import javax.annotation.Nullable;
+import java.io.Serial;
 import java.util.*;
 
 /**
@@ -161,6 +162,10 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     }
 
     private static boolean testParents(Genotype gChild, Genotype gDad, Genotype gMom){
+        if (gChild.getAlleles().size() != 2) {
+            return false;
+        }
+
         return !(gMom.getAlleles().contains(gChild.getAlleles().get(0)) && gDad.getAlleles().contains(gChild.getAlleles().get(1)) || gMom.getAlleles().contains(gChild.getAlleles().get(1)) && gDad.getAlleles().contains(gChild.getAlleles().get(0)));
     }
 
@@ -182,10 +187,11 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
     }
 
     public static class NoCallGenotype extends Genotype {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         private Genotype _orig = null;
-        private List<Allele> _alleles = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
+        private final List<Allele> _alleles = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
 
         public NoCallGenotype(String sampleName)
         {
