@@ -1,6 +1,7 @@
 package com.github.discvrseq.walkers;
 
 import htsjdk.variant.variantcontext.VariantContext;
+import htsjdk.variant.variantcontext.VariantContextComparator;
 import org.broadinstitute.hellbender.engine.FeatureInput;
 import org.broadinstitute.hellbender.engine.MultiVariantWalkerGroupedOnStart;
 
@@ -33,6 +34,9 @@ abstract public class ExtendedMultiVariantWalkerGroupedOnStart extends MultiVari
         for (FeatureInput<VariantContext> fi : getDrivingVariantsFeatureInputs()) {
             if (!byFeatureInput.containsKey(fi)) {
                 byFeatureInput.put(fi, Collections.emptyList());
+            }
+            else {
+                byFeatureInput.get(fi).sort(new VariantContextComparator(getBestAvailableSequenceDictionary()));
             }
         }
 
