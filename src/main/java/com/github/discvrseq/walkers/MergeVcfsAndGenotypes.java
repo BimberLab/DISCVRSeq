@@ -340,6 +340,8 @@ public class MergeVcfsAndGenotypes extends MultiVariantWalkerGroupedOnStart {
             logger.warn("Ignoring all records at site " + referenceContext.getContig() + ":" + referenceContext.getStart());
         }
 
+        // Ensure the result matches GATK's expected sort
+        mergedVCs.sort(new VariantContextComparator(getBestAvailableSequenceDictionary()));
         for ( final VariantContext mergedVC : mergedVCs ) {
             // only operate at the start of events
             if ( mergedVC == null )
