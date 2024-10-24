@@ -78,7 +78,9 @@ public class DiscvrVariantAnnotatorIntegrationTest extends BaseIntegrationTest {
         args.add("A", "MendelianViolationBySample");
 
         args.addRaw("-rg");
-        args.addRaw(normalizePath(input));
+        File refGT = new File(testBaseDir, "MendelianViolationRefGT.vcf");
+        ensureVcfIndex(refGT);
+        args.addRaw(normalizePath(refGT));
 
         args.addRaw("-O");
         args.addRaw("%s");

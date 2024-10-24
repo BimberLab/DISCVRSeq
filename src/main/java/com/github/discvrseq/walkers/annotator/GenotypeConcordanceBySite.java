@@ -57,12 +57,16 @@ public class GenotypeConcordanceBySite extends PedigreeAnnotation implements Inf
             throw new IllegalArgumentException("Must provide a VCF with reference genotypes!");
         }
 
-        List<VariantContext> list = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
-        if (list == null || list.isEmpty()){
+        List<VariantContext> referenceVCs = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getStart())).stream().filter(refVC -> refVC.getStart() == vc.getStart()).toList();
+        if (referenceVCs.isEmpty()){
             return null;
         }
 
-        VariantContext refVC  = list.get(0);
+        if (referenceVCs.size() > 1) {
+            throw new IllegalArgumentException("More than one reference found for site: " + vc.getContig() + "-" + vc.getStart());
+        }
+
+        VariantContext refVC  = referenceVCs.get(0);
 
         AtomicInteger discord = new AtomicInteger(0);
         AtomicInteger concord = new AtomicInteger(0);
