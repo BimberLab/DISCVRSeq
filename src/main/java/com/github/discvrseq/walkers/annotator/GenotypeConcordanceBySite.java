@@ -57,7 +57,7 @@ public class GenotypeConcordanceBySite extends PedigreeAnnotation implements Inf
             throw new IllegalArgumentException("Must provide a VCF with reference genotypes!");
         }
 
-        List<VariantContext> referenceVCs = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd())).stream().filter(refVC -> refVC.getStart() == vc.getStart()).toList();
+        List<VariantContext> referenceVCs = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getStart())).stream().filter(refVC -> refVC.getStart() == vc.getStart()).toList();
         if (referenceVCs.isEmpty()){
             return null;
         }
