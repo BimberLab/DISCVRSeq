@@ -65,25 +65,27 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
             return;
         }
 
-        List<VariantContext> list = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getEnd()));
-        if (list == null || list.isEmpty()){
+        List<VariantContext> referenceVCs = args.featureManager.getFeatures(args.referenceVcf, new SimpleInterval(vc.getContig(), vc.getStart(), vc.getStart())).stream().filter(refVC -> refVC.getStart() == vc.getStart()).toList();
+        if (referenceVCs.isEmpty()){
             return;
         }
 
-        for (VariantContext c : list){
-            Genotype refGenotype = c.getGenotype(g.getSampleName());
-            if (refGenotype != null && !refGenotype.isFiltered() && !refGenotype.isNoCall()) {
-                if (!refGenotype.sameGenotype(g)) {
-                    gb.attribute(KEY, "1");
-                    String gt = refGenotype.getGenotypeString();
-                    if (gt.length() < MAX_GT_LENGTH) {
-                        gb.attribute(D_KEY, refGenotype.getGenotypeString());
-                    }
-                }
-                else {
-                    gb.attribute(KEY, "0");
-                }
+        if (referenceVCs.size() > 1) {
+            throw new IllegalArgumentException("More than one reference found for site: " + vc.getContig() + "-" + vc.getStart());
+        }
 
+        VariantContext c = referenceVCs.get(0);
+        Genotype refGenotype = c.getGenotype(g.getSampleName());
+        if (refGenotype != null && !refGenotype.isFiltered() && !refGenotype.isNoCall()) {
+            if (!refGenotype.sameGenotype(g)) {
+                gb.attribute(KEY, "1");
+                String gt = refGenotype.getGenotypeString();
+                if (gt.length() < MAX_GT_LENGTH) {
+                    gb.attribute(D_KEY, refGenotype.getGenotypeString());
+                }
+            }
+            else {
+                gb.attribute(KEY, "0");
             }
         }
     }
