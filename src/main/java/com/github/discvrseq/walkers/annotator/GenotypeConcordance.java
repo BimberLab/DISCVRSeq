@@ -27,6 +27,8 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
     public static final String KEY = "GTD";
     public static final String D_KEY = "REF_GT";
 
+    private static final int MAX_GT_LENGTH = 10;
+
     public GenotypeConcordanceArgumentCollection args = null;
 
     public GenotypeConcordance()
@@ -73,7 +75,10 @@ public class GenotypeConcordance extends PedigreeAnnotation implements GenotypeA
             if (refGenotype != null && !refGenotype.isFiltered() && !refGenotype.isNoCall()) {
                 if (!refGenotype.sameGenotype(g)) {
                     gb.attribute(KEY, "1");
-                    gb.attribute(D_KEY, refGenotype.getGenotypeString());
+                    String gt = refGenotype.getGenotypeString();
+                    if (gt.length() < MAX_GT_LENGTH) {
+                        gb.attribute(D_KEY, refGenotype.getGenotypeString());
+                    }
                 }
                 else {
                     gb.attribute(KEY, "0");
