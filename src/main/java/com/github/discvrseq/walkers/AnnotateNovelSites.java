@@ -4,7 +4,10 @@ import com.github.discvrseq.tools.DiscvrSeqInternalProgramGroup;
 import htsjdk.variant.variantcontext.VariantContext;
 import htsjdk.variant.variantcontext.VariantContextBuilder;
 import htsjdk.variant.variantcontext.writer.VariantContextWriter;
-import htsjdk.variant.vcf.*;
+import htsjdk.variant.vcf.VCFHeader;
+import htsjdk.variant.vcf.VCFHeaderLineCount;
+import htsjdk.variant.vcf.VCFHeaderLineType;
+import htsjdk.variant.vcf.VCFInfoHeaderLine;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -74,7 +77,7 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
     public void onTraversalStart() {
         Utils.nonNull(outFile);
 
-        if (getMultiVariantInputArgumentCollection().getDrivingVariantPaths().size() > 1) {
+        if (getAnnotateNovelSitesArgumentCollection().getInputVcfCount() > 1) {
             throw new IllegalArgumentException("Cannot provide more than one input VCF (-V)");
         }
 
@@ -105,7 +108,7 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
     @Override
     public void apply(List<VariantContext> variantContexts, ReferenceContext referenceContext, List<ReadsContext> readsContexts) {
         Map<FeatureInput<VariantContext>, List<VariantContext>> variants = groupVariantsByFeatureInput(variantContexts);
-        List<VariantContext> refVariants = variants.get(getAnnotateNovelSitesArgumentCollection().referenceVcf);
+        List<VariantContext> refVariants = getAnnotateNovelSitesArgumentCollection().referenceVcf == null ? Collections.emptyList() : variants.get(getAnnotateNovelSitesArgumentCollection().referenceVcf);
 
         List<VariantContext> inputVariants = variants.get(getDrivingVariantsFeatureInputs().get(0));
         if (inputVariants == null || inputVariants.isEmpty()) {
@@ -141,14 +144,14 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
                     // Prior site exists, alleles identical. No action needed:
                     if (refVariant.getReference().equals(vc.getReference())) {
                         if (refVariant.getAlternateAlleles().equals(vc.getAlternateAlleles())) {
-                            List<String> val = refVariant.getAttributeAsStringList(novelSiteAnnotationName, existingSiteDefaultAnnotationValue);
+                            List<String> val = refVariant.getAttributeAsStringList(novelSiteAnnotationName, refVariant.getAttributeAsString(novelSiteAnnotationName, existingSiteDefaultAnnotationValue));
                             if (val != null && !val.isEmpty()) {
                                 vcb.attribute(novelSiteAnnotationName, new ArrayList<>(val));
                             }
                         }
                         else {
                             // Alleles are different, so annotate with both
-                            Set<String> anns = new LinkedHashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, existingSiteDefaultAnnotationValue));
+                            Set<String> anns = new LinkedHashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, refVariant.getAttributeAsString(novelSiteAnnotationName, existingSiteDefaultAnnotationValue)));
                             anns.add(novelSiteAnnotationValue);
                             isNovel = true;
 
@@ -202,15 +205,28 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
     private static final class AnnotateNovelSitesArgumentCollection extends MultiVariantInputArgumentCollection.DefaultMultiVariantInputArgumentCollection {
         private static final long serialVersionUID = 1L;
 
-        @Argument(doc="Reference VCF", fullName = "ref-vcf", shortName = "rv", optional = false)
+        @Argument(doc="Reference VCF", fullName = "ref-vcf", shortName = "rv", optional = true)
         public FeatureInput<VariantContext> referenceVcf = null;
+
+        @Argument(doc="Allow Missing Reference", fullName = "allow-missing-ref", optional = true)
+        public boolean allowMissingRef = false;
 
         @Override
         public List<GATKPath> getDrivingVariantPaths() {
             List<GATKPath> ret = new ArrayList<>(super.getDrivingVariantPaths());
-            ret.add(referenceVcf);
+            if (referenceVcf != null) {
+                ret.add(referenceVcf);
+            }
+            else if (!allowMissingRef) {
+                throw new GATKException("Must either provide reference VCF or specify --allow-missing-ref");
+            }
 
             return ret;
         }
+
+        public int getInputVcfCount() {
+            return super.getDrivingVariantPaths().size();
+        }
+
     }
 }
