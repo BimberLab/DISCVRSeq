@@ -136,44 +136,43 @@ public class AnnotateNovelSites extends ExtendedMultiVariantWalkerGroupedOnStart
                 if (novelSitesWriter != null) {
                     novelSitesWriter.add(vcb.genotypes().make());
                 }
+
+                continue;
             }
-            else {
-                boolean foundMatchingRef = false;
-                boolean isNovel = false;
-                for (VariantContext refVariant : refVariants) {
+
+            // Inspect to determine if site counts:
+            boolean foundMatchingRef = false;
+            boolean isNovel = false;
+            for (VariantContext refVariant : refVariants) {
+                if (refVariant.getReference().equals(vc.getReference())) {
+                    Set<String> values = new LinkedHashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, existingSiteDefaultAnnotationValue));
+
                     // Prior site exists, alleles identical. No action needed:
-                    if (refVariant.getReference().equals(vc.getReference())) {
-                        if (refVariant.getAlternateAlleles().equals(vc.getAlternateAlleles())) {
-                            List<String> val = refVariant.getAttributeAsStringList(novelSiteAnnotationName, refVariant.getAttributeAsString(novelSiteAnnotationName, existingSiteDefaultAnnotationValue));
-                            if (val != null && !val.isEmpty()) {
-                                vcb.attribute(novelSiteAnnotationName, new ArrayList<>(val));
-                            }
-                        }
-                        else {
-                            // Alleles are different, so annotate with both
-                            Set<String> anns = new LinkedHashSet<>(refVariant.getAttributeAsStringList(novelSiteAnnotationName, refVariant.getAttributeAsString(novelSiteAnnotationName, existingSiteDefaultAnnotationValue)));
-                            anns.add(novelSiteAnnotationValue);
-                            isNovel = true;
-
-                            vcb.attribute(novelSiteAnnotationName, new ArrayList<>(anns));
-                        }
-                        foundMatchingRef = true;
-                        break;
+                    if (refVariant.getAlternateAlleles().equals(vc.getAlternateAlleles())) {
+                        vcb.attribute(novelSiteAnnotationName, new ArrayList<>(values));
+                    } else {
+                        // Alleles are different, so annotate with both
+                        values.add(novelSiteAnnotationValue);
+                        isNovel = true;
+                        vcb.attribute(novelSiteAnnotationName, new ArrayList<>(values));
                     }
-                }
 
-                if (!foundMatchingRef) {
-                    vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
-                    isNovel = true;
-                    novelSites++;
+                    foundMatchingRef = true;
+                    break;
                 }
+            }
 
-                vc = vcb.make();
-                writer.add(vc);
+            if (!foundMatchingRef) {
+                vcb.attribute(novelSiteAnnotationName, novelSiteAnnotationValue);
+                isNovel = true;
+                novelSites++;
+            }
 
-                if (isNovel && novelSitesWriter != null) {
-                    novelSitesWriter.add(vcb.genotypes().make());
-                }
+            vc = vcb.make();
+            writer.add(vc);
+
+            if (isNovel && novelSitesWriter != null) {
+                novelSitesWriter.add(vcb.genotypes().make());
             }
         }
     }
