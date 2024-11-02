@@ -27,6 +27,11 @@ public class AnnotateNovelSitesTest extends  BaseIntegrationTest {
         args.add("ad", "'The first mGAP version where variants at this site appeared'");
         args.add("av", "2.0");
 
+        args.addRaw("-ns");
+        args.addRaw("%s");
+        args.addRaw("-ms");
+        args.addRaw("%s");
+
         IntegrationTestSpec spec = new IntegrationTestSpec(
                 args.getString(),
                 Arrays.asList(
@@ -44,13 +49,33 @@ public class AnnotateNovelSitesTest extends  BaseIntegrationTest {
 
         args.addRaw("-O");
         args.addRaw("%s");
-        args.addRaw("-ns");
-        args.addRaw("%s");
-        args.addRaw("-ms");
-        args.addRaw("%s");
         args.addRaw("--tmp-dir");
         args.addRaw(getTmpDir());
 
         return args;
+    }
+
+    @Test
+    public void testWithoutRef() throws Exception {
+        ArgumentsBuilder args = getBaseArgs();
+
+        args.addRaw("--variant");
+        File input = new File(testBaseDir, "ClinvarAnnotator.vcf");
+        ensureVcfIndex(input);
+        args.addRaw(normalizePath(input));
+
+        args.addRaw("--allow-missing-ref");
+
+        args.add("an", "mGAPV");
+        args.add("ad", "'The first mGAP version where variants at this site appeared'");
+        args.add("av", "2.0");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Arrays.asList(
+                        getTestFile("outputNoRef.vcf").getPath()
+                ));
+
+        spec.executeTest("testBasicOperation", this);
     }
 }
