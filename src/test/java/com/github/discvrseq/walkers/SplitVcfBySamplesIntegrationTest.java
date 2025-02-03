@@ -98,11 +98,57 @@ public class SplitVcfBySamplesIntegrationTest extends  BaseIntegrationTest {
         return getBaseArgs(outDir, 1);
     }
 
+    @Test
+    public void testInfoSubsetting() throws Exception {
+        final File outDir = IOUtils.createTempDir("splitVcfBySamples.");
+        ArgumentsBuilder args = getBaseArgs(outDir, 1, "mergeVcfWithAlts.vcf");
+        args.addRaw("--recalculate-ac");
+        args.addRaw("--keep-original-ac");
+        args.addRaw("--original-ac-suffix");
+        args.addRaw(".new");
+
+        runCommandLine(args);
+
+        String actualMD5 = Utils.calculateFileMD5(new File(outDir, "mergeVcfWithAlts.1of2.vcf"));
+        String expectedMD5 = Utils.calculateFileMD5(getTestFile("mergeVcfWithAlts.1of2.vcf"));
+        Assert.assertEquals(actualMD5, expectedMD5);
+
+        actualMD5 = Utils.calculateFileMD5(new File(outDir, "mergeVcfWithAlts.2of2.vcf"));
+        expectedMD5 = Utils.calculateFileMD5(getTestFile("mergeVcfWithAlts.2of2.vcf"));
+        Assert.assertEquals(actualMD5, expectedMD5);
+    }
+
+    @Test
+    public void testInfoSubsettingRemoveAlts() throws Exception {
+        final File outDir = IOUtils.createTempDir("splitVcfBySamples.");
+        ArgumentsBuilder args = getBaseArgs(outDir, 1, "mergeVcfWithAlts.vcf");
+        args.addRaw("--recalculate-ac");
+        args.addRaw("--keep-original-ac");
+        args.addRaw("--original-ac-suffix");
+        args.addRaw(".new");
+        args.addRaw("--remove-unused-alternates");
+        args.addFlag("discardNonVariantSites");
+
+        runCommandLine(args);
+
+        String actualMD5 = Utils.calculateFileMD5(new File(outDir, "mergeVcfWithAlts.1of2.vcf"));
+        String expectedMD5 = Utils.calculateFileMD5(getTestFile("mergeVcfWithAltsRemoveAlts.1of2.vcf"));
+        Assert.assertEquals(actualMD5, expectedMD5);
+
+        actualMD5 = Utils.calculateFileMD5(new File(outDir, "mergeVcfWithAlts.2of2.vcf"));
+        expectedMD5 = Utils.calculateFileMD5(getTestFile("mergeVcfWithAltsRemoveAlts.2of2.vcf"));
+        Assert.assertEquals(actualMD5, expectedMD5);
+    }
+
     private ArgumentsBuilder getBaseArgs(File outDir, @Nullable Integer samplesPerVcf) {
+        return getBaseArgs(outDir, samplesPerVcf, "mergeVcf3.vcf");
+    }
+
+    private ArgumentsBuilder getBaseArgs(File outDir, @Nullable Integer samplesPerVcf, String inputVcf) {
         ArgumentsBuilder args = new ArgumentsBuilder();
 
         args.addRaw("--variant");
-        File input = new File(testBaseDir, "mergeVcf3.vcf");
+        File input = new File(testBaseDir, inputVcf);
         ensureVcfIndex(input);
         args.addRaw(normalizePath(input));
 

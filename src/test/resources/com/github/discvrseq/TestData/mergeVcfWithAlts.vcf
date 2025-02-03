@@ -1,0 +1,10 @@
+##fileformat=VCFv4.2
+##INFO=<ID=RR,Number=R,Type=String,Description="Test REF annotation">
+##INFO=<ID=RA,Number=A,Type=String,Description="Test ALT annotation">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample1	Sample3
+1	61	.	GT	G	724.43	PASS	RR=GT,G;RA=G	GT	0/1	0/1
+1	72	.	T	A,C	100	PASS	RR=T,A,C;RA=A,C	GT	0/1	1/1
+1	73	.	TT	AG	100	PASS	RR=TT,AG;RA=AG	GT	0/1	0/0
