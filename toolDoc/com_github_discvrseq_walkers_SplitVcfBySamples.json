@@ -420,6 +420,22 @@
       "options": []
     },
     {
+      "summary": "Store the original AC, AF, and AN values after subsetting",
+      "name": "--keep-original-ac",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Lenient processing of VCF files",
       "name": "--lenient",
       "synonyms": "-LE",
@@ -459,6 +475,22 @@
       "required": "no",
       "fulltext": "",
       "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
+      "summary": "If --keep-original-ac is selected, the original AC, AF, and AN values will be stored, but with this suffix (e.g., a suffix of .Orig would result in AF -\u003e AF.Orig)",
+      "name": "--original-ac-suffix",
+      "synonyms": "NA",
+      "type": "String",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": ".Orig",
       "minValue": "NA",
       "maxValue": "NA",
       "minRecValue": "NA",
@@ -559,6 +591,22 @@
           "name": "SILENT"
         }
       ]
+    },
+    {
+      "summary": "This will recalculate the AC, AF, and AN values after subsetting. See also --keep-original-ac",
+      "name": "--recalculate-ac",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
     },
     {
       "summary": "Reference sequence",
