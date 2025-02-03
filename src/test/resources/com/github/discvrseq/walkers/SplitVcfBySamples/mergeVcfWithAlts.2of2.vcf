@@ -1,0 +1,16 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC.new,Number=A,Type=Integer,Description="Original AC">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF.new,Number=A,Type=Float,Description="Original AF">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=AN.new,Number=1,Type=Integer,Description="Original AN">
+##INFO=<ID=RA,Number=A,Type=String,Description="Test ALT annotation">
+##INFO=<ID=RR,Number=R,Type=String,Description="Test REF annotation">
+##contig=<ID=1,length=16000>
+##contig=<ID=2,length=16000>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Sample3
+1	61	.	GT	G	724.43	PASS	AC=1;AF=0.500;AN=2;RA=G;RR=GT,G	GT	0/1
+1	72	.	T	A,C	100	PASS	AC=2,0;AF=1.00,0.00;AN=2;RA=A,C;RR=T,A,C	GT	1/1
+1	73	.	TT	AG	100	PASS	AC=0;AF=0.00;AN=2;RA=AG;RR=TT,AG	GT	0/0
