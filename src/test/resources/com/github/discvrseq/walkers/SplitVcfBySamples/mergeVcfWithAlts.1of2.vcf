@@ -6,6 +6,7 @@
 ##INFO=<ID=AF.new,Number=A,Type=Float,Description="Original AF">
 ##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
 ##INFO=<ID=AN.new,Number=1,Type=Integer,Description="Original AN">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth; some reads may have been filtered">
 ##INFO=<ID=RA,Number=A,Type=String,Description="Test ALT annotation">
 ##INFO=<ID=RR,Number=R,Type=String,Description="Test REF annotation">
 ##contig=<ID=1,length=16000>

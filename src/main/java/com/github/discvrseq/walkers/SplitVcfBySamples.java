@@ -78,13 +78,13 @@ public class SplitVcfBySamples extends VariantWalker {
     public GATKPath sampleMappingFile = null;
 
     @Argument(fullName="recalculate-ac", doc="This will recalculate the AC, AF, and AN values after subsetting. See also --keep-original-ac", optional=true)
-    private boolean recalculateChrCounts = false;
+    public boolean recalculateChrCounts = false;
 
     @Argument(fullName="keep-original-ac", doc="Store the original AC, AF, and AN values after subsetting", optional=true)
-    private boolean keepOriginalChrCounts = false;
+    public boolean keepOriginalChrCounts = false;
 
     @Argument(fullName="original-ac-suffix", doc="If --keep-original-ac is selected, the original AC, AF, and AN values will be stored, but with this suffix (e.g., a suffix of .Orig would result in AF -> AF.Orig)", optional=true)
-    private String originalChrCountsSuffix = ".Orig";
+    public String originalChrCountsSuffix = ".Orig";
 
     List<List<String>> batches = new ArrayList<>();
     List<VariantContextWriter> writers = new ArrayList<>();
@@ -166,6 +166,10 @@ public class SplitVcfBySamples extends VariantWalker {
 
             if (header.getInfoHeaderLine(VCFConstants.ALLELE_NUMBER_KEY) == null) {
                 headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.ALLELE_NUMBER_KEY));
+            }
+
+            if (header.getInfoHeaderLine(VCFConstants.DEPTH_KEY) == null) {
+                headerLines.add(VCFStandardHeaderLines.getInfoLine(VCFConstants.DEPTH_KEY));
             }
         }
 
