@@ -14,11 +14,9 @@ import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.cmdline.StandardArgumentDefinitions;
 import org.broadinstitute.hellbender.cmdline.argumentcollections.MultiVariantInputArgumentCollection;
-import org.broadinstitute.hellbender.engine.FeatureInput;
-import org.broadinstitute.hellbender.engine.GATKPath;
-import org.broadinstitute.hellbender.engine.ReadsContext;
-import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.*;
 import org.broadinstitute.hellbender.exceptions.GATKException;
+import org.broadinstitute.hellbender.utils.SimpleInterval;
 
 import java.io.File;
 import java.io.IOException;
@@ -130,8 +128,10 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
             return;
         }
 
-        List<VariantContext> sampleVariants = grouped.get(getVariantConcordanceScoreArgumentCollection().inputVariants);
-        sampleVariants = sampleVariants.stream().filter(vc -> !vc.isFiltered()).collect(Collectors.toList());
+        // NOTE: the input VCF is excluded from drivingVariants since the reference VCFs tend to have far fewer sites
+        List<VariantContext> sampleVariants = features.getFeatures(getVariantConcordanceScoreArgumentCollection().inputVariants, new SimpleInterval(referenceContext.getContig(), referenceContext.getStart(), referenceContext.getStart())).stream().
+            filter(vc -> !vc.isFiltered() & vc.getStart() == referenceContext.getStart()).toList();
+
         if (sampleVariants.isEmpty()) {
             return;
         }
@@ -265,11 +265,8 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
 
         @Override
         public List<GATKPath> getDrivingVariantPaths() {
-            List<GATKPath> ret = new ArrayList<>();
-            ret.add(inputVariants);
-            ret.addAll(referenceFiles);
-
-            return ret;
+            // NOTE: the input VCF is excluded from drivingVariants since the reference VCFs tend to have far fewer sites
+            return new ArrayList<>(referenceFiles);
         }
     }
 }
