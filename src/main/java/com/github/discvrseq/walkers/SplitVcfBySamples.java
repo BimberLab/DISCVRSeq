@@ -364,7 +364,7 @@ public class SplitVcfBySamples extends VariantWalker {
         if (attribute.getClass().isArray()) {
             tokens = (Object[]) attribute;
         } else if (List.class.isAssignableFrom(attribute.getClass())) {
-            tokens = ((List) attribute).toArray();
+            tokens = ((List<?>) attribute).toArray();
         } else {
             tokens = attribute.toString().split(VCFConstants.INFO_FIELD_ARRAY_SEPARATOR);
         }
