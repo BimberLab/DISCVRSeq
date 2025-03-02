@@ -1,5 +1,5 @@
 <link type='text/css' rel='stylesheet' href='stylesheet.css'>
-<title>MergeFastqReads</title>
+<title>Save10xBarcodes</title>
 <div class='row-fluid' id="top">
 
 
@@ -13,24 +13,25 @@
 
 	<div class="span8">
 
-			<h1>MergeFastqReads</h1>
+			<h1>Save10xBarcodes</h1>
 
-		<p>Merges paired FASTQ reads into a single read</p>
+		<p>Print all CR/CB and UR/UB combinations</p>
 
 			<h3>Category
 				<small> Public/Stable Tools</small>
 			</h3>
 		<hr>
 		<h2>Overview</h2>
-		This tool accepts a pair of FASTQ files and attempts to merge each read pair into a single read, based on the values for minimumOverlap and minimalIdentity.
+		This walker will iterate FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.
 
- <h3>Usage example, table output only:</h3>
+
+ <h3>Usage examples:</h3>
+ <h4>Simple search for a sequence in either forward or reverse read:</h4>
  <pre>
-  java -jar DISCVRseq.jar MergeFastqReads \
-     -fq1 reads1.fastq.gz \
-     -fq2 reads2.fastq.gz \
-     -minLength 100 \
-     -O merged.fastq.gz
+  java -jar DISCVRseq.jar Save10xBarcodes \
+     --input theBam.bam \
+     --cbOutput cbOutput.txt.gz \
+     --umiOutput umiOutput.txt.gz
  </pre>
 
 		<hr>
@@ -40,12 +41,12 @@
 				<p>Please note that if this tools uses a reference genome, that FASTA must be indexed with samtools and to have a sequence dictionary created with Picard.  <a href="resources/genomeRequirements.html">See here for more information</a></p>
 
 				<h3>Read filters</h3>
-					<p>This Read Filter is automatically applied to the data by the Engine before processing by MergeFastqReads.</p>
+					<p>This Read Filter is automatically applied to the data by the Engine before processing by Save10xBarcodes.</p>
 				<ul>
 						<li><a href="org_broadinstitute_hellbender_engine_filters_WellformedReadFilter.html">WellformedReadFilter</a></li>
 				</ul>
 
-				<h3>MergeFastqReads specific arguments</h3>
+				<h3>Save10xBarcodes specific arguments</h3>
 				<p>This table summarizes the command-line arguments that are specific to this tool. For more details on each argument, see the list further down below the table or click on an argument name to jump directly to that entry in the list.</p>
 				<table class="table table-striped table-bordered table-condensed cozy">
 					<thead>
@@ -60,28 +61,26 @@
 				<th colspan="4" id="row-divider">Required Arguments</th>
 			</tr>
 				<tr>
-					<td><a href="#--fastq1">--fastq1</a><br />
-								&nbsp;<em>-fq1</em>
+					<td><a href="#--cbOutput">--cbOutput</a><br />
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>Input fastq file (optionally gzipped) of forward reads.</td>
+					<td>The output file for cell barcodes</td>
 				</tr>
 				<tr>
-					<td><a href="#--fastq2">--fastq2</a><br />
-								&nbsp;<em>-fq2</em>
+					<td><a href="#--input">--input</a><br />
+								&nbsp;<em>-I</em>
 					</td>
-					<!--<td>File</td> -->
-					<td>null</td>
-					<td>Input fastq file (optionally gzipped) of reverse reads.</td>
+					<!--<td>List[GATKPath]</td> -->
+					<td>[]</td>
+					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
-					<td><a href="#--output">--output</a><br />
-								&nbsp;<em>-O</em>
+					<td><a href="#--umiOutput">--umiOutput</a><br />
 					</td>
 					<!--<td>File</td> -->
 					<td>null</td>
-					<td>The output FASTQ file</td>
+					<td>The output file for UMIs</td>
 				</tr>
 			<tr>
 				<th colspan="4" id="row-divider">Optional Tool Arguments</th>
@@ -162,27 +161,6 @@
 					<!--<td>List[String]</td> -->
 					<td>[]</td>
 					<td>One or more genomic intervals over which to operate</td>
-				</tr>
-				<tr>
-					<td><a href="#--minimalIdentity">--minimalIdentity</a><br />
-					</td>
-					<!--<td>double</td> -->
-					<td>0.9</td>
-					<td>The minimum identity in the overlap region</td>
-				</tr>
-				<tr>
-					<td><a href="#--minimalOverlap">--minimalOverlap</a><br />
-					</td>
-					<!--<td>int</td> -->
-					<td>17</td>
-					<td>The minimum overlap in base pairs</td>
-				</tr>
-				<tr>
-					<td><a href="#--minLength">--minLength</a><br />
-					</td>
-					<!--<td>double</td> -->
-					<td>0.0</td>
-					<td>The minimum length of the merged reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--reference">--reference</a><br />
@@ -284,14 +262,6 @@
 					<!--<td>String</td> -->
 					<td>null</td>
 					<td>A configuration file to use with the GATK.</td>
-				</tr>
-				<tr>
-					<td><a href="#--input">--input</a><br />
-								&nbsp;<em>-I</em>
-					</td>
-					<!--<td>List[GATKPath]</td> -->
-					<td>[]</td>
-					<td>BAM/SAM/CRAM file containing reads</td>
 				</tr>
 				<tr>
 					<td><a href="#--interval-exclusion-padding">--interval-exclusion-padding</a><br />
@@ -458,6 +428,19 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--cbOutput">--cbOutput </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file for cell barcodes</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--cloud-index-prefetch-buffer">--cloud-index-prefetch-buffer </a>
 			 / <small>-CIPB</small>
 		</h3>
@@ -596,32 +579,6 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--fastq1">--fastq1 </a>
-			 / <small>-fq1</small>
-		</h3>
-		<p class="args">
-			<b>Input fastq file (optionally gzipped) of forward reads.</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--fastq2">--fastq2 </a>
-			 / <small>-fq2</small>
-		</h3>
-		<p class="args">
-			<b>Input fastq file (optionally gzipped) of reverse reads.</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--gatk-config-file">--gatk-config-file </a>
 			 / <small>NA</small>
 		</h3>
@@ -680,6 +637,7 @@
 			
 		</p>
 		<p>
+				<span class="badge badge-important">R</span>
 		<span class="label label-info ">List[GATKPath]</span>
 			&nbsp;<span class="label">[]</span>
 		</p>
@@ -802,61 +760,6 @@
 			&nbsp;<span class="label">0</span>
 			&nbsp;<span class="label label-warning">[ [ 0</span>
 			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minimalIdentity">--minimalIdentity </a>
-			 / <small>NA</small>
-		</h3>
-		<p class="args">
-			<b>The minimum identity in the overlap region</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.9</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minimalOverlap">--minimalOverlap </a>
-			 / <small>NA</small>
-		</h3>
-		<p class="args">
-			<b>The minimum overlap in base pairs</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">int</span>
-			&nbsp;<span class="label">17</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--minLength">--minLength </a>
-			 / <small>NA</small>
-		</h3>
-		<p class="args">
-			<b>The minimum length of the merged reads</b><br />
-			
-		</p>
-		<p>
-		<span class="label label-info ">double</span>
-			&nbsp;<span class="label">0.0</span>
-			&nbsp;<span class="label label-warning">[ [ -∞</span>
-			&nbsp;<span class="label label-warning">∞ ] ]</span>
-		</p>
-		<hr style="border-bottom: dotted 1px #C0C0C0;" />
-		<h3><a name="--output">--output </a>
-			 / <small>-O</small>
-		</h3>
-		<p class="args">
-			<b>The output FASTQ file</b><br />
-			
-		</p>
-		<p>
-				<span class="badge badge-important">R</span>
-		<span class="label label-info ">File</span>
-			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--QUIET">--QUIET </a>
@@ -989,6 +892,19 @@
 		</p>
 		<p>
 		<span class="label label-info ">GATKPath</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--umiOutput">--umiOutput </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>The output file for UMIs</b><br />
+			
+		</p>
+		<p>
+				<span class="badge badge-important">R</span>
+		<span class="label label-info ">File</span>
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
