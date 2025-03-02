@@ -25,9 +25,9 @@ import java.util.Map;
  * <h4>Simple search for a sequence in either forward or reverse read:</h4>
  * <pre>
  *  java -jar DISCVRseq.jar Save10xBarcodes \
- *     --bam theBam.bam \
+ *     --input theBam.bam \
  *     --cbOutput cbOutput.txt.gz \
- *     -umiOutput umiOutput.txt.gz
+ *     --umiOutput umiOutput.txt.gz
  * </pre>
  *
  */
@@ -38,9 +38,6 @@ import java.util.Map;
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class Save10xBarcodes extends ReadWalker {
-    @Argument(fullName="bam", doc="Input BAM file, produced by CellRanger")
-    public File bam;
-
     @Argument(fullName = "cbOutput", doc = "The output file for cell barcodes", optional = false)
     private File outputFile1 = null;
 
@@ -51,11 +48,8 @@ public class Save10xBarcodes extends ReadWalker {
     public void onTraversalStart() {
         super.onTraversalStart();
 
-        IOUtil.assertFileIsReadable(bam);
         IOUtil.assertFileIsWritable(outputFile1);
         IOUtil.assertFileIsWritable(outputFile2);
-
-
     }
 
     Map<String, String> rawToCorrectedCB = new HashMap<>();
