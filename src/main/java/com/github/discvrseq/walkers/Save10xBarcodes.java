@@ -55,10 +55,16 @@ public class Save10xBarcodes extends ReadWalker {
     Map<String, String> rawToCorrectedCB = new HashMap<>();
     Map<String, String> rawToCorrectedUMI = new HashMap<>();
 
+    private long totalReadsMissingCB = 0;
+    private long totalReadsMissingUB = 0;
+
     @Override
     public void apply(GATKRead read, ReferenceContext referenceContext, FeatureContext featureContext) {
         if (!read.hasAttribute("CB")) {
-            logger.info("Missing 'CB' attribute in read %s", read.getName());
+            if (totalReadsMissingCB < 5) {
+                logger.info("Missing 'CB' attribute in read {}. Only the first 5 readnames will be logged", read.getName());
+            }
+            totalReadsMissingCB++;
         }
         else if (read.hasAttribute("CR")) {
             rawToCorrectedCB.put(read.getAttributeAsString("CR"), read.getAttributeAsString("CB"));
@@ -68,8 +74,10 @@ public class Save10xBarcodes extends ReadWalker {
         }
 
         if (!read.hasAttribute("UB")) {
-            logger.info("Missing 'UB' attribute in read %s", read.getName());
-            return;
+            if (totalReadsMissingUB < 5) {
+                logger.info("Missing 'UB' attribute in read {}. Only the first 5 readnames will be logged.", read.getName());
+            }
+            totalReadsMissingUB++;
         }
         else if (read.hasAttribute("UR")) {
             rawToCorrectedUMI.put(read.getAttributeAsString("UR"), read.getAttributeAsString("UB"));
@@ -81,7 +89,10 @@ public class Save10xBarcodes extends ReadWalker {
 
     @Override
     public Object onTraversalSuccess() {
-        logger.info("Total Cell Barcodes: %s", rawToCorrectedCB.size());
+        logger.info("Total Cell Barcodes: {}", rawToCorrectedCB.size());
+        logger.info("Total Reads Missing CB: {}", totalReadsMissingCB);
+        logger.info("Total Reads Missing UB: {}", totalReadsMissingUB);
+
         try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile1)) {
             writer.writeNext(new String[]{"RawCellBarcode", "CorrectedCellBarcode"});
             rawToCorrectedCB.forEach((key, value) -> writer.writeNext(new String[]{key, value}));
@@ -91,7 +102,7 @@ public class Save10xBarcodes extends ReadWalker {
             logger.error(e.getMessage(), e);
         }
 
-        logger.info("Total UMIs: %s", rawToCorrectedUMI.size());
+        logger.info("Total UMIs: {}", rawToCorrectedUMI.size());
         try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile2)) {
             writer.writeNext(new String[]{"RawUMI", "CorrectedUMI"});
             rawToCorrectedUMI.forEach((key, value) -> writer.writeNext(new String[]{key, value}));
