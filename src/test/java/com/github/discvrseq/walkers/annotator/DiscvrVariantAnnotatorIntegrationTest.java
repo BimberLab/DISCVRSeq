@@ -126,4 +126,26 @@ public class DiscvrVariantAnnotatorIntegrationTest extends BaseIntegrationTest {
 
         spec.executeTest("basicTestWithRefAlleleFrequency", this);
     }
+
+    @Test
+    public void svTypeTest() throws Exception {
+        ArgumentsBuilder args = new ArgumentsBuilder();
+
+        File input = new File(testBaseDir, "SVType.vcf");
+        ensureVcfIndex(input);
+        args.add("V", normalizePath(input));
+
+        args.addRaw("-O");
+        args.addRaw("%s");
+        args.addRaw("--tmp-dir");
+        args.addRaw(getTmpDir());
+
+        args.add("A", "SVType");
+
+        IntegrationTestSpec spec = new IntegrationTestSpec(
+                args.getString(),
+                Arrays.asList(normalizePath(getTestFile("/svtypeOutput.vcf"))));
+
+        spec.executeTest("svTypeTest", this);
+    }
 }
