@@ -61,10 +61,10 @@ public class Save10xBarcodes extends ReadWalker {
     @Override
     public void apply(GATKRead read, ReferenceContext referenceContext, FeatureContext featureContext) {
         if (!read.hasAttribute("CB")) {
-            if (totalReadsMissingCB < 5) {
-                logger.info("Missing 'CB' attribute in read {}. Only the first 5 readnames will be logged", read.getName());
-            }
             totalReadsMissingCB++;
+            if (totalReadsMissingCB == 1) {
+                logger.info("Missing 'CB' attribute in read {}. This will only be logged once.", read.getName());
+            }
         }
         else if (read.hasAttribute("CR")) {
             rawToCorrectedCB.put(read.getAttributeAsString("CR"), read.getAttributeAsString("CB"));
@@ -74,10 +74,13 @@ public class Save10xBarcodes extends ReadWalker {
         }
 
         if (!read.hasAttribute("UB")) {
-            if (totalReadsMissingUB < 5) {
-                logger.info("Missing 'UB' attribute in read {}. Only the first 5 readnames will be logged.", read.getName());
+            // NOTE: UMI correction is only performed on reads with a valid cell barcode.
+            if (read.hasAttribute("CB")) {
+                totalReadsMissingUB++;
+                if (totalReadsMissingUB == 1) {
+                    logger.info("Missing 'UB' attribute in read {}. This will only be logged once.", read.getName());
+                }
             }
-            totalReadsMissingUB++;
         }
         else if (read.hasAttribute("UR")) {
             rawToCorrectedUMI.put(read.getAttributeAsString("UR"), read.getAttributeAsString("UB"));
