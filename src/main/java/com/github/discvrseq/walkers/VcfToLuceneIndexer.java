@@ -131,32 +131,33 @@ public class VcfToLuceneIndexer extends VariantWalker {
             logger.warn("The following fields were requested but not present: " + StringUtils.join(missing, ","));
         }
 
-        dict = getBestAvailableSequenceDictionary();
-
         if (threads > 1) {
             executor = Executors.newScheduledThreadPool(threads);
+        }
+
+        // populate map. Add the length of each prior contig:
+        SAMSequenceDictionary dict = getBestAvailableSequenceDictionary();
+        for (SAMSequenceRecord sr1 : dict.getSequences()) {
+            long offset = 0;
+            for (SAMSequenceRecord sr : dict.getSequences()) {
+                if (sr.getSequenceName().equals(sr1.getSequenceName())) {
+                    break;
+                }
+
+                offset += sr.getSequenceLength();
+            }
+            genomicPositionMap.put(sr1.getSequenceName(), offset);
         }
     }
 
     private ScheduledExecutorService executor = null;
 
-    private SAMSequenceDictionary dict = null;
-
     private long sites = 0;
 
+    private final Map<String, Long> genomicPositionMap = new HashMap<>();
+
     private long getGenomicPosition(String contig, int start){
-        long pos = start;
-
-        // Add the length of each prior contig:
-        for (SAMSequenceRecord sr : dict.getSequences()) {
-            if (sr.getSequenceName().equals(contig)) {
-                break;
-            }
-
-            pos += sr.getSequenceLength();
-        }
-
-        return pos;
+        return start + genomicPositionMap.get(contig);
     }
 
     @Override
@@ -388,7 +389,7 @@ public class VcfToLuceneIndexer extends VariantWalker {
         try {
             stats.inspectValue(key, fieldValue);
         }
-        catch (GATKException e) {
+        catch (Exception e) {
             possiblyReportBadValue(e, key, fieldValue);
         }
 
