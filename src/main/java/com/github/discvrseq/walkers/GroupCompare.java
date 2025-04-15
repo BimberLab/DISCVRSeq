@@ -260,7 +260,7 @@ public class GroupCompare extends ExtendedMultiVariantWalkerGroupedOnStart {
         VariantContext refVC = null;
         if (variants.get(getVariantConcordanceScoreArgumentCollection().referenceVariants) != null) {
             List<VariantContext> refVCs = variants.get(getVariantConcordanceScoreArgumentCollection().referenceVariants).stream().filter(Predicate.not(VariantContext::isFiltered)).map(x -> x.subContextFromSamples(refSamplesToInclude)).toList();
-            refVC = refVCs.size() == 1 ? refVCs.get(0) : GATKVariantContextUtils.simpleMerge(refVCs, Collections.singletonList(getVariantConcordanceScoreArgumentCollection().referenceVariants.getName()), 1, GATKVariantContextUtils.FilteredRecordMergeType.KEEP_IF_ANY_UNFILTERED, GATKVariantContextUtils.GenotypeMergeType.PRIORITIZE, true);
+            refVC = refVCs.size() == 1 ? refVCs.get(0) : GATKVariantContextUtils.simpleMerge(refVCs, Collections.singletonList(getVariantConcordanceScoreArgumentCollection().referenceVariants.getName()), GATKVariantContextUtils.FilteredRecordMergeType.KEEP_IF_ANY_UNFILTERED, GATKVariantContextUtils.GenotypeMergeType.PRIORITIZE, true);
 
             variants.remove(getVariantConcordanceScoreArgumentCollection().referenceVariants);
         }
