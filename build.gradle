@@ -126,6 +126,14 @@ dependencies {
     // messages that originate with dependencies that use commons-logging (such as jexl)
     // are routed to log4j
     implementation 'org.apache.logging.log4j:log4j-jcl:' + log4j2Version
+
+    // See: https://github.com/broadinstitute/gatk/blob/4.6.2.0/build.gradle
+    // TODO: remove this with GATK > 4.6.2.0
+    implementation('org.apache.commons:commons-math3'){
+        version {
+            strictly '3.5' // changing this breaks ModelSegmentsIntegrationTests, they're quite brittle
+        }
+    }
 }
 
 wrapper {
