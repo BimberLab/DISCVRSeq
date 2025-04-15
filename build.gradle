@@ -8,11 +8,12 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.github.johnrengelman.shadow" version "8.1.1"    //used to build the shadow and sparkJars
-    id 'com.palantir.git-version' version '0.5.1' //version helper
+    id "com.gradleup.shadow" version "8.3.3"    //used to build the shadow and sparkJars
+    id 'com.palantir.git-version' version '3.1.0' //version helper
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
 
 import java.util.stream.Collectors
 
@@ -137,7 +138,7 @@ dependencies {
 }
 
 wrapper {
-    gradleVersion = '8.2.1'
+    gradleVersion = '8.10.2'
 }
 
 final runtimeAddOpens = [
@@ -230,7 +231,7 @@ tasks.withType(ShadowJar).configureEach {
 
     // Suggested by the akka devs to make sure that we do not get the spark configuration error.
     // http://doc.akka.io/docs/akka/snapshot/general/configuration.html#When_using_JarJar__OneJar__Assembly_or_any_jar-bundler
-    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+    transform(AppendingTransformer) {
         resource = 'reference.conf'
     }
 }
