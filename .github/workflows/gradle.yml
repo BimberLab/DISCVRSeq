@@ -41,4 +41,6 @@ jobs:
     - name: Check JAR
       run: |
         java -version
-        java -jar build/libs/DISCVRSeq-unspecified-SNAPSHOT.jar -h
+        JAR=$(ls build/libs/*.jar)
+        echo $JAR
+        java -jar ${JAR} -h

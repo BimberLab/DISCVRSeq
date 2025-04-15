@@ -8,11 +8,12 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.github.johnrengelman.shadow" version "8.1.1"    //used to build the shadow and sparkJars
-    id 'com.palantir.git-version' version '0.5.1' //version helper
+    id "com.gradleup.shadow" version "8.3.3"    //used to build the shadow and sparkJars
+    id 'com.palantir.git-version' version '3.1.0' //version helper
 }
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
 
 import java.util.stream.Collectors
 
@@ -51,13 +52,13 @@ configurations {
 mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.5.0.0'
-final htsjdkVersion = System.getProperty('htsjdk.version','4.1.0')
+final gatkVersion = '4.6.2.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','4.2.0')
 final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','9.12.1')
 final testNGVersion = '7.0.0'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.127.8'
-final log4j2Version = System.getProperty('log4j2Version', '2.17.1')
+final googleCloudNioVersion = '0.127.8'
+final log4j2Version = System.getProperty('log4j2Version', '2.24.1')
 
 final docBuildDir = "$buildDir/docs"
 logger.info(docBuildDir)
@@ -75,7 +76,7 @@ configurations.configureEach {
 
         // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
         // via Picard, etc.
-        force googleCloudNioDependency
+        force 'com.google.cloud:google-cloud-nio:' + googleCloudNioVersion
 
         // Added to avoid GATK forcing commons-text 1.10, and opencsv forcing 1.11
         force 'org.apache.commons:commons-text:1.11.0'
@@ -96,7 +97,7 @@ dependencies {
 
     implementation group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
     implementation group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
-    implementation googleCloudNioDependency
+    implementation group: 'com.google.cloud', name: 'google-cloud-nio', version: googleCloudNioVersion
 
     // this comes built-in when running on Google Dataproc, but the library
     // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
@@ -126,10 +127,18 @@ dependencies {
     // messages that originate with dependencies that use commons-logging (such as jexl)
     // are routed to log4j
     implementation 'org.apache.logging.log4j:log4j-jcl:' + log4j2Version
+
+    // See: https://github.com/broadinstitute/gatk/blob/4.6.2.0/build.gradle
+    // TODO: remove this with GATK > 4.6.2.0
+    implementation('org.apache.commons:commons-math3'){
+        version {
+            strictly '3.5' // changing this breaks ModelSegmentsIntegrationTests, they're quite brittle
+        }
+    }
 }
 
 wrapper {
-    gradleVersion = '8.2.1'
+    gradleVersion = '8.10.2'
 }
 
 final runtimeAddOpens = [
@@ -222,7 +231,7 @@ tasks.withType(ShadowJar).configureEach {
 
     // Suggested by the akka devs to make sure that we do not get the spark configuration error.
     // http://doc.akka.io/docs/akka/snapshot/general/configuration.html#When_using_JarJar__OneJar__Assembly_or_any_jar-bundler
-    transform(com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer) {
+    transform(AppendingTransformer) {
         resource = 'reference.conf'
     }
 }

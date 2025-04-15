@@ -98,7 +98,8 @@ public class ExtendedFuncotator extends Funcotator {
                 new FlankSettings(getArguments().fivePrimeFlankSize, getArguments().threePrimeFlankSize),
                 false,
                 getArguments().minNumBasesForValidSegment,
-                DEFAULT_SPLICE_SITE_WINDOW_SIZE
+                DEFAULT_SPLICE_SITE_WINDOW_SIZE,
+                false
         );
 
 

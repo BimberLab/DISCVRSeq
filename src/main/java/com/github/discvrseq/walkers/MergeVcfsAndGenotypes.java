@@ -137,6 +137,9 @@ public class MergeVcfsAndGenotypes extends MultiVariantWalkerGroupedOnStart {
     @Argument(fullName="filteredAreUncalled", shortName="filteredAreUncalled", doc="Treat filtered variants as uncalled", optional = true)
     public boolean filteredAreUncalled = false;
 
+    @Argument(fullName="retainAllSources", shortName="retainAllSources", doc="If specified, the ID field of all input variants will be stored in the ID field. This is similar to GATK3 behavior", optional = true)
+    public boolean retainAllSources = false;
+
     /**
      * If this flag is enabled, the INFO, FORMAT and sample-level (genotype) fields will not be emitted to the output file.
      */
@@ -328,13 +331,13 @@ public class MergeVcfsAndGenotypes extends MultiVariantWalkerGroupedOnStart {
                 // make sure that it is a variant or in case it is not, that we want to include the sites with no variants
                 if (!EXCLUDE_NON_VARIANTS || !type.equals(VariantContext.Type.NO_VARIATION)) {
                     if (VCsByType.containsKey(type)) {
-                        mergedVCs.add(GATKVariantContextUtils.simpleMerge(VCsByType.get(type), priority, totalVCFs, filteredRecordsMergeType, genotypeMergeOption, filteredAreUncalled));
+                        mergedVCs.add(GATKVariantContextUtils.simpleMerge(VCsByType.get(type), priority, totalVCFs, filteredRecordsMergeType, genotypeMergeOption, filteredAreUncalled, retainAllSources, -1));
                     }
                 }
             }
         }
         else if (multipleAllelesMergeType == MultipleAllelesMergeType.MIX_TYPES) {
-            mergedVCs.add(GATKVariantContextUtils.simpleMerge(vcs, priority, totalVCFs, filteredRecordsMergeType, genotypeMergeOption, filteredAreUncalled));
+            mergedVCs.add(GATKVariantContextUtils.simpleMerge(vcs, priority, filteredRecordsMergeType, genotypeMergeOption, filteredAreUncalled, retainAllSources, -1));
         }
         else {
             logger.warn("Ignoring all records at site " + referenceContext.getContig() + ":" + referenceContext.getStart());
