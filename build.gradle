@@ -57,7 +57,7 @@ final htsjdkVersion = System.getProperty('htsjdk.version','4.2.0')
 final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','9.12.1')
 final testNGVersion = '7.0.0'
-final googleCloudNioDependency = 'com.google.cloud:google-cloud-nio:0.127.8'
+final googleCloudNioVersion = '0.127.8'
 final log4j2Version = System.getProperty('log4j2Version', '2.24.1')
 
 final docBuildDir = "$buildDir/docs"
@@ -76,7 +76,7 @@ configurations.configureEach {
 
         // make sure we don't pick up an incorrect version of the GATK variant of the google-nio library
         // via Picard, etc.
-        force googleCloudNioDependency
+        force 'com.google.cloud:google-cloud-nio:' + googleCloudNioVersion
 
         // Added to avoid GATK forcing commons-text 1.10, and opencsv forcing 1.11
         force 'org.apache.commons:commons-text:1.11.0'
@@ -97,7 +97,7 @@ dependencies {
 
     implementation group: 'org.broadinstitute', name: 'gatk-test-utils', version: gatkVersion
     implementation group: 'com.github.samtools', name: 'htsjdk', version: htsjdkVersion
-    implementation googleCloudNioDependency
+    implementation group: 'com.google.cloud', name: 'google-cloud-nio', version: googleCloudNioVersion
 
     // this comes built-in when running on Google Dataproc, but the library
     // allows us to read from GCS also when testing locally (or on non-Dataproc clusters,
