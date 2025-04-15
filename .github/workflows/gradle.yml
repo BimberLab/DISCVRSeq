@@ -43,4 +43,4 @@ jobs:
         java -version
         JAR=$(ls build/libs/*.jar)
         echo $JAR
-        java -jar build/libs/${JAR} -h
+        java -jar ${JAR} -h
