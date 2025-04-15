@@ -436,6 +436,22 @@
       "options": []
     },
     {
+      "summary": "Inverted (with flipped acceptance/failure conditions) read filters applied before analysis (after regular read filters).",
+      "name": "--inverted-read-filter",
+      "synonyms": "-XRF",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Lenient processing of VCF files",
       "name": "--lenient",
       "synonyms": "-LE",
@@ -751,6 +767,43 @@
       "kind": "required",
       "deprecated": false,
       "options": []
+    },
+    {
+      "summary": "Restrict the output variants to ones that match the specified intervals according to the specified matching mode.",
+      "name": "--variant-output-filtering",
+      "synonyms": "NA",
+      "type": "Mode",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "starts within any of the given intervals",
+          "name": "STARTS_IN"
+        },
+        {
+          "summary": "ends within any of the given intervals",
+          "name": "ENDS_IN"
+        },
+        {
+          "summary": "overlaps any of the given intervals",
+          "name": "OVERLAPS"
+        },
+        {
+          "summary": "contained completely within a contiguous block of intervals without overlap",
+          "name": "CONTAINED"
+        },
+        {
+          "summary": "no filtering",
+          "name": "ANYWHERE"
+        }
+      ]
     },
     {
       "summary": "Control verbosity of logging.",

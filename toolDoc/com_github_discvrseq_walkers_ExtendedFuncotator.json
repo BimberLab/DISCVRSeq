@@ -516,6 +516,22 @@
       "options": []
     },
     {
+      "summary": "Inverted (with flipped acceptance/failure conditions) read filters applied before analysis (after regular read filters).",
+      "name": "--inverted-read-filter",
+      "synonyms": "-XRF",
+      "type": "List[String]",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "[]",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "common",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Lenient processing of VCF files",
       "name": "--lenient",
       "synonyms": "-LE",
@@ -623,6 +639,22 @@
           "name": "SEG"
         }
       ]
+    },
+    {
+      "summary": "If this flag is set, Funcotator will prefer \u0027MANE_Plus_Clinical\u0027 followed by \u0027MANE_select\u0027 transcripts (including those not tagged \u0027basic\u0027) if one is present for a given variant. If neither tag is present it use the default behavior (only base transcripts).",
+      "name": "--prefer-mane-transcripts",
+      "synonyms": "NA",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "deprecated": false,
+      "options": []
     },
     {
       "summary": "If specified, a list of all fields present in the data sources but not included in the output will be printed, and the tool will immediately exit.",
@@ -985,6 +1017,43 @@
       "kind": "required",
       "deprecated": false,
       "options": []
+    },
+    {
+      "summary": "Restrict the output variants to ones that match the specified intervals according to the specified matching mode.",
+      "name": "--variant-output-filtering",
+      "synonyms": "NA",
+      "type": "Mode",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "starts within any of the given intervals",
+          "name": "STARTS_IN"
+        },
+        {
+          "summary": "ends within any of the given intervals",
+          "name": "ENDS_IN"
+        },
+        {
+          "summary": "overlaps any of the given intervals",
+          "name": "OVERLAPS"
+        },
+        {
+          "summary": "contained completely within a contiguous block of intervals without overlap",
+          "name": "CONTAINED"
+        },
+        {
+          "summary": "no filtering",
+          "name": "ANYWHERE"
+        }
+      ]
     },
     {
       "summary": "Control verbosity of logging.",

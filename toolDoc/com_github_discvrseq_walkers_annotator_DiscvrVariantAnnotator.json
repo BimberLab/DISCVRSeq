@@ -954,6 +954,43 @@
       "options": []
     },
     {
+      "summary": "Restrict the output variants to ones that match the specified intervals according to the specified matching mode.",
+      "name": "--variant-output-filtering",
+      "synonyms": "NA",
+      "type": "Mode",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "advanced",
+      "deprecated": false,
+      "options": [
+        {
+          "summary": "starts within any of the given intervals",
+          "name": "STARTS_IN"
+        },
+        {
+          "summary": "ends within any of the given intervals",
+          "name": "ENDS_IN"
+        },
+        {
+          "summary": "overlaps any of the given intervals",
+          "name": "OVERLAPS"
+        },
+        {
+          "summary": "contained completely within a contiguous block of intervals without overlap",
+          "name": "CONTAINED"
+        },
+        {
+          "summary": "no filtering",
+          "name": "ANYWHERE"
+        }
+      ]
+    },
+    {
       "summary": "Control verbosity of logging.",
       "name": "--verbosity",
       "synonyms": "-verbosity",

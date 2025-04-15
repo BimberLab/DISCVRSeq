@@ -298,6 +298,14 @@
 					<td>Set merging approach to use for combining interval inputs</td>
 				</tr>
 				<tr>
+					<td><a href="#--inverted-read-filter">--inverted-read-filter</a><br />
+								&nbsp;<em>-XRF</em>
+					</td>
+					<!--<td>List[String]</td> -->
+					<td>[]</td>
+					<td>Inverted (with flipped acceptance/failure conditions) read filters applied before analysis (after regular read filters).</td>
+				</tr>
+				<tr>
 					<td><a href="#--lenient">--lenient</a><br />
 								&nbsp;<em>-LE</em>
 					</td>
@@ -395,6 +403,13 @@
 					<!--<td>boolean</td> -->
 					<td>false</td>
 					<td>display hidden arguments</td>
+				</tr>
+				<tr>
+					<td><a href="#--variant-output-filtering">--variant-output-filtering</a><br />
+					</td>
+					<!--<td>Mode</td> -->
+					<td>null</td>
+					<td>Restrict the output variants to ones that match the specified intervals according to the specified matching mode.</td>
 				</tr>
 					</tbody>
 				</table>
@@ -745,6 +760,18 @@
 			&nbsp;<span class="label">[]</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--inverted-read-filter">--inverted-read-filter </a>
+			 / <small>-XRF</small>
+		</h3>
+		<p class="args">
+			<b>Inverted (with flipped acceptance/failure conditions) read filters applied before analysis (after regular read filters).</b><br />
+			
+		</p>
+		<p>
+		<span class="label label-info ">List[String]</span>
+			&nbsp;<span class="label">[]</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--lenient">--lenient </a>
 			 / <small>-LE</small>
 		</h3>
@@ -954,6 +981,33 @@
 			&nbsp;<span class="label">null</span>
 		</p>
 		<hr style="border-bottom: dotted 1px #C0C0C0;" />
+		<h3><a name="--variant-output-filtering">--variant-output-filtering </a>
+			 / <small>NA</small>
+		</h3>
+		<p class="args">
+			<b>Restrict the output variants to ones that match the specified intervals according to the specified matching mode.</b><br />
+			
+		</p>
+			<p>
+				The --variant-output-filtering argument is an enumerated type (Mode), which can have one of the following values:
+			<dl class="enum">
+					<dt class="enum">STARTS_IN</dt>
+					<dd class="enum">starts within any of the given intervals</dd>
+					<dt class="enum">ENDS_IN</dt>
+					<dd class="enum">ends within any of the given intervals</dd>
+					<dt class="enum">OVERLAPS</dt>
+					<dd class="enum">overlaps any of the given intervals</dd>
+					<dt class="enum">CONTAINED</dt>
+					<dd class="enum">contained completely within a contiguous block of intervals without overlap</dd>
+					<dt class="enum">ANYWHERE</dt>
+					<dd class="enum">no filtering</dd>
+			</dl>
+			</p>
+		<p>
+		<span class="label label-info ">Mode</span>
+			&nbsp;<span class="label">null</span>
+		</p>
+		<hr style="border-bottom: dotted 1px #C0C0C0;" />
 		<h3><a name="--verbosity">--verbosity </a>
 			 / <small>-verbosity</small>
 		</h3>
@@ -1000,7 +1054,7 @@
         	<a href="https://github.com/bimberlab/discvrseq/issues/">Issues/Help</a>
         </p>
 
-        <p class="version">DISCVR-Seq version 1.3.85 built at 14-04-2025 05:05:35.
+        <p class="version">DISCVR-Seq version 1.3.86 built at 15-04-2025 03:00:07.
         </p>
 
 </div></div>
