@@ -59,6 +59,10 @@ public class BackportLiftedVcf extends VariantWalker {
     public static final String ORIGINAL_START = "OriginalStart";
     public static final String ORIGINAL_ALLELES = "OriginalAlleles";
 
+    public static final String ORIGINAL_CONTIG_BCF = "SRC_CHROM";
+    public static final String ORIGINAL_START_BCF = "SRC_POS";
+    public static final String ORIGINAL_ALLELES_BCF = "SRC_REF_ALT";
+
     public static final String LIFTED_CONTIG = "LiftedContig";
     public static final String LIFTED_START = "LiftedStart";
     public static final String LIFTED_STOP = "LiftedStop";
@@ -75,9 +79,20 @@ public class BackportLiftedVcf extends VariantWalker {
     public void onTraversalStart() {
         Utils.nonNull(outFile);
 
-        Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_CONTIG), "The input VCF lacks the " + ORIGINAL_CONTIG + " annotation");
-        Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_START), "The input VCF lacks the " + ORIGINAL_START + " annotation");
-        Utils.nonNull(getHeaderForVariants().getInfoHeaderLine(ORIGINAL_ALLELES), "The input VCF lacks the " + ORIGINAL_ALLELES + " annotation");
+        if (getHeaderForVariants().getInfoHeaderLine(ORIGINAL_CONTIG) == null && getHeaderForVariants().getInfoHeaderLine(ORIGINAL_CONTIG_BCF) == null)
+        {
+            throw new IllegalArgumentException("The input VCF lacks both the " + ORIGINAL_CONTIG + " and " + ORIGINAL_CONTIG_BCF + " annotations");
+        }
+
+        if (getHeaderForVariants().getInfoHeaderLine(ORIGINAL_START) == null && getHeaderForVariants().getInfoHeaderLine(ORIGINAL_START_BCF) == null)
+        {
+            throw new IllegalArgumentException("The input VCF lacks both the " + ORIGINAL_START + " and " + ORIGINAL_START_BCF + " annotations");
+        }
+
+        if (getHeaderForVariants().getInfoHeaderLine(ORIGINAL_ALLELES) == null && getHeaderForVariants().getInfoHeaderLine(ORIGINAL_ALLELES_BCF) == null)
+        {
+            throw new IllegalArgumentException("The input VCF lacks both the " + ORIGINAL_ALLELES + " and " + ORIGINAL_ALLELES_BCF + " annotations");
+        }
 
         prepareVcfHeader();
         initializeSorter(outputHeader);
@@ -90,6 +105,9 @@ public class BackportLiftedVcf extends VariantWalker {
         lines.remove(header.getInfoHeaderLine(ORIGINAL_CONTIG));
         lines.remove(header.getInfoHeaderLine(ORIGINAL_START));
         lines.remove(header.getInfoHeaderLine(ORIGINAL_ALLELES));
+        lines.remove(header.getInfoHeaderLine(ORIGINAL_CONTIG_BCF));
+        lines.remove(header.getInfoHeaderLine(ORIGINAL_START_BCF));
+        lines.remove(header.getInfoHeaderLine(ORIGINAL_ALLELES_BCF));
 
         outputHeader = new VCFHeader(lines, header.getSampleNamesInOrder());
 
@@ -120,26 +138,40 @@ public class BackportLiftedVcf extends VariantWalker {
                 MAX_RECORDS_IN_RAM, tmpDir.toPath());
     }
 
+    private String getCoalescedFieldName(VariantContext variant, String fn1, String fn2)
+    {
+        if (variant.hasAttribute(fn1))
+        {
+            return fn1;
+        }
+        else if (variant.hasAttribute(fn2))
+        {
+            return fn2;
+        }
+
+        throw new IllegalStateException("Variant lacks " + fn1 + " or " + fn2 + " fields. This should have been caught during initialization");
+    }
+
     @Override
     public void apply(VariantContext variant, ReadsContext readsContext, ReferenceContext referenceContext, FeatureContext featureContext) {
         String origChr = variant.getContig();
         int origStart = variant.getStart();
         int origStop = variant.getEnd();
 
-        String targetChr = variant.getAttributeAsString(ORIGINAL_CONTIG, null);
+        String targetChr = variant.getAttributeAsString(getCoalescedFieldName(variant, ORIGINAL_CONTIG, ORIGINAL_CONTIG_BCF), null);
         Utils.nonNull(targetChr, "Missing annotation for " + ORIGINAL_CONTIG + " at position: " + origChr + " " + origStart);
 
         if (outputHeader.getSequenceDictionary().getSequence(targetChr) == null){
             throw new IllegalArgumentException("Unknown contig: " + targetChr + " at position: " + origChr + " " + origStart);
         }
 
-        int targetStart = variant.getAttributeAsInt(ORIGINAL_START, -1);
+        int targetStart = variant.getAttributeAsInt(getCoalescedFieldName(variant, ORIGINAL_START, ORIGINAL_START_BCF), -1);
         if (targetStart == -1){
             throw new IllegalArgumentException("Missing annotation for " + ORIGINAL_START + " at position: " + origChr + " " + origStart);
         }
 
         List<Allele> targetAlleles = new ArrayList<>();
-        List<String> origAlleles = variant.getAttributeAsStringList(ORIGINAL_ALLELES, null);
+        List<String> origAlleles = variant.getAttributeAsStringList(getCoalescedFieldName(variant, ORIGINAL_ALLELES, ORIGINAL_ALLELES_BCF), null);
         if (origAlleles == null || origAlleles.isEmpty()){
             targetAlleles = variant.getAlleles();
         }
@@ -173,6 +205,10 @@ public class BackportLiftedVcf extends VariantWalker {
         vcb.rmAttribute(ORIGINAL_CONTIG);
         vcb.rmAttribute(ORIGINAL_START);
         vcb.rmAttribute(ORIGINAL_ALLELES);
+
+        vcb.rmAttribute(ORIGINAL_CONTIG_BCF);
+        vcb.rmAttribute(ORIGINAL_START_BCF);
+        vcb.rmAttribute(ORIGINAL_ALLELES_BCF);
 
         sorter.add(vcb.make());
     }
