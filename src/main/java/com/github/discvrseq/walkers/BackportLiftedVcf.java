@@ -22,6 +22,7 @@ import org.broadinstitute.hellbender.utils.variant.GATKVariantContextUtils;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This tool was originally created as part of an annotation pipeline for non-human data.  The input VCF from another species (or genome build) would be lifted to the human genome and annotated
@@ -177,7 +178,7 @@ public class BackportLiftedVcf extends VariantWalker {
         }
         else {
             if (origAlleles.size() != variant.getAlleles().size()){
-                throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site");
+                throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site. Existing: " + variant.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")) + ", annotation: " + origAlleles.stream().collect(Collectors.joining(",")));
             }
 
             int idx = 0;
