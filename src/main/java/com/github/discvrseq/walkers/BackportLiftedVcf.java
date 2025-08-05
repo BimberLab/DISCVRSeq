@@ -51,6 +51,9 @@ public class BackportLiftedVcf extends VariantWalker {
     @Argument(doc="Target FASTA file", fullName = "targetFasta", shortName = "targetFasta", optional = false)
     public String targetGenome = null;
 
+    @Argument(doc = "The liftOver can result in dropped ALT alleles. If this flag is provided, the tool will error if a given loci does not have the same number of ref/alt alleles. The default is to skip it.",  fullName = "errorOnLociWithMismatchedAlleles", shortName = "errorOnLociWithMismatchedAlleles", optional = true)
+    public boolean errorOnLociWithMismatchedAlleles = false;
+
     private SortingCollection<VariantContext> sorter;
     private VCFHeader outputHeader;
 
@@ -73,6 +76,8 @@ public class BackportLiftedVcf extends VariantWalker {
             new VCFInfoHeaderLine(LIFTED_START, 1, VCFHeaderLineType.Integer, "The start position of the variant on the lifted contig."),
             new VCFInfoHeaderLine(LIFTED_STOP, 1, VCFHeaderLineType.Integer, "The end position of the variant on the lifted contig.")
     );
+
+    private long skippedLoci = 0;
 
     private final Log log = Log.getInstance(BackportLiftedVcf.class);
 
@@ -177,8 +182,13 @@ public class BackportLiftedVcf extends VariantWalker {
             targetAlleles = variant.getAlleles();
         }
         else {
-            if (origAlleles.size() != variant.getAlleles().size()){
-                throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site. Existing: " + variant.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")) + ", annotation: " + origAlleles.stream().collect(Collectors.joining(",")));
+            if (origAlleles.size() != variant.getAlleles().size()) {
+                if (errorOnLociWithMismatchedAlleles) {
+                    throw new IllegalArgumentException("Original alleles listed for position: " + origChr + " " + origStart + " do not have the same number as the alleles at this site. Existing: " + variant.getAlleles().stream().map(Allele::getDisplayString).collect(Collectors.joining(",")) + ", annotation: " + origAlleles.stream().collect(Collectors.joining(",")));
+                }
+
+                skippedLoci++;
+                return;
             }
 
             int idx = 0;
@@ -242,6 +252,8 @@ public class BackportLiftedVcf extends VariantWalker {
     @Override
     public Object onTraversalSuccess() {
         writeSortedOutput();
+
+        log.info("Total loci skipped due to mismatched allele number: " + skippedLoci);
 
         return null;
     }
