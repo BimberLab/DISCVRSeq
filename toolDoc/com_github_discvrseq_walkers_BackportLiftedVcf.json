@@ -210,6 +210,22 @@
       "options": []
     },
     {
+      "summary": "The liftOver can result in dropped ALT alleles. If this flag is provided, the tool will error if a given loci does not have the same number of ref/alt alleles. The default is to skip it.",
+      "name": "--errorOnLociWithMismatchedAlleles",
+      "synonyms": "-errorOnLociWithMismatchedAlleles",
+      "type": "boolean",
+      "required": "no",
+      "fulltext": "",
+      "defaultValue": "false",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "optional",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "One or more genomic intervals to exclude from processing",
       "name": "--exclude-intervals",
       "synonyms": "-XL",
