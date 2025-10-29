@@ -4,21 +4,25 @@ import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
 import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
 import org.broadinstitute.hellbender.engine.FeatureContext;
 import org.broadinstitute.hellbender.engine.ReadWalker;
 import org.broadinstitute.hellbender.engine.ReferenceContext;
+import org.broadinstitute.hellbender.engine.filters.ReadFilter;
 import org.broadinstitute.hellbender.utils.read.GATKRead;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * This walker will iterate FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.
+ * This walker will iterate a BAM generated FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.
  *
  *
  * <h3>Usage examples:</h3>
@@ -26,8 +30,7 @@ import java.util.Map;
  * <pre>
  *  java -jar DISCVRseq.jar Save10xBarcodes \
  *     --input theBam.bam \
- *     --cbOutput cbOutput.txt.gz \
- *     --umiOutput umiOutput.txt.gz
+ *     --output bcOutput.txt.gz
  * </pre>
  *
  */
@@ -38,39 +41,31 @@ import java.util.Map;
         programGroup = DiscvrSeqProgramGroup.class
 )
 public class Save10xBarcodes extends ReadWalker {
-    @Argument(fullName = "cbOutput", doc = "The output file for cell barcodes", optional = false)
-    private File outputFile1 = null;
-
-    @Argument(fullName = "umiOutput", doc = "The output file for UMIs", optional = false)
-    private File outputFile2 = null;
+    @Argument(fullName = "output", doc = "The output file for cell barcode / UMIs", optional = false)
+    private File outputFile = null;
 
     @Override
     public void onTraversalStart() {
         super.onTraversalStart();
 
-        IOUtil.assertFileIsWritable(outputFile1);
-        IOUtil.assertFileIsWritable(outputFile2);
+        IOUtil.assertFileIsWritable(outputFile);
     }
 
-    Map<String, String> rawToCorrectedCB = new HashMap<>();
-    Map<String, String> rawToCorrectedUMI = new HashMap<>();
+    Map<String, String> rawToCorrected = new HashMap<>();
 
     private long totalReadsMissingCB = 0;
     private long totalReadsMissingUB = 0;
 
     @Override
     public void apply(GATKRead read, ReferenceContext referenceContext, FeatureContext featureContext) {
+        Pair<String, String> cbMap = null;
+        Pair<String, String> umiMap = null;
         if (!read.hasAttribute("CB")) {
             totalReadsMissingCB++;
             if (totalReadsMissingCB == 1) {
                 logger.info("Missing 'CB' attribute in read {}. This will only be logged once.", read.getName());
             }
-        }
-        else if (read.hasAttribute("CR")) {
-            rawToCorrectedCB.put(read.getAttributeAsString("CR"), read.getAttributeAsString("CB"));
-        }
-        else {
-            rawToCorrectedCB.put(read.getAttributeAsString("CB"), read.getAttributeAsString("CB"));
+            return;
         }
 
         if (!read.hasAttribute("UB")) {
@@ -81,34 +76,50 @@ public class Save10xBarcodes extends ReadWalker {
                     logger.info("Missing 'UB' attribute in read {}. This will only be logged once.", read.getName());
                 }
             }
+
+            return;
         }
-        else if (read.hasAttribute("UR")) {
-            rawToCorrectedUMI.put(read.getAttributeAsString("UR"), read.getAttributeAsString("UB"));
+
+        if (read.hasAttribute("CR")) {
+            cbMap = Pair.of(read.getAttributeAsString("CR"), read.getAttributeAsString("CB"));
         }
         else {
-            rawToCorrectedUMI.put(read.getAttributeAsString("UB"), read.getAttributeAsString("UB"));
+            cbMap = Pair.of(read.getAttributeAsString("CB"), read.getAttributeAsString("CB"));
         }
+
+        if (read.hasAttribute("UR")) {
+            umiMap = Pair.of(read.getAttributeAsString("UR"), read.getAttributeAsString("UB"));
+        }
+        else {
+            umiMap = Pair.of(read.getAttributeAsString("UB"), read.getAttributeAsString("UB"));
+        }
+
+        String key = cbMap.getKey() + "<>" + umiMap.getKey();
+        String value = cbMap.getValue() + DELIM + umiMap.getValue();
+
+        if (rawToCorrected.containsKey(key) && !rawToCorrected.get(key).equals(value)) {
+            throw new IllegalStateException("Key already present: " + key + ", but existing value (" + rawToCorrected.get(key) + ") differs from current row: " + value);
+        }
+
+        rawToCorrected.put(key, value);
     }
+
+    private static final String DELIM = "<>";
 
     @Override
     public Object onTraversalSuccess() {
-        logger.info("Total Cell Barcodes: {}", rawToCorrectedCB.size());
+        logger.info("Total Raw CB/UMI combinations: {}", rawToCorrected.size());
         logger.info("Total Reads Missing CB: {}", totalReadsMissingCB);
         logger.info("Total Reads Missing UB: {}", totalReadsMissingUB);
 
-        try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile1)) {
-            writer.writeNext(new String[]{"RawCellBarcode", "CorrectedCellBarcode"});
-            rawToCorrectedCB.forEach((key, value) -> writer.writeNext(new String[]{key, value}));
-        }
-        catch (IOException e)
-        {
-            logger.error(e.getMessage(), e);
-        }
+        try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile)) {
+            writer.writeNext(new String[]{"RawCellBarcode", "CorrectedCellBarcode", "RawUMI", "CorrectedUMI"});
+            rawToCorrected.forEach((key, value) -> {
+                String[] rawVals = key.split(DELIM);
+                String[] correctedVals = value.split(DELIM);
 
-        logger.info("Total UMIs: {}", rawToCorrectedUMI.size());
-        try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile2)) {
-            writer.writeNext(new String[]{"RawUMI", "CorrectedUMI"});
-            rawToCorrectedUMI.forEach((key, value) -> writer.writeNext(new String[]{key, value}));
+                writer.writeNext(new String[]{rawVals[0], correctedVals[0], rawVals[1], correctedVals[1]});
+            });
         }
         catch (IOException e)
         {
@@ -116,5 +127,10 @@ public class Save10xBarcodes extends ReadWalker {
         }
 
         return null;
+    }
+
+    @Override
+    public List<ReadFilter> getDefaultReadFilters() {
+        return Collections.emptyList();
     }
 }
