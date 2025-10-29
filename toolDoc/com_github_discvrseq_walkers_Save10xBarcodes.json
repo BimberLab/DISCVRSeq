@@ -50,22 +50,6 @@
       "options": []
     },
     {
-      "summary": "The output file for cell barcodes",
-      "name": "--cbOutput",
-      "synonyms": "NA",
-      "type": "File",
-      "required": "yes",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "required",
-      "deprecated": false,
-      "options": []
-    },
-    {
       "summary": "Size of the cloud-only prefetch buffer (in MB; 0 to disable). Defaults to cloudPrefetchBuffer if unset.",
       "name": "--cloud-index-prefetch-buffer",
       "synonyms": "-CIPB",
@@ -468,6 +452,22 @@
       "options": []
     },
     {
+      "summary": "The output file for cell barcode / UMIs",
+      "name": "--output",
+      "synonyms": "NA",
+      "type": "File",
+      "required": "yes",
+      "fulltext": "",
+      "defaultValue": "null",
+      "minValue": "NA",
+      "maxValue": "NA",
+      "minRecValue": "NA",
+      "maxRecValue": "NA",
+      "kind": "required",
+      "deprecated": false,
+      "options": []
+    },
+    {
       "summary": "Whether to suppress job-summary info on System.err.",
       "name": "--QUIET",
       "synonyms": "NA",
@@ -641,22 +641,6 @@
       "options": []
     },
     {
-      "summary": "The output file for UMIs",
-      "name": "--umiOutput",
-      "synonyms": "NA",
-      "type": "File",
-      "required": "yes",
-      "fulltext": "",
-      "defaultValue": "null",
-      "minValue": "NA",
-      "maxValue": "NA",
-      "minRecValue": "NA",
-      "maxRecValue": "NA",
-      "kind": "required",
-      "deprecated": false,
-      "options": []
-    },
-    {
       "summary": "Whether to use the JdkDeflater (as opposed to IntelDeflater)",
       "name": "--use-jdk-deflater",
       "synonyms": "-jdk-deflater",
@@ -738,7 +722,7 @@
       "options": []
     }
   ],
-  "description": "This walker will iterate FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.\n\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n \u003ch4\u003eSimple search for a sequence in either forward or reverse read:\u003c/h4\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Save10xBarcodes \\\n     --input theBam.bam \\\n     --cbOutput cbOutput.txt.gz \\\n     --umiOutput umiOutput.txt.gz\n \u003c/pre\u003e",
+  "description": "This walker will iterate a BAM generated FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.\n\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n \u003ch4\u003eSimple search for a sequence in either forward or reverse read:\u003c/h4\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Save10xBarcodes \\\n     --input theBam.bam \\\n     --output bcOutput.txt.gz\n \u003c/pre\u003e",
   "name": "Save10xBarcodes",
   "group": "Public/Stable Tools",
   "beta": false,
