@@ -4,7 +4,6 @@ import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import com.github.discvrseq.util.CsvUtils;
 import com.opencsv.ICSVWriter;
 import htsjdk.samtools.util.IOUtil;
-import org.apache.commons.lang3.tuple.Pair;
 import org.broadinstitute.barclay.argparser.Argument;
 import org.broadinstitute.barclay.argparser.CommandLineProgramProperties;
 import org.broadinstitute.barclay.help.DocumentedFeature;
@@ -63,8 +62,8 @@ public class Save10xBarcodes extends ReadWalker {
             return;
         }
 
-        String raw = read.hasAttribute("CR") ? read.getAttributeAsString("CR") :read.getAttributeAsString("CB");
-        String corrected = read.getAttributeAsString("CB");
+        String raw = read.hasAttribute("CR") ? read.getAttributeAsString("CR") :read.getAttributeAsString("CB").split("-")[0];
+        String corrected = read.getAttributeAsString("CB").split("-")[0];
 
         if (rawToCorrected.containsKey(raw) && !rawToCorrected.get(raw).equals(corrected)) {
             throw new IllegalStateException("Key already present: " + raw + ", but existing value (" + rawToCorrected.get(raw) + ") differs from current row: " + corrected);
@@ -73,11 +72,9 @@ public class Save10xBarcodes extends ReadWalker {
         rawToCorrected.put(raw, corrected);
     }
 
-    private static final String DELIM = "<>";
-
     @Override
     public Object onTraversalSuccess() {
-        logger.info("Total Raw CB/UMI combinations: {}", rawToCorrected.size());
+        logger.info("Total Raw/Corrected CB combinations: {}", rawToCorrected.size());
         logger.info("Total Reads Missing CB: {}", totalReadsMissingCB);
 
         try (ICSVWriter writer = CsvUtils.getTsvWriter(outputFile)) {
