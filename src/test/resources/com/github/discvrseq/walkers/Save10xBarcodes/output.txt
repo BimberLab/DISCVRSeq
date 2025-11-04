@@ -1,1 +1,1 @@
-RawCellBarcode	CorrectedCellBarcode	RawUMI	CorrectedUMI
+RawCellBarcode	CorrectedCellBarcode
