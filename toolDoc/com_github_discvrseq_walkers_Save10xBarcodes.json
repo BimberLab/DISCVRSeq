@@ -1,5 +1,5 @@
 {
-  "summary": "Print all CR/CB and UR/UB combinations",
+  "summary": "Save all CR/CB combinations",
   "arguments": [
     {
       "summary": "If true, adds a PG tag to created SAM/BAM/CRAM files.",
@@ -452,7 +452,7 @@
       "options": []
     },
     {
-      "summary": "The output file for cell barcode / UMIs",
+      "summary": "The output file for cell barcode corrected/uncorrect combinations",
       "name": "--output",
       "synonyms": "NA",
       "type": "File",
@@ -722,7 +722,7 @@
       "options": []
     }
   ],
-  "description": "This walker will iterate a BAM generated FASTQ or pair of FASTQs and print any reads matching the supplied expressions.  Expressions can be simple strings or a java regular expression.\n\n\n \u003ch3\u003eUsage examples:\u003c/h3\u003e\n \u003ch4\u003eSimple search for a sequence in either forward or reverse read:\u003c/h4\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Save10xBarcodes \\\n     --input theBam.bam \\\n     --output bcOutput.txt.gz\n \u003c/pre\u003e",
+  "description": "This walker will iterate a CellRanger-generated BAM and save a TSV with all combinations of corrected and raw cell barcodes.\n\n \u003ch3\u003eUsage example:\u003c/h3\u003e\n \u003cpre\u003e\n  java -jar DISCVRseq.jar Save10xBarcodes \\\n     --input theBam.bam \\\n     --output bcOutput.txt.gz\n \u003c/pre\u003e",
   "name": "Save10xBarcodes",
   "group": "Public/Stable Tools",
   "beta": false,
