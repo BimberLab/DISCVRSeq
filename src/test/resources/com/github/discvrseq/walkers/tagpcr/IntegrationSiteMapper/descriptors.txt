@@ -88,3 +88,23 @@ internalPrimers:
   sequence: GACCGATAAAACACATGCGTCA
 backboneSearchStrings: [ TGTGTACCACTTCACCGGCG, TCACCGGCGGACCTTGCGCC, ACCTTGCGCCGAACTGGTTG, TGGCAGAATCTTCACAGGCG, TGTCCTCCGATGGCAGAATC, TCTGCTGCCCTGTCCTCCGA ]
 
+Example: bxbi_attp
+
+name: BxbI-attP
+junctions:
+  - name: BxbI-attP-Up
+    searchStrings: [ GGTTTGTCTGGTCAACCACCGCG ]
+    invertHitOrientation: false
+    offset: 2
+  - name: BxbI-attP-Down
+    searchStrings: [ GGTTTGTACCGTACACCACTGAG ]
+    invertHitOrientation: true
+    offset: 0
+insertUpstreamRegion:
+  name: BxbI-attP-Up
+  sequence: AACTATAACGGTCCTAAGGTAGCGAAGGTTTGTCTGGTCAACCACCGCG
+insertDownstreamRegion:
+  name: BxbI-attP-Down
+  sequence: CATTTCATTACCTCTTTCTCCGCACCCGACATAGATGGTTTGTACCGTACACCACTGAG
+backboneSearchStrings: [  ]
+
