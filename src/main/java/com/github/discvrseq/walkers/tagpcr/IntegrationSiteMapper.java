@@ -274,7 +274,8 @@ public class IntegrationSiteMapper extends GATKTool {
     private enum DefaultDescriptorType {
         lentivirus("Lentivirus.yml"),
         piggybac("pENTR-PB511-Repro.yml"),
-        predict("esTag-PCR-PREDICT.yml");
+        predict("esTag-PCR-PREDICT.yml"),
+        bxbi_attp("BxbI-attP.yml");
 
         private String fileName;
 
