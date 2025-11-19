@@ -1,2 +1,3 @@
-RefName	TotalReads	ReasonForFailure
-Mamu-B*030:01	1	Mismatches
+RefName	TotalReadsForHit	ReasonForFailure	PercentOfTotal	PercentOfTotalIncludingUnmapped	TotalReadsIncludingUnmapped
+Mamu-B*030:01	1	Mismatches:11	0.000	0.000	11669
+Mamu-B*030:01	1	Mismatches:12	0.000	0.000	11669

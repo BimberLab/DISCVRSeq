@@ -1,35 +1,106 @@
-RefName	TotalReads	ReasonForFailure
-Mamu-A2*05:04:01	1	Mismatches
-Mamu-E*01:17	1	Mismatches
-Mamu-E*01:19	1	Mismatches
-Mamu-B*074:01	1	Mismatches
-Mamu-B*011:01	14	Mismatches
-Mamu-F*01:02	1	Mismatches
-Mamu-B*030:01	24	Mismatches
-Mamu-B*013:01	1	Mismatches
-Mamu-F*01:03	1	Mismatches
-Mamu-KIR2DL04*00101	1	Mismatches
-Mamu-B*017:04	1	Mismatches
-Mamu-B*030:04	1	Mismatches
-Mamu-F*01:04	1	Mismatches
-Mamu-B*069:01_exon2-3	1	Mismatches
-Mamu-B*030:02	2	Mismatches
-Mamu-F*01:05	1	Mismatches
-Mamu-DPB1*18	3	Mismatches
-Mamu-B*048:03	2	Mismatches
-Mamu-B*048:02	3	Mismatches
-Mamu-E*01:05	27	Mismatches
-Mamu-A3*13:03	81	Mismatches
-Mamu-DPB1*10	4	Mismatches
-Mamu-B*019:02	1	Mismatches
-Mamu-B*004:01	4	Mismatches
-Mamu-B*002:01	3	Mismatches
-Mamu-AG*02:01:02	1	Mismatches
-Mamu-KIR3DS01*00101	1212	Mismatches
-Mamu-AG*03:01:01	1	Mismatches
-Mamu-B*037:02	1	Mismatches
-Mamu-B*005:01	9	Mismatches
-Mamu-DPB1*04	1	Mismatches
-Mamu-AG*01:01	1	Mismatches
-Mamu-AG*03:02	1	Mismatches
-Mamu-B*074:02-V1	3	Mismatches
+RefName	TotalReadsForHit	ReasonForFailure	PercentOfTotal	PercentOfTotalIncludingUnmapped	TotalReadsIncludingUnmapped
+Mamu-A2*05:04:01	1	Mismatches:2	0.000	0.000	11669
+Mamu-A2*05:04:01	1	Mismatches:3	0.000	0.000	11669
+Mamu-E*01:17	1	Mismatches:2	0.000	0.000	11669
+Mamu-E*01:19	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*074:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*011:01	1	Mismatches:8	0.000	0.000	11669
+Mamu-B*011:01	1	Mismatches:9	0.000	0.000	11669
+Mamu-B*011:01	1	Mismatches:6	0.000	0.000	11669
+Mamu-B*011:01	6	Mismatches:1	0.001	0.001	11669
+Mamu-B*011:01	3	Mismatches:4	0.000	0.000	11669
+Mamu-B*011:01	4	Mismatches:2	0.000	0.000	11669
+Mamu-B*011:01	4	Mismatches:3	0.000	0.000	11669
+Mamu-F*01:02	1	Mismatches:1	0.000	0.000	11669
+Mamu-F*01:02	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*030:01	2	Mismatches:8	0.000	0.000	11669
+Mamu-B*030:01	3	Mismatches:9	0.000	0.000	11669
+Mamu-B*030:01	1	Mismatches:13	0.000	0.000	11669
+Mamu-B*030:01	2	Mismatches:6	0.000	0.000	11669
+Mamu-B*030:01	4	Mismatches:7	0.000	0.000	11669
+Mamu-B*030:01	7	Mismatches:1	0.001	0.001	11669
+Mamu-B*030:01	4	Mismatches:4	0.000	0.000	11669
+Mamu-B*030:01	1	Mismatches:5	0.000	0.000	11669
+Mamu-B*030:01	8	Mismatches:2	0.001	0.001	11669
+Mamu-B*030:01	2	Mismatches:3	0.000	0.000	11669
+Mamu-B*030:01	2	Mismatches:11	0.000	0.000	11669
+Mamu-B*030:01	1	Mismatches:12	0.000	0.000	11669
+Mamu-B*030:01	1	Mismatches:10	0.000	0.000	11669
+Mamu-B*013:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-F*01:03	1	Mismatches:1	0.000	0.000	11669
+Mamu-KIR2DL04*00101	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*017:04	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*017:04	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*030:04	1	Mismatches:1	0.000	0.000	11669
+Mamu-F*01:04	1	Mismatches:2	0.000	0.000	11669
+Mamu-F*01:04	1	Mismatches:3	0.000	0.000	11669
+Mamu-B*069:01_exon2-3	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*069:01_exon2-3	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*030:02	2	Mismatches:1	0.000	0.000	11669
+Mamu-F*01:05	1	Mismatches:1	0.000	0.000	11669
+Mamu-F*01:05	1	Mismatches:3	0.000	0.000	11669
+Mamu-DPB1*18	2	Mismatches:1	0.000	0.000	11669
+Mamu-DPB1*18	1	Mismatches:4	0.000	0.000	11669
+Mamu-B*048:03	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*048:03	2	Mismatches:3	0.000	0.000	11669
+Mamu-B*048:02	1	Mismatches:8	0.000	0.000	11669
+Mamu-B*048:02	1	Mismatches:9	0.000	0.000	11669
+Mamu-B*048:02	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*048:02	2	Mismatches:5	0.000	0.000	11669
+Mamu-E*01:05	2	Mismatches:8	0.000	0.000	11669
+Mamu-E*01:05	1	Mismatches:9	0.000	0.000	11669
+Mamu-E*01:05	4	Mismatches:6	0.000	0.000	11669
+Mamu-E*01:05	1	Mismatches:7	0.000	0.000	11669
+Mamu-E*01:05	1	Mismatches:1	0.000	0.000	11669
+Mamu-E*01:05	2	Mismatches:11	0.000	0.000	11669
+Mamu-E*01:05	8	Mismatches:4	0.001	0.001	11669
+Mamu-E*01:05	2	Mismatches:12	0.000	0.000	11669
+Mamu-E*01:05	2	Mismatches:5	0.000	0.000	11669
+Mamu-E*01:05	4	Mismatches:2	0.000	0.000	11669
+Mamu-E*01:05	13	Mismatches:3	0.001	0.001	11669
+Mamu-E*01:05	1	Mismatches:10	0.000	0.000	11669
+Mamu-A3*13:03	75	Mismatches:1	0.007	0.006	11669
+Mamu-A3*13:03	2	Mismatches:4	0.000	0.000	11669
+Mamu-A3*13:03	1	Mismatches:5	0.000	0.000	11669
+Mamu-A3*13:03	20	Mismatches:2	0.002	0.002	11669
+Mamu-A3*13:03	9	Mismatches:3	0.001	0.001	11669
+Mamu-DPB1*10	2	Mismatches:1	0.000	0.000	11669
+Mamu-DPB1*10	1	Mismatches:2	0.000	0.000	11669
+Mamu-DPB1*10	1	Mismatches:3	0.000	0.000	11669
+Mamu-B*019:02	1	Mismatches:3	0.000	0.000	11669
+Mamu-B*004:01	1	Mismatches:8	0.000	0.000	11669
+Mamu-B*004:01	1	Mismatches:6	0.000	0.000	11669
+Mamu-B*004:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*004:01	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*004:01	2	Mismatches:3	0.000	0.000	11669
+Mamu-B*002:01	1	Mismatches:9	0.000	0.000	11669
+Mamu-B*002:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*002:01	1	Mismatches:2	0.000	0.000	11669
+Mamu-B*002:01	1	Mismatches:3	0.000	0.000	11669
+Mamu-AG*02:01:02	1	Mismatches:9	0.000	0.000	11669
+Mamu-AG*02:01:02	1	Mismatches:11	0.000	0.000	11669
+Mamu-KIR3DS01*00101	2	Mismatches:8	0.000	0.000	11669
+Mamu-KIR3DS01*00101	4	Mismatches:9	0.000	0.000	11669
+Mamu-KIR3DS01*00101	15	Mismatches:6	0.001	0.001	11669
+Mamu-KIR3DS01*00101	5	Mismatches:7	0.000	0.000	11669
+Mamu-KIR3DS01*00101	991	Mismatches:1	0.096	0.085	11669
+Mamu-KIR3DS01*00101	43	Mismatches:4	0.004	0.004	11669
+Mamu-KIR3DS01*00101	15	Mismatches:5	0.001	0.001	11669
+Mamu-KIR3DS01*00101	268	Mismatches:2	0.026	0.023	11669
+Mamu-KIR3DS01*00101	110	Mismatches:3	0.011	0.009	11669
+Mamu-KIR3DS01*00101	5	Mismatches:10	0.000	0.000	11669
+Mamu-AG*03:01:01	1	Mismatches:11	0.000	0.000	11669
+Mamu-AG*03:01:01	1	Mismatches:10	0.000	0.000	11669
+Mamu-B*037:02	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*005:01	1	Mismatches:8	0.000	0.000	11669
+Mamu-B*005:01	2	Mismatches:9	0.000	0.000	11669
+Mamu-B*005:01	1	Mismatches:7	0.000	0.000	11669
+Mamu-B*005:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*005:01	2	Mismatches:2	0.000	0.000	11669
+Mamu-B*005:01	6	Mismatches:3	0.001	0.001	11669
+Mamu-B*005:01	1	Mismatches:10	0.000	0.000	11669
+Mamu-DPB1*04	1	Mismatches:1	0.000	0.000	11669
+Mamu-AG*01:01	1	Mismatches:1	0.000	0.000	11669
+Mamu-AG*03:02	1	Mismatches:1	0.000	0.000	11669
+Mamu-B*074:02-V1	2	Mismatches:1	0.000	0.000	11669
+Mamu-B*074:02-V1	1	Mismatches:2	0.000	0.000	11669
