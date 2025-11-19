@@ -1,7 +1,6 @@
 package com.github.discvrseq.walkers;
 
 import com.github.discvrseq.tools.DiscvrSeqDevProgramGroup;
-import com.github.discvrseq.tools.DiscvrSeqProgramGroup;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.util.IOUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -282,38 +281,52 @@ public class ImmunoGenotyper extends ReadWalker {
         Path mismatchFile = IOUtils.getPath(outPrefix + MISMATCH_EXTENSION);
         IOUtil.assertFilesAreWritable(Arrays.asList(mismatchFile.toFile()));
         try (PrintWriter outWriter = new PrintWriter(IOUtil.openFileForBufferedUtf8Writing(mismatchFile.toFile()))){
-            outWriter.println(StringUtils.join(Arrays.asList("RefName", "TotalReads", "ReasonForFailure"), "\t"));
+            outWriter.println(StringUtils.join(Arrays.asList("RefName", "TotalReadsForHit", "ReasonForFailure", "PercentOfTotal", "PercentOfTotalIncludingUnmapped", "TotalReadsIncludingUnmapped"), "\t"));
             for (String refName : refTracker.mismatchMap.keySet()){
                 AlignmentMismatch am = refTracker.mismatchMap.get(refName);
-                outWriter.println(StringUtils.join(Arrays.asList(
-                    refName,
-                    String.valueOf(am.totalReads),
-                    StringUtils.join(am.reasonsForFailure, ",")
-                ), "\t"));
+
+                for (String reason : am.reasonsForFailure.keySet()) {
+                    long totalReads = am.reasonsForFailure.get(reason);
+                    Double pct = totalReads / (double) refTracker.readPairsWithHits;
+                    Double pct2 = totalReads / (double) (refTracker.readPairsWithHits + refTracker.readPairsNoHits);
+
+                    outWriter.println(StringUtils.join(Arrays.asList(
+                            refName,
+                            String.valueOf(totalReads),
+                            reason,
+                            numberFormat.format(pct),
+                            numberFormat.format(pct2),
+                            (refTracker.readPairsWithHits + refTracker.readPairsNoHits)
+                    ), "\t"));
+                }
+
             }
         }
 
         return super.onTraversalSuccess();
     }
 
-    private class AlignmentMismatch {
+    private static class AlignmentMismatch {
         String refName;
-        int totalReads = 0;
-        Set<String> reasonsForFailure = new HashSet<>();
+
+        Map<String, Long> reasonsForFailure = new HashMap<>();
 
         AlignmentMismatch(String refName){
             this.refName = refName;
         }
 
         private void addRead(String reason){
-            totalReads++;
-            reasonsForFailure.add(reason);
+            if (!reasonsForFailure.containsKey(reason)){
+                reasonsForFailure.put(reason, 0L);
+            }
+
+            reasonsForFailure.put(reason, reasonsForFailure.get(reason) + 1);
         }
     }
 
     private class ReferenceMatchTracker {
         private Map<String, HitSet> hitMap = new HashMap<>();
-        private Map<String, AlignmentMismatch> mismatchMap = new HashMap<>();
+        private final Map<String, AlignmentMismatch> mismatchMap = new HashMap<>();
         private int readPairsWithHits = 0;
         private int readPairsNoHits = 0;
         private int totalReadsFailedForMapq = 0;
@@ -344,18 +357,20 @@ public class ImmunoGenotyper extends ReadWalker {
                     totalReadsFailedForMapq++;
                 }
 
-                if (tracker.shortAlignments.size() > 0){
+                if (!tracker.shortAlignments.isEmpty()){
                     totalReadsFailedForLength++;
                 }
 
-                if (tracker.mismatchAlignments.size() > 0){
+                if (!tracker.mismatchAlignments.isEmpty()){
                     totalAlignmentsFailedForMismatch++;
-                    for (String refName : tracker.mismatchAlignments){
-                        if (!mismatchMap.containsKey(refName)){
-                            mismatchMap.put(refName, new AlignmentMismatch(refName));
-                        }
+                    for (int nm : tracker.mismatchAlignments.keySet()){
+                        for (String refName : tracker.mismatchAlignments.get(nm)) {
+                            if (!mismatchMap.containsKey(refName)) {
+                                mismatchMap.put(refName, new AlignmentMismatch(refName));
+                            }
 
-                        mismatchMap.get(refName).addRead("Mismatches");
+                            mismatchMap.get(refName).addRead("Mismatches:" + nm);
+                        }
                     }
                 }
 
@@ -389,7 +404,7 @@ public class ImmunoGenotyper extends ReadWalker {
         private Map<Integer, Set<String>> forwardPerfectHits = new HashMap<>();
         private Map<Integer, Set<String>> reversePerfectHits = new HashMap<>();
         private int lowMapqAlignments = 0;
-        private Set<String> mismatchAlignments = new HashSet<>();
+        private Map<Integer, Set<String>> mismatchAlignments = new HashMap<>();
         private Set<String> shortAlignments = new HashSet<>();
 
         public ReadAlignmentsTracker(String activeReadName){
@@ -401,7 +416,11 @@ public class ImmunoGenotyper extends ReadWalker {
                 shortAlignments.add(record.getContig());
             }
             else if (nm > mismatchesTolerated){
-                mismatchAlignments.add(record.getContig());
+                if (!mismatchAlignments.containsKey(nm)) {
+                    mismatchAlignments.put(nm, new HashSet<>());
+                }
+
+                mismatchAlignments.get(nm).add(record.getContig());
             }
             else {
                 if (!forwardPerfectHits.containsKey(nm)){
