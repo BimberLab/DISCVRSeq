@@ -45,7 +45,7 @@ public class InsertDescriptor {
         return insertDownstreamRegion;
     }
 
-    public @NotNull List<SequenceDescriptor> getInternalPrimers() {
+    public List<SequenceDescriptor> getInternalPrimers() {
         return internalPrimers == null ? Collections.emptyList() : internalPrimers;
     }
 
