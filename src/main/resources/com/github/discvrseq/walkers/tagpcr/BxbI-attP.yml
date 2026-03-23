@@ -3,7 +3,7 @@ junctions:
   - name: BxbI-attP-Up
     searchStrings: [ GGTTTGTCTGGTCAACCACCGCG ]
     invertHitOrientation: false
-    offset: 2
+    offset: 0
   - name: BxbI-attP-Down
     searchStrings: [ GGTTTGTACCGTACACCACTGAG ]
     invertHitOrientation: true
