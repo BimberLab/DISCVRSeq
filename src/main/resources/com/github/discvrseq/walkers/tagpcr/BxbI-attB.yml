@@ -1,0 +1,17 @@
+name: BxbI-attB
+junctions:
+  - name: BxbI-attB-Up
+    searchStrings: [ GGCTTGTCGACGACGGCG ]
+    invertHitOrientation: false
+    offset: 2
+  - name: BxbI-attB-Down
+    searchStrings: [ ATGATCCTGACGACGGAG ]
+    invertHitOrientation: true
+    offset: 0
+insertUpstreamRegion:
+  name: BxbI-attB-Up
+  sequence: AACTATAACGGTCCTAAGGTAGCGAAGGCTTGTCGACGACGGCG
+insertDownstreamRegion:
+  name: BxbI-attB-Down
+  sequence: CATTTCATTACCTCTTTCTCCGCACCCGACATAGATATGATCCTGACGACGGAG
+backboneSearchStrings: [  ]
