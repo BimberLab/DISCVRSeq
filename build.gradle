@@ -8,7 +8,7 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.gradleup.shadow" version "8.3.3"    //used to build the shadow and sparkJars
+    id "com.gradleup.shadow" version "9.3.0"    //used to build the shadow and sparkJars
     id 'com.palantir.git-version' version '3.1.0' //version helper
 }
 
@@ -49,7 +49,9 @@ configurations {
     }
 }
 
-mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
+application {
+    mainClass = "com.github." + rootProject.name.toLowerCase() + ".Main"
+}
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
 final gatkVersion = '4.6.2.0'
@@ -211,7 +213,7 @@ tasks.withType(Jar).configureEach {
     manifest {
         attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
                 'Implementation-Version': archiveVersion,
-                'Main-Class': mainClassName,
+                'Main-Class': application.mainClass.get(),
                 'GATK-Version': gatkVersion,
                 'htsjdk-Version': htsjdkVersion,
                 'Multi-Release': 'true',
@@ -340,7 +342,7 @@ test {
     testJVMAddOpens.addAll(testAddOpens);
     final testConfigurationJVMArgs = testJVMAddOpens.stream()
             .flatMap(openSpec -> ['--add-opens', openSpec].stream())
-            .toList()
+            .collect(Collectors.toCollection(ArrayList::new))
     // add in any other required args
     testConfigurationJVMArgs.add('-Dio.netty.tryReflectionSetAccessible=true')
     jvmArgs = testConfigurationJVMArgs
