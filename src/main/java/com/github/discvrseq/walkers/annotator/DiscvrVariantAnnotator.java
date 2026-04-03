@@ -93,10 +93,10 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
         public final GenotypeConcordanceArgumentCollection genotypeConcordanceArgumentCollection = new GenotypeConcordanceArgumentCollection();
 
         @ArgumentCollection
-        public MendelianViolationArgumentCollection mendelianViolationArgumentCollection = new MendelianViolationArgumentCollection();
+        public final MendelianViolationArgumentCollection mendelianViolationArgumentCollection = new MendelianViolationArgumentCollection();
 
         @ArgumentCollection
-        public RefAlleleFrequencyArgumentCollection refAlleleFrequencyArgumentCollection = new RefAlleleFrequencyArgumentCollection();
+        public final RefAlleleFrequencyArgumentCollection refAlleleFrequencyArgumentCollection = new RefAlleleFrequencyArgumentCollection();
 
         public DiscvrAnnotationPluginDescriptor()
         {
