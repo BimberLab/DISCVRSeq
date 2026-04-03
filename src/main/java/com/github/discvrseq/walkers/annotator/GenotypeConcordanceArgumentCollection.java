@@ -6,7 +6,13 @@ import org.broadinstitute.hellbender.engine.FeatureInput;
 import org.broadinstitute.hellbender.engine.FeatureManager;
 import org.broadinstitute.hellbender.exceptions.UserException;
 
-public class GenotypeConcordanceArgumentCollection {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class GenotypeConcordanceArgumentCollection implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Argument(doc="Reference genotypes VCF", fullName = "reference-genotypes-vcf", shortName = "rg", optional = true)
     public FeatureInput<VariantContext> referenceVcf = null;
 

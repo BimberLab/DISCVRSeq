@@ -6,7 +6,13 @@ import org.broadinstitute.hellbender.engine.FeatureInput;
 import org.broadinstitute.hellbender.engine.FeatureManager;
 import org.broadinstitute.hellbender.exceptions.UserException;
 
-public class RefAlleleFrequencyArgumentCollection {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class RefAlleleFrequencyArgumentCollection implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public FeatureManager featureManager = null;
 
     public static interface UsesRefAlleleFrequencyArgumentCollection {

@@ -11,6 +11,7 @@ import org.broadinstitute.hellbender.cmdline.GATKPlugin.GATKAnnotationPluginDesc
 import org.broadinstitute.hellbender.tools.walkers.annotator.Annotation;
 import org.broadinstitute.hellbender.tools.walkers.annotator.VariantAnnotator;
 
+import java.io.Serial;
 import java.util.*;
 
 /**
@@ -87,6 +88,7 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
 
     public static class DiscvrAnnotationPluginDescriptor extends GATKAnnotationPluginDescriptor
     {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @ArgumentCollection
