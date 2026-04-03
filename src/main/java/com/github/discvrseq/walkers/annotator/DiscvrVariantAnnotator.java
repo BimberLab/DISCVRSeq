@@ -90,7 +90,7 @@ public class DiscvrVariantAnnotator extends VariantAnnotator {
         private static final long serialVersionUID = 1L;
 
         @ArgumentCollection
-        public GenotypeConcordanceArgumentCollection genotypeConcordanceArgumentCollection = new GenotypeConcordanceArgumentCollection();
+        public final GenotypeConcordanceArgumentCollection genotypeConcordanceArgumentCollection = new GenotypeConcordanceArgumentCollection();
 
         @ArgumentCollection
         public MendelianViolationArgumentCollection mendelianViolationArgumentCollection = new MendelianViolationArgumentCollection();
