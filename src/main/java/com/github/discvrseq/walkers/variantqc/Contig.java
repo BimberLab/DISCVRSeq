@@ -23,25 +23,25 @@ public class Contig extends VariantStratifier {
     public Contig(VariantEvalEngine engine, int maxContigs, List<String> contigsToRetain) {
         super(engine);
 
-        states.addAll(getContigNames(maxContigs, contigsToRetain));
+        states.addAll(getContigNames(maxContigs, contigsToRetain, engine));
         states.add("all");
     }
 
     /**
      * @return The list of contig names to be traversed, preferentially taking user supplied intervals, but otherwise defaulting to driving variants
      */
-    private Set<String> getContigNames(int maxContigs, List<String> contigsToRetain) {
+    private Set<String> getContigNames(int maxContigs, List<String> contigsToRetain, VariantEvalEngine engine) {
         if (_contigNames == null) {
-            final SAMSequenceDictionary dict = getEngine().getSequenceDictionaryForDrivingVariants();
+            final SAMSequenceDictionary dict = engine.getSequenceDictionaryForDrivingVariants();
             if (dict == null) {
                 throw new GATKException("Must provide a sequence dictionary, either for the genome FASTA or in the VCF header");
             }
 
             final Set<String> contigs = new LinkedHashSet<>();
-            if (getEngine().getTraversalIntervals() == null) {
+            if (engine.getTraversalIntervals() == null) {
                 dict.getSequences().stream().map(SAMSequenceRecord::getSequenceName).forEach(contigs::add);
             } else {
-                getEngine().getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
+                engine.getTraversalIntervals().stream().map(SimpleInterval::getContig).forEach(contigs::add);
                 contigs.forEach(contig -> {
                     if (dict.getSequence(contig) == null) {
                         throw new GATKException("The intervals used for this job contain a contig not present in the sequence dictionary: " + contig);

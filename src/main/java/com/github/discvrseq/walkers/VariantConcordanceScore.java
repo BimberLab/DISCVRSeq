@@ -20,6 +20,7 @@ import org.broadinstitute.hellbender.utils.SimpleInterval;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serial;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -253,7 +254,8 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
         return (VariantConcordanceScoreArgumentCollection)multiVariantInputArgumentCollection;
     }
 
-    private static final class VariantConcordanceScoreArgumentCollection extends MultiVariantInputArgumentCollection {
+    public static final class VariantConcordanceScoreArgumentCollection extends MultiVariantInputArgumentCollection {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @Argument(fullName = StandardArgumentDefinitions.VARIANT_LONG_NAME, shortName = StandardArgumentDefinitions.VARIANT_SHORT_NAME,
@@ -261,7 +263,7 @@ public class VariantConcordanceScore extends ExtendedMultiVariantWalkerGroupedOn
         public FeatureInput<VariantContext> inputVariants;
 
         @Argument(fullName = "ref-sites", shortName = "rs", doc = "VCF file containing sites to test.  Must be uniquely named", optional = false)
-        public List<FeatureInput<VariantContext>> referenceFiles = new ArrayList<>();
+        public transient List<FeatureInput<VariantContext>> referenceFiles = new ArrayList<>();
 
         @Override
         public List<GATKPath> getDrivingVariantPaths() {

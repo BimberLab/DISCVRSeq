@@ -13,7 +13,7 @@ public class RefAlleleFrequencyArgumentCollection implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public FeatureManager featureManager = null;
+    public transient FeatureManager featureManager = null;
 
     public static interface UsesRefAlleleFrequencyArgumentCollection {
         public void setArgumentCollection(RefAlleleFrequencyArgumentCollection args);

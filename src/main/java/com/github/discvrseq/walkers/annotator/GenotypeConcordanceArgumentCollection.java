@@ -26,5 +26,5 @@ public class GenotypeConcordanceArgumentCollection implements Serializable {
         }
     }
 
-    public FeatureManager featureManager = null;
+    public transient FeatureManager featureManager = null;
 }
