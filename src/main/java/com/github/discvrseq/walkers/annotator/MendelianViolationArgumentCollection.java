@@ -5,7 +5,13 @@ import org.broadinstitute.hellbender.engine.GATKPath;
 import org.broadinstitute.hellbender.utils.samples.PedigreeValidationType;
 import org.broadinstitute.hellbender.utils.samples.SampleDB;
 
-public class MendelianViolationArgumentCollection {
+import java.io.Serial;
+import java.io.Serializable;
+
+public class MendelianViolationArgumentCollection implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Argument(fullName = "pedigreeValidationType", shortName = "pedValidationType", doc="The strictness for validating the pedigree.  Can be either STRICT or SILENT.  Default is STRICT", optional=true)
     public PedigreeValidationType pedigreeValidationType = PedigreeValidationType.STRICT;
 

@@ -23,12 +23,6 @@ import htsjdk.samtools.util.CigarUtil;
 import java.util.Iterator;
 
 /**
- * User: bbimber
- * Date: 8/9/12
- * Time: 9:34 PM
- */
-
-/**
  * Iterator that transverses the elements of a CIGAR string, accumulating information at each position of the alignment.
  *
  */

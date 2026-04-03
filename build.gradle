@@ -8,7 +8,7 @@ buildscript {
 plugins {
     id "java"
     id "application"
-    id "com.gradleup.shadow" version "8.3.3"    //used to build the shadow and sparkJars
+    id "com.gradleup.shadow" version "9.3.0"    //used to build the shadow and sparkJars
     id 'com.palantir.git-version' version '3.1.0' //version helper
 }
 
@@ -49,13 +49,15 @@ configurations {
     }
 }
 
-mainClassName = "com.github." + rootProject.name.toLowerCase() + ".Main"
+application {
+    mainClass = "com.github." + rootProject.name.toLowerCase() + ".Main"
+}
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
 final gatkVersion = '4.6.2.0'
 final htsjdkVersion = System.getProperty('htsjdk.version','4.2.0')
 final barclayVersion = System.getProperty('barclay.version','5.0.0')
-final luceneVersion = System.getProperty('lucene.version','9.12.3')
+final luceneVersion = System.getProperty('lucene.version','10.3.2')
 final testNGVersion = '7.0.0'
 final googleCloudNioVersion = '0.127.8'
 final log4j2Version = System.getProperty('log4j2Version', '2.24.1')
@@ -106,9 +108,9 @@ dependencies {
 
     implementation group: 'com.milaboratory', name: 'milib', version: '2.1.0'
 
-    implementation 'com.opencsv:opencsv:5.9'
+    implementation 'com.opencsv:opencsv:5.12.0'
 
-    implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
 
     implementation group: 'commons-io', name: 'commons-io', version: '2.15.1'
 
@@ -117,9 +119,9 @@ dependencies {
 
     implementation 'org.biojava:biojava-core:7.1.0'
 
-    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.12.0'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.21.2'
 
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7.1'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.21.2'
 
     implementation 'org.apache.logging.log4j:log4j-api:' + log4j2Version
     implementation 'org.apache.logging.log4j:log4j-core:' + log4j2Version
@@ -211,7 +213,7 @@ tasks.withType(Jar).configureEach {
     manifest {
         attributes 'Implementation-Title': 'DISCVR-seq Toolkit',
                 'Implementation-Version': archiveVersion,
-                'Main-Class': mainClassName,
+                'Main-Class': application.mainClass.get(),
                 'GATK-Version': gatkVersion,
                 'htsjdk-Version': htsjdkVersion,
                 'Multi-Release': 'true',
@@ -340,7 +342,7 @@ test {
     testJVMAddOpens.addAll(testAddOpens);
     final testConfigurationJVMArgs = testJVMAddOpens.stream()
             .flatMap(openSpec -> ['--add-opens', openSpec].stream())
-            .toList()
+            .collect(Collectors.toCollection(ArrayList::new))
     // add in any other required args
     testConfigurationJVMArgs.add('-Dio.netty.tryReflectionSetAccessible=true')
     jvmArgs = testConfigurationJVMArgs

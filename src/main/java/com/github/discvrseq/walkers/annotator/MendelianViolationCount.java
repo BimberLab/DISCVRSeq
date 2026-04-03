@@ -191,7 +191,8 @@ public class MendelianViolationCount extends PedigreeAnnotation implements InfoF
         private static final long serialVersionUID = 1L;
 
         private Genotype _orig = null;
-        private final List<Allele> _alleles = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
+
+        private transient final List<Allele> _alleles = Arrays.asList(Allele.NO_CALL, Allele.NO_CALL);
 
         public NoCallGenotype(String sampleName)
         {

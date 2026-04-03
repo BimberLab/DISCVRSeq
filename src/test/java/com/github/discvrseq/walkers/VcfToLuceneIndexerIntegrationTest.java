@@ -109,19 +109,19 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             MultiFieldQueryParser queryParser = new MultiFieldQueryParser(new String[]{"contig", "start", "PURPOSE", "genomicPosition", "Samples"}, new StandardAnalyzer());
 
             TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 37L);
+            Assert.assertEquals(topDocs.totalHits.value(), 37L);
 
             topDocs = indexSearcher.search(new TermQuery(new Term("contig", "1")), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 37L);
+            Assert.assertEquals(topDocs.totalHits.value(), 37L);
 
             topDocs = indexSearcher.search(queryParser.parse("PURPOSE:=diff_pos_same_ref_same_alt"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 3000), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 10L);
+            Assert.assertEquals(topDocs.totalHits.value(), 10L);
 
             topDocs = indexSearcher.search(LongPoint.newRangeQuery("genomicPosition", 0, 3000), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 10L);
+            Assert.assertEquals(topDocs.totalHits.value(), 10L);
         }
     }
 
@@ -199,7 +199,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where contig == 1.
             TopDocs topDocs = indexSearcher.search(queryParser.parse("contig:=1"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 6L);
+            Assert.assertEquals(topDocs.totalHits.value(), 6L);
 
             ScoreDoc[] scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -212,7 +212,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where REFFIELD == G.
             topDocs = indexSearcher.search(queryParser.parse("REFFIELD:G"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -225,7 +225,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where start >= 0, <= 65, with the rangeQuery function.
             topDocs = indexSearcher.search(IntPoint.newRangeQuery("start", 0, 65), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -239,7 +239,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where HaplotypeScore == 12, with query syntax.
             topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[12.0 TO 12.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -252,7 +252,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where HaplotypeScore <= 10.0, with the query syntax.
             topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[* TO 10.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -265,7 +265,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where ref == T.
             topDocs = indexSearcher.search(queryParser.parse("ref:T"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 2L);
+            Assert.assertEquals(topDocs.totalHits.value(), 2L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -278,7 +278,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where UB == 1.0.
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[1.0 TO 1.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -291,7 +291,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where UB >= 1.0.
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[1.0 TO *]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -304,7 +304,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where UB > 1.0 OR UB == 1.0.
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[1.0000001 TO *] OR UB:[1.0 TO 1.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -317,15 +317,15 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where UB < 0.99 (should be none).
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[* TO 0.99]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 0L);
+            Assert.assertEquals(topDocs.totalHits.value(), 0L);
 
             // Documents where UB < 0.99 AND UB == 1.0 (should be none).
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[* TO 0.99] AND UB:[1.0 TO 1.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 0L);
+            Assert.assertEquals(topDocs.totalHits.value(), 0L);
 
             // Documents where UB < 0.99 OR UB == 1.0.
             topDocs = indexSearcher.search(numericQueryParser.parse("UB:[* TO 0.99] OR UB:[1.0 TO 1.0]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -338,7 +338,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample2 is variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:Sample2"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 2L);
+            Assert.assertEquals(topDocs.totalHits.value(), 2L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -351,7 +351,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample2 is not variable. (All documents, minus the Sample2's.)
             topDocs = indexSearcher.search(queryParser.parse("*:* -variableSamples:Sample2"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 4L);
+            Assert.assertEquals(topDocs.totalHits.value(), 4L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -364,7 +364,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample1 and Sample3 are variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample1 AND Sample3)"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 2L);
+            Assert.assertEquals(topDocs.totalHits.value(), 2L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -377,7 +377,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample2 and Sample3 are variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample2 AND Sample3)"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -390,7 +390,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample2 or Sample3 are variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample2 OR Sample3)"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -404,7 +404,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             // Documents where Sample1 and Sample3 are variable, and where Sample2 is NOT variable.
             // + requires that variableSamples exists, otherwise we return documents with no variableSamples field as well.
             topDocs = indexSearcher.search(queryParser.parse("*:* +variableSamples:(Sample1 AND Sample3) -variableSamples:Sample2"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -417,7 +417,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample1 and Sample3 are variable, and where Sample2 is NOT variable. Tests for case insensitivity.
             topDocs = indexSearcher.search(queryParser.parse("*:* +variableSamples:(sample1 AND sample3) -variableSamples:sample2"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -430,7 +430,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where Sample1, Sample2, OR Sample3 are variable.
             topDocs = indexSearcher.search(queryParser.parse("variableSamples:(Sample1 OR Sample2 OR Sample3)"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -443,7 +443,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents with none of (Sample1, Sample2, Sample3).
             topDocs = indexSearcher.search(queryParser.parse("*:* -variableSamples:(Sample1 OR Sample2 OR Sample3)"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -456,7 +456,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents that don't contain one of (Sample1, Sample2, Sample3)
             topDocs = indexSearcher.search(queryParser.parse("*:* -variableSamples:Sample1 OR -variableSamples:Sample2 OR -variableSamples:Sample3"), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 3L);
+            Assert.assertEquals(topDocs.totalHits.value(), 3L);
 
             scoreDocs = topDocs.scoreDocs;
             for (ScoreDoc scoreDoc : scoreDocs) {
@@ -469,7 +469,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
 
             // Documents where HaplotypeScore == 0.12, with query syntax.
             topDocs = indexSearcher.search(numericQueryParser.parse("HaplotypeScore:[0.12 TO 0.12]", ""), 10);
-            Assert.assertEquals(topDocs.totalHits.value, 1L);
+            Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             // Top 50 hits are sorted by genomicPosition
             topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("genomicPosition_sort", SortField.Type.LONG)));

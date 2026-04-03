@@ -567,7 +567,7 @@ public class VariantQC extends MultiVariantWalkerGroupedOnStart {
                 throw new GATKException("Must provide a sequence dictionary, either for the genome FASTA or in the VCF header");
             }
 
-            this.engine = new ExtendedVariantEvalEngine(args, variantQC.features, variantQC.getTraversalIntervals(), dict, variantQC.getSamplesForVariants(), infoFields, variantQC.maxContigs, variantQC.contigsToRetain);
+            this.engine = ExtendedVariantEvalEngine.create(args, variantQC.features, variantQC.getTraversalIntervals(), dict, variantQC.getSamplesForVariants(), infoFields, variantQC.maxContigs, variantQC.contigsToRetain);
         }
     }
 
