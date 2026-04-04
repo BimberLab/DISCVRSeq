@@ -256,7 +256,7 @@ tasks.register('sourcesJar', Jar) {
 tasks.register('copyShadowJar', Copy) {
     dependsOn shadowJar
 
-    from(shadowJar.archivePath)
+    from(shadowJar.archiveFile)
     into "$buildDir/jars"
 
     doLast {
