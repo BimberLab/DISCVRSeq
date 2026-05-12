@@ -4,7 +4,7 @@ FROM eclipse-temurin:25
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-    && apt-get install -y wget ncbi-blast+ build-essential g++ cmake git-all \
+    && apt-get install -y wget ncbi-blast+ build-essential g++ cmake git-all gcc-12 g++-12 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -14,7 +14,7 @@ RUN cd / \
     && tar -xf v2.5.0.tar.gz \
     && rm v2.5.0.tar.gz \
     && cd /primer3-2.5.0/src \
-    && make
+    && make CC=gcc-12 CXX=g++-12
 
 ENV PATH="/primer3-2.5.0/src:${PATH}"
 
