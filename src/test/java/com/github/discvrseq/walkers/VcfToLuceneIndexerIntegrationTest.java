@@ -472,7 +472,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             Assert.assertEquals(topDocs.totalHits.value(), 1L);
 
             // Top 50 hits are sorted by genomicPosition
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("genomicPosition_sort", SortField.Type.LONG)));
+            topDocs = indexSearcher.search(MatchAllDocsQuery.INSTANCE, 6, new Sort(new SortField("genomicPosition_sort", SortField.Type.LONG)));
             Assert.assertEquals(6, topDocs.scoreDocs.length);
 
             int lastGenomicPosition = -1;
@@ -486,7 +486,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             }
 
             // Results are sorted by REFFIELD
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("REFFIELD_sort", SortField.Type.STRING)));
+            topDocs = indexSearcher.search(MatchAllDocsQuery.INSTANCE, 6, new Sort(new SortField("REFFIELD_sort", SortField.Type.STRING)));
             Assert.assertEquals(6, topDocs.scoreDocs.length);
 
             String lastRefField = null;
@@ -500,7 +500,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             }
 
             // Results are sorted by start
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("start_sort", SortField.Type.INT)));
+            topDocs = indexSearcher.search(MatchAllDocsQuery.INSTANCE, 6, new Sort(new SortField("start_sort", SortField.Type.INT)));
             Assert.assertEquals(6, topDocs.scoreDocs.length);
 
             int lastStart = -1;
@@ -512,7 +512,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             }
 
             // Results are sorted by HaplotypeScore
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, new Sort(new SortField("HaplotypeScore_sort", SortField.Type.DOUBLE)));
+            topDocs = indexSearcher.search(MatchAllDocsQuery.INSTANCE, 6, new Sort(new SortField("HaplotypeScore_sort", SortField.Type.DOUBLE)));
             Assert.assertEquals(6, topDocs.scoreDocs.length);
 
             float lastHaplotypeScore = -1.0f;
@@ -524,7 +524,7 @@ public class VcfToLuceneIndexerIntegrationTest extends BaseIntegrationTest {
             }
 
             // Results are sorted by genomicPosition
-            topDocs = indexSearcher.search(new MatchAllDocsQuery(), 6, Sort.INDEXORDER);
+            topDocs = indexSearcher.search(MatchAllDocsQuery.INSTANCE, 6, Sort.INDEXORDER);
             Assert.assertTrue(topDocs.scoreDocs.length > 0);
 
             lastGenomicPosition = -1;
