@@ -54,11 +54,11 @@ application {
 }
 
 //see this thread: https://github.com/broadinstitute/gatk/issues/2300#issuecomment-333627036
-final gatkVersion = '4.6.2.0'
-final htsjdkVersion = System.getProperty('htsjdk.version','4.2.0')
+final gatkVersion = '4.7.0.0'
+final htsjdkVersion = System.getProperty('htsjdk.version','5.0.0')
 final barclayVersion = System.getProperty('barclay.version','5.0.0')
 final luceneVersion = System.getProperty('lucene.version','10.5.0')
-final testNGVersion = '7.0.0'
+final testNGVersion = '7.7.0'
 final googleCloudNioVersion = '0.127.8'
 final log4j2Version = System.getProperty('log4j2Version', '2.24.1')
 
